@@ -438,7 +438,7 @@ app <- function() {
       }
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
-      if (length(ResultsState$all_data) == 1) {
+      if (length(ResultsState$all_data) <= 1) {
         return(NULL)
       }
       table_indices <- which(sapply(ResultsState$all_data, is.data.frame))
