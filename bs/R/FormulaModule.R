@@ -2,13 +2,10 @@ FormulaEditorUI <- function(id) {
   ui <- fluidPage(
     fluidRow(
       uiOutput(NS(id, "model")),
+      uiOutput(NS(id, "predefined_modelsUI")),
       column(
         width = 6,
-        div(
-          class = "model",
-          h3(class = "title", "Left Side of Statistical Model"),
-          uiOutput(NS(id, "colnames_dropdown"))
-        ),
+        uiOutput(NS(id, "colnames_dropdown")),
         br(),
         br(),
         br(),
@@ -26,28 +23,15 @@ FormulaEditorUI <- function(id) {
         ),
         uiOutput(NS(id, "glm_family_dropdown")),
         uiOutput(NS(id, "glm_link_fct_dropdown")),
+        uiOutput(NS(id, "optim_predefined_equations")),
         uiOutput(NS(id, "optim_boundaries"))
       ),
       column(
         width = 6,
-        div(
-          class = "model",
-          div(
-            style = "position: relative",
-            actionButton(
-              NS(id, "formula_docu"),
-              label = NULL,
-              icon = icon("question-circle")
-            )
-          ),
-          uiOutput(NS(id, "colnames_list")),
-          br(),
-          uiOutput(NS(id, "buttons")),
-          div(
-            textAreaInput(NS(id, "editable_code"), "Right side of model:", value = "", rows = 12),
-            class = "boxed-output"
-          )
-        )
+        uiOutput(NS(id, "colnames_list")),
+        br(),
+        uiOutput(NS(id, "buttons")),
+        uiOutput(NS(id, "rhs"))
       )
     )
   )
@@ -60,6 +44,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     output[["buttons"]] <- renderUI({
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
+      if (input$model_type == "Optimization Model") {
+        req(input$PredefinedModels)
+        if(input$PredefinedModels != "free") return(NULL)
+      }
       button_list <- list(
         actionButton("FO-add", "+",
           class = "add-button",
@@ -98,6 +86,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     output[["colnames_list"]] <- renderUI({
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
+      if (input$model_type == "Optimization Model") {
+        req(input$PredefinedModels)
+        if(input$PredefinedModels != "free") return(NULL)
+      }
       colnames <- ""
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         colnames <- names(DataModelState$df)
@@ -116,6 +108,14 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       div(
         h3(class = "title", "Right Side of Statistical Model"),
         div(
+          style = "position: relative",
+          actionButton(
+            "FO-formula_docu",
+            label = NULL,
+            icon = icon("question-circle")
+          )
+        ),
+        div(
           do.call(tagList, button_list),
           class = "boxed-output"
         )
@@ -126,6 +126,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     output[["colnames_dropdown"]] <- renderUI({
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
+      if (input$model_type == "Optimization Model") {
+        req(input$PredefinedModels)
+        if(input$PredefinedModels != "free") return(NULL)
+      }
       colnames <- ""
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         colnames <- names(DataModelState$df)
@@ -135,6 +139,8 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
       tooltip <- "Select the dependent variable for your statistical model. This is the outcome you want to predict based on the independent variables."
       div(
+        class = "model",
+        h3(class = "title", "Left Side of Statistical Model"),
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -150,11 +156,154 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       )
     })
 
+    # Predefined models
+    output[["optim_predefined_equations"]] <- renderUI({
+      if (input$model_type == "Optimization Model") {
+        selectInput(inputId = "FO-PredefinedModels", "Available functions",
+          choices = c(
+            "Linear" = "linear",
+            "Log-linear" = "log_linear",
+            "Michaelis-Menten" = "michaelis_menten",
+            "One-site binding" = "one_site_binding",
+            "Two-hot binding kinetics" = "two_hot_binding",
+            "Free formula (custom)" = "free"
+          ),
+          selectize = FALSE
+        )
+      }
+    })
+
+    # Create right site
+    output[["rhs"]] <- renderUI({
+      req(!is.null(DataModelState$df))
+      req(is.data.frame(DataModelState$df))
+      if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
+        div(
+          textAreaInput("FO-editable_code", "Right side of model:", value = "", rows = 12),
+          class = "boxed-output"
+        )
+      } else if (input$model_type == "Optimization Model") {
+        req(input$PredefinedModels)
+        if(input$PredefinedModels == "free") {
+          div(
+            textAreaInput("FO-editable_code", "Right side of model:", value = "", rows = 12),
+            class = "boxed-output"
+          )
+        }
+      }
+    })
+    # Create predefined model UIs
+    output[["predefined_modelsUI"]] <- renderUI({
+      req(!is.null(DataModelState$df))
+      req(is.data.frame(DataModelState$df))
+      if (input$model_type == "Optimization Model") {
+        req(input$PredefinedModels)
+        if (input$PredefinedModels == "free") return()
+        indices <- sapply(DataModelState$df, is.numeric) |> which()
+        colnames <- names(DataModelState$df)[indices]
+        element_list <- list(
+          div(
+            style = "position: relative",
+            actionButton(
+              "FO-formula_docu",
+              label = NULL,
+              icon = icon("question-circle")
+            )
+          )
+        )
+        if (input$PredefinedModels == "linear") {
+          element_list[[length(element_list) + 1]] <- div(
+            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+            selectInput("FO-linear_lhs_var", label = NULL, choices = colnames, width = "125px"),
+            span(" = "),
+            textInput("FO-linear_slope", label = NULL, value = "Slope", width = "100px"),
+            span(" × "),
+            selectInput("FO-linear_x", label = NULL, choices = colnames, width = "125px"),
+            span(" + "),
+            textInput("FO-linear_intercept", label = NULL, value = "Intercept", width = "125px")
+          )
+        } else if (input$PredefinedModels == "log_linear") {
+          element_list[[length(element_list) + 1]] <- div(
+            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+            selectInput("FO-log_linear_lhs_var", label = NULL, choices = colnames, width = "125px"),
+            span(" = "),
+            textInput("FO-log_linear_slope", label = NULL, value = "Slope", width = "100px"),
+            span(" × log("),
+            selectInput("FO-log_linear_x", label = NULL, choices = colnames, width = "125px"),
+            span(") + "),
+            textInput("FO-log_linear_intercept", label = NULL, value = "Intercept", width = "125px")
+          )
+        } else if (input$PredefinedModels == "michaelis_menten") {
+          element_list[[length(element_list) + 1]] <- div(
+            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+            selectInput("FO-mm_lhs_var", label = NULL, choices = colnames, width = "125px"),
+            span(" = "),
+            textInput("FO-mm_vmax", label = NULL, value = "Vmax", width = "100px"),
+            span(" × "),
+            selectInput("FO-mm_x", label = NULL, choices = colnames, width = "125px"),
+            span(" / ("),
+            textInput("FO-mm_km", label = NULL, value = "Km", width = "100px"),
+            span(" + "),
+            selectInput("FO-mm_x2", label = NULL, choices = colnames, width = "125px"),
+            span(")")
+          )
+        } else if (input$PredefinedModels == "one_site_binding") {
+          element_list[[length(element_list) + 1]] <- div(
+            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+            selectInput("FO-binding_lhs_var", label = NULL, choices = colnames, width = "125px"),
+            span(" = "),
+            textInput("FO-binding_bmax", label = NULL, value = "Bmax", width = "100px"),
+            span(" × "),
+            selectInput("FO-binding_x", label = NULL, choices = colnames, width = "125px"),
+            span(" / ("),
+            textInput("FO-binding_kd", label = NULL, value = "Kd", width = "100px"),
+            span(" + "),
+            selectInput("FO-binding_x2", label = NULL, choices = colnames, width = "125px"),
+            span(")")
+          )
+        }  else if (input$PredefinedModels == "two_hot_binding") {
+          element_list[[length(element_list) + 1]] <- div(
+            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;",
+            div(
+              style = "display: flex; align-items: center; gap: 12px;",
+              selectInput("FO-hotbind_lhs_var", label = NULL, choices = colnames, width = "125px"),
+              span(" = ("),
+              selectInput("FO-hotbind_conc", label = NULL, choices = colnames, width = "125px"),
+              span(" × 1e-9 ) / ("),
+              selectInput("FO-hotbind_conc2", label = NULL, choices = colnames, width = "125px"),
+              span(" × 1e-9 + "),
+              textInput("FO-hotbind_koff", label = NULL, value = "koff", width = "80px"),
+              span(" / "),
+              textInput("FO-hotbind_kon", label = NULL, value = "kon", width = "80px"),
+              span(")")
+            ),
+            div(
+              style = "display: flex; align-items: center; gap: 12px;",
+              span(" × "),
+              textInput("FO-hotbind_bmax", label = NULL, value = "Bmax", width = "100px"),
+              span(" × (1 - exp(-("),
+              textInput("FO-hotbind_kon2", label = NULL, value = "kon", width = "80px"),
+              span(" × "),
+              selectInput("FO-hotbind_conc3", label = NULL, choices = colnames, width = "125px"),
+              span(" × 1e-9 + "),
+              textInput("FO-hotbind_koff2", label = NULL, value = "koff", width = "80px"),
+              span(") × "),
+              selectInput("FO-hotbind_time", label = NULL, choices = colnames, width = "125px"),
+              span("))")
+            )
+          )
+        }
+        div(
+          do.call(tagList, element_list),
+          class = "boxed-output"
+        )
+      }
+    })
+
+
     # If glm is choosen create family
     output[["glm_family_dropdown"]] <- renderUI({
-      if (input$model_type == "Linear") {
-        NULL
-      } else if (input$model_type == "Generalised Linear Model") {
+      if (input$model_type == "Generalised Linear Model") {
         selectInput(inputId = "FO-Family", "The distribution family which describes the residuals",
           c(
             "binomial" = "binomial",
@@ -173,9 +322,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     # If glm is choosen create link function
     output[["glm_link_fct_dropdown"]] <- renderUI({
       req(input$Family)
-      if (input$model_type == "Linear") {
-        NULL
-      } else if (input$model_type == "Generalised Linear Model") {
+      if (input$model_type == "Generalised Linear Model") {
         if (input[["Family"]] == "binomial") {
           selectInput("FO-Link_function", "The link function",
             c(
@@ -214,7 +361,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             selectize = FALSE
           )
         } else if (input[["Family"]] %in% c("quasi", "quasibinomial", "quasipoisson")) {
-          selectInput("FO-Link_function", "The link function", # TODO: requires better description
+          selectInput("FO-Link_function", "The link function",
             c(
               "identity" = "identity",
               "inverse" = "inverse",
@@ -310,8 +457,41 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       tryCatch({
         withCallingHandlers(
           expr = {
-            response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
-            right_site <- input[["editable_code"]]
+            response_var <- NULL
+            right_site <- NULL
+            if (input$model_type == "Optimization Model") {
+              if (input$PredefinedModels == "linear") {
+                response_var <- input[["linear_lhs_var"]]
+                right_site <- paste0(input[["linear_slope"]], "*", input[["linear_x"]], "+", input[["linear_intercept"]])
+              } else if (input$PredefinedModels == "log_linear") {
+                response_var <- input[["log_linear_lhs_var"]]
+                right_site <- paste0(input[["log_linear_slope"]], "*log(", input[["log_linear_x"]], ")+", input[["log_linear_intercept"]])
+              } else if (input$PredefinedModels == "michaelis_menten") {
+                response_var <- input[["mm_lhs_var"]]
+                right_site <- paste0( "(", input[["mm_vmax"]], "*", input[["mm_x"]], ") / (", input[["mm_km"]], "+", input[["mm_x2"]], ")")
+              } else if (input$PredefinedModels == "one_site_binding") {
+                response_var <- input[["binding_lhs_var"]]
+                right_site <- paste0( "(", input[["binding_bmax"]], "*", input[["binding_x"]], ") / (", input[["binding_kd"]], "+", input[["binding_x2"]], ")")
+              } else if (input$PredefinedModels == "two_hot_binding") {
+                response_var <- input[["hotbind_lhs_var"]]
+                conc <- input[["hotbind_conc"]]
+                conc2 <- input[["hotbind_conc2"]]
+                conc3 <- input[["hotbind_conc3"]]
+                koff <- input[["hotbind_koff"]]
+                kon <- input[["hotbind_kon"]]
+                bmax <- input[["hotbind_bmax"]]
+                time <- input[["hotbind_time"]]
+                first_term <- sprintf("((%s * 1e-9) / (%s * 1e-9 + %s / %s))", conc, conc2, koff, kon)
+                second_term <- sprintf("(1 - exp(-(%s * %s * 1e-9 + %s) * %s))", kon, conc3, koff, time)
+                right_site <- sprintf("%s * %s * %s", first_term, bmax, second_term)
+              } else if (input$PredefinedModels == "free") {
+                response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
+                right_site <- input[["editable_code"]]
+              }
+            } else {
+              response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
+              right_site <- input[["editable_code"]]
+            }
             cf <- create_formula_V1_2$new(response_var, right_site, DataModelState$df)
             cf$validate()
             model_latex <- NULL

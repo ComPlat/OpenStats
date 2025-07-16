@@ -1,18 +1,6 @@
 # TODO:
 # 1. the formula looks very strange as caption
 # 2. due to conversion to characters ggplot sorts the x axis labels not in increasing order
-# 3. Add several known formulas:
-#     - to do this create a drop down which states: free, linear, log-linear, ...
-#     - When choosing free the formula has to be defined in the text field
-#     - Otherwise a Drop down menu is shown which specifies the rhs.
-#       Linear: the user chooses y via dropdown as before. Than the user only chooses x via a drop down
-# 4. Import of several tables at once. I think that most users would like to import an excel file
-#    with several tables at once.
-#    - importing (hopefully this is possible) at least for csv files it works defentily (read everything and split the tables if empty space is detected)
-#    - add all tables to the result list
-#    - set the first detected table as active dataframe aka df
-# 5. Allow the user to set the active dataset. Simply showing a drop down with all data.frames which are found in the result list
-#    Thereby, one could load the calibration and the sample data at once.
 
 # Run optimization
 # ====================================================================================

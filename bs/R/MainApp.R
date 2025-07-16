@@ -433,6 +433,9 @@ app <- function() {
 
     # Observe tables
     output[["active_df"]] <- renderUI({
+      if (input$conditionedPanels == "DataWrangling") {
+        return()
+      }
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
       if (length(ResultsState$all_data) == 0) {
@@ -443,6 +446,7 @@ app <- function() {
       names <- names[table_indices]
       tooltip <- "Select the active dataset (the dataset with which you can work)"
       div(
+        class = "boxed-output",
         tags$label(
           "active dataset",
           class = "tooltip",
@@ -648,29 +652,68 @@ app <- function() {
           if (inherits(DataModelState$formula, "LinearFormula")) {
             div(
               class = "var-box-output",
-              p("Linear model"),
-              deparse(DataModelState$formula@formula)
+              fluidRow(
+                column(
+                  width = 6,
+                  p("Linear model"),
+                  deparse(DataModelState$formula@formula),
+                ),
+                column(
+                  width = 6,
+                  actionButton(
+                    "open_predictor_editor",
+                    "Open the prediction editor",
+                    title = "Open the prediction editor to apply a model to (new) data"
+                  )
+                )
+              )
             )
           } else if (inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
             div(
               class = "var-box-output",
-              p("Generalised Linear Model"),
-              deparse(DataModelState$formula@formula),
-              br(),
-              paste0("Family: ", deparse(DataModelState$formula@family)),
-              br(),
-              paste0("Link fct.: ", deparse(DataModelState$formula@link_fct))
+              fluidRow(
+                column(
+                  width = 6,
+                  p("Generalised Linear Model"),
+                  deparse(DataModelState$formula@formula),
+                  br(),
+                  paste0("Family: ", deparse(DataModelState$formula@family)),
+                  br(),
+                  paste0("Link fct.: ", deparse(DataModelState$formula@link_fct))
+                ),
+                column(
+                  width = 6,
+                  actionButton(
+                    "open_predictor_editor",
+                    "Open the prediction editor",
+                    title = "Open the prediction editor to apply a model to (new) data"
+                  )
+                )
+              )
             )
           } else if (inherits(DataModelState$formula, "OptimFormula")) {
             div(
               class = "var-box-output",
-              p("Optimization Model"),
-              deparse(DataModelState$formula@formula),
-              br(),
-              paste0("Lower boundary: ", deparse(DataModelState$formula@lower)),
-              paste0("Upper boundary: ", deparse(DataModelState$formula@upper)),
-              br(),
-              paste0("Seed: ", deparse(DataModelState$formula@seed))
+              fluidRow(
+                column(
+                  width = 6,
+                  p("Optimization Model"),
+                  deparse(DataModelState$formula@formula),
+                  br(),
+                  paste0("Lower boundary: ", deparse(DataModelState$formula@lower)),
+                  paste0("Upper boundary: ", deparse(DataModelState$formula@upper)),
+                  br(),
+                  paste0("Seed: ", deparse(DataModelState$formula@seed))
+                ),
+                column(
+                  width = 6,
+                  actionButton(
+                    "open_predictor_editor",
+                    "Open the prediction editor",
+                    title = "Open the prediction editor to apply a model to (new) data"
+                  )
+                )
+              )
             )
           } else {
             ""
