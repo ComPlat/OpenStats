@@ -8,13 +8,3 @@
 - [ ] Add everywhere cancel buttons see below an example:
 - [ ] Display the status once in MainApp.R; See the second example below
 
-```r
-observeEvent(input$cancel_btn, {
-  ResultsState$bg_task$cancel()
-})
-```
-
-```r
-output$status <- renderText({ ResultsState$bg_task$get_status() })
-```
-
