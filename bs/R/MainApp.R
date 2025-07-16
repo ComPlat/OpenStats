@@ -438,10 +438,13 @@ app <- function() {
       }
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
-      if (length(ResultsState$all_data) <= 1) {
+      if (length(ResultsState$all_data) == 0) {
         return(NULL)
       }
       table_indices <- which(sapply(ResultsState$all_data, is.data.frame))
+      if (length(table_indices) <= 1) {
+        return(NULL)
+      }
       names <- names(ResultsState$all_data)
       names <- names[table_indices]
       tooltip <- "Select the active dataset (the dataset with which you can work)"
