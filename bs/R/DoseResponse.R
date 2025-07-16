@@ -230,12 +230,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
       e <- try(
         {
           new_name <- paste0(ResultsState$counter + 1, " DoseResponse")
-          outliers <- list(DoseResponseState$outliers[[name]])
-          names(outliers) <- name
-          if (length(outliers[[name]]) == 0) {
-            outliers <- list(NULL)
-            names(outliers) <- name
-          }
+          outliers <- DoseResponseState$outliers[name]
           res <- run_dr(df, outliers, new_name)
           if (inherits(res, "try-error")) {
             m <- conditionMessage(attr(res, "condition"))
@@ -274,9 +269,10 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
         click_x_normalized <- (click$x - x_range[1]) / (x_range[2] - x_range[1])
         click_y_normalized <- (click$y - y_range[1]) / (y_range[2] - y_range[1])
         distances <- sqrt((x_normalized - click_x_normalized)^2 + (y_normalized - click_y_normalized)^2)
+
         nearest <- which.min(distances)
         if (distances[nearest] < 0.1) {
-          name <- DoseResponseState$names[DoseResponseState$currentPage]
+          name <- DoseResponseState$names[[DoseResponseState$currentPage]] |> as.character()
           old_outliers <- DoseResponseState$outliers[[name]]
           if (is.null(old_outliers)) {
             DoseResponseState$outliers[[name]] <- nearest

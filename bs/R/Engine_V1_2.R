@@ -1246,12 +1246,16 @@ dose_response_V1_2 <- R6::R6Class(
                           substance_names,
                           formula, com = communicator_V1_2) {
       self$df <- df
+      self$df[, substance_names] <- self$df[, substance_names] |> as.character()
       self$outliers <- outliers
       self$is_xlog <- is_xlog
       self$is_ylog <- is_ylog
       self$substance_names <- substance_names
       self$formula <- formula@formula
       self$com <- com$new()
+
+      # TODO: parse outlier info to list
+
     },
 
     validate = function() {},
