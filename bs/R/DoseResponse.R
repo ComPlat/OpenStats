@@ -136,9 +136,6 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
     observe({
       if (!is.null(DoseResponseState$promise_result_name)) {
         invalidateLater(500)
-        # TODO: requires check whether process is alive or died
-        # Or even better when process throws an error the promise result name in DoseResponseState
-        # should be set to NULL
         if (!is.null(ResultsState$all_data[[DoseResponseState$promise_result_name]])) {
           res <- ResultsState$all_data[[DoseResponseState$promise_result_name]]
           if (is.null(DoseResponseState$outliers)) {
