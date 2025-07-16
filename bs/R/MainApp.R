@@ -657,15 +657,15 @@ app <- function() {
                   width = 6,
                   p("Linear model"),
                   deparse(DataModelState$formula@formula),
-                ),
-                column(
-                  width = 6,
-                  actionButton(
-                    "open_predictor_editor",
-                    "Open the prediction editor",
-                    title = "Open the prediction editor to apply a model to (new) data"
-                  )
                 )
+                # column(
+                #   width = 6,
+                #   actionButton(
+                #     "open_predictor_editor",
+                #     "Open the prediction editor",
+                #     title = "Open the prediction editor to apply a model to (new) data"
+                #   )
+                # )
               )
             )
           } else if (inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
@@ -680,15 +680,15 @@ app <- function() {
                   paste0("Family: ", deparse(DataModelState$formula@family)),
                   br(),
                   paste0("Link fct.: ", deparse(DataModelState$formula@link_fct))
-                ),
-                column(
-                  width = 6,
-                  actionButton(
-                    "open_predictor_editor",
-                    "Open the prediction editor",
-                    title = "Open the prediction editor to apply a model to (new) data"
-                  )
                 )
+                # column(
+                #   width = 6,
+                #   actionButton(
+                #     "open_predictor_editor",
+                #     "Open the prediction editor",
+                #     title = "Open the prediction editor to apply a model to (new) data"
+                #   )
+                # )
               )
             )
           } else if (inherits(DataModelState$formula, "OptimFormula")) {
@@ -704,15 +704,15 @@ app <- function() {
                   paste0("Upper boundary: ", deparse(DataModelState$formula@upper)),
                   br(),
                   paste0("Seed: ", deparse(DataModelState$formula@seed))
-                ),
-                column(
-                  width = 6,
-                  actionButton(
-                    "open_predictor_editor",
-                    "Open the prediction editor",
-                    title = "Open the prediction editor to apply a model to (new) data"
-                  )
                 )
+                # column(
+                #   width = 6,
+                #   actionButton(
+                #     "open_predictor_editor",
+                #     "Open the prediction editor",
+                #     title = "Open the prediction editor to apply a model to (new) data"
+                #   )
+                # )
               )
             )
           } else {
