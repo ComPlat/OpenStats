@@ -1,6 +1,4 @@
-# TODO:
-# 1. the formula looks very strange as caption
-# 2. due to conversion to characters ggplot sorts the x axis labels not in increasing order
+# TODO: due to conversion to characters ggplot sorts the x axis labels not in increasing order
 
 # Run optimization
 # ====================================================================================
