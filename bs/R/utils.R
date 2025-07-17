@@ -83,7 +83,9 @@ parse_outlier_history <- function(history_outliers) {
   indices <- splitted_history[-1]
   indices <- strsplit(indices, ",")[[1]]
   indices <- as.numeric(indices)
-  list(name, indices)
+  l <- list(indices)
+  names(l) <- name
+  l
 }
 
 createExcelFile <- function(l) {
