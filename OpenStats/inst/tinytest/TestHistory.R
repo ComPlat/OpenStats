@@ -390,7 +390,6 @@ tinytest::expect_null(
 
 # Dose response
 # ========================================================================================
-# FIX: outliers do not work
 dose_response_V1_2 <- read.csv(paste0(test_data_dir, "/DoseResponse.csv"))
 result <- load_and_eval_history(files[3], dose_response_V1_2)
 result <- result$ResultsState$all_data

@@ -11,8 +11,6 @@ app$upload_file(
   file = system.file("/test_data/CO2.csv", package = "OpenStats")
 )
 wait(app)
-app$set_window_size(width = 2259, height = 1326)
-wait(app)
 app$set_inputs(conditionedPanels = "Tests")
 wait(app)
 

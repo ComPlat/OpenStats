@@ -6,23 +6,23 @@ library(readxl)
 # Test outliers back parsing for history
 # =======================================================================================
 test_outlier_parsing <- function() {
-  expected <- list(S1 = c(10, 16), S3 = 14, S4 = 12)
+  expected <- list(S1 = c(10, 16))
   expect_equal(
-    OpenStats:::parse_outlier_info("Outliers: S1: 10, 16;S3: 14;S4: 12"),
+    OpenStats:::parse_outlier_history("S1: 10, 16"),
     expected
   )
   expected <- list(S1 = c(10))
   expect_equal(
-    OpenStats:::parse_outlier_info("Outliers: S1: 10"),
+    OpenStats:::parse_outlier_history("S1: 10"),
     expected
   )
   expected <- list(S4 = c(10, 20))
   expect_equal(
-    OpenStats:::parse_outlier_info("Outliers: S4: 10, 20"),
+    OpenStats:::parse_outlier_history("S4: 10, 20"),
     expected
   )
   expect_null(
-    OpenStats:::parse_outlier_info("Outliers: ")
+    OpenStats:::parse_outlier_history("")
   )
 }
 test_outlier_parsing()
