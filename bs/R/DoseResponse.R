@@ -133,6 +133,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
         DoseResponseState$promise_result_name <- new_name
       }
     }
+
     observe({
       if (!is.null(DoseResponseState$promise_result_name)) {
         invalidateLater(500)

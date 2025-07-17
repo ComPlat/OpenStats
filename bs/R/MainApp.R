@@ -442,10 +442,6 @@ app <- function() {
         return(NULL)
       }
       table_indices <- which(sapply(ResultsState$all_data, is.data.frame))
-      # TODO: would make sense but this prevents initialising of DataWranglingState.
-      # if (length(table_indices) <= 1) {
-      #   return(NULL)
-      # }
       names <- names(ResultsState$all_data)
       names <- names[table_indices]
       tooltip <- "Select the active dataset (the dataset with which you can work)"

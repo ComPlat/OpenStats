@@ -1227,7 +1227,7 @@ diagnostic_plots_V1_2 <- R6::R6Class(
   )
 )
 
-# TODO: build get result to update the DoseResponseState in the evaluation of history
+# TODO: update the DoseResponseState in the evaluation of history
 dose_response_V1_2 <- R6::R6Class(
   "dose_response_V1_2",
   public = list(
