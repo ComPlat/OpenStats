@@ -123,8 +123,9 @@ plot_model_optim <- function(formula_optim, result_optim) {
   lhs <- formula_optim@lhs
   r2_label <- calc_r2_optim(df, lhs)
   formula_label <- calc_formula_optim(result_optim@parameter, formula_optim)
+  formula_label <- gsub("~", "=", formula_label)
   x_vars <- result_optim@x_vars
-  caption <- paste0(r2_label, ";\t", formula_label)
+  caption <- paste0(r2_label, ";  ", formula_label)
   p <- ggplot() +
     geom_point(data = df[df$group == "Original", ], aes(y = y, x = x)) +
     geom_line(data = df[df$group == "Predicted", ], aes(y = y, x = x, group = 1)) +
