@@ -1,5 +1,5 @@
 proxy:
-  title: Biostats
+  title: OpenStats
   port: 8080
   authentication: none
   hide-navbar: true
@@ -9,9 +9,9 @@ proxy:
     internal-networking: true
 
   specs:
-    - id: biostats
-      display-name: Biostats
-      container-image: konradkraemer/biostats:latest
+    - id: OpenStats
+      display-name: OpenStats
+      container-image: konradkraemer/openstats:latest
       container-cmd: ["Rscript", "/srv/shiny-server/app.R"]
       container-network: sp-net
 

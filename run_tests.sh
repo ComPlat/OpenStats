@@ -1,6 +1,9 @@
 #!/bin/bash
 
-TEST_DIR="./bs/inst/tinytest"
+# Sys.setenv(SHINYTEST2_APP_DRIVER_TEST_ON_CRAN=1)
+export SHINYTEST2_APP_DRIVER_TEST_ON_CRAN=1
+
+TEST_DIR="./OpenStats/inst/tinytest"
 
 if [ ! -d "$TEST_DIR" ]; then
   echo "Error: Directory $TEST_DIR does not exist."

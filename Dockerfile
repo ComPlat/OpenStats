@@ -47,18 +47,18 @@ RUN install2.r --error --skipinstalled \
   emmeans
 
 USER shiny
-COPY ./bs/R ./myapp
+COPY ./OpenStats/R ./myapp
 # is not needed anymore
 RUN mkdir /home/shiny/results 
 
 
 COPY ./MTT/ /home/MTT
 COPY ./comeln/ /home/comeln
-COPY ./bs/ /home/bs
+COPY ./OpenStats/ /home/OpenStats
 USER root
 RUN bash -c "cd /home/MTT; R CMD INSTALL ."
 RUN bash -c "cd /home/comeln; R CMD INSTALL ."
-RUN bash -c "cd /home/bs; R CMD INSTALL ."
+RUN bash -c "cd /home/OpenStats; R CMD INSTALL ."
 
 EXPOSE 4001
 COPY ./Start_Server_App.R /srv/shiny-server/app.R

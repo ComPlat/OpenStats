@@ -1,6 +1,6 @@
 library(ggplot2)
 
-files <- list.files("./bs/R", full.names = TRUE)
+files <- list.files("./OpenStats/R", full.names = TRUE)
 trash <- lapply(files, source)
 
 # Simulate calibration data

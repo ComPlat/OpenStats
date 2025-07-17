@@ -2,7 +2,7 @@ df <- read.csv("./test_data/DoseResponse.csv")
 df <- df[df$names == "S1", ]
 outliers <- list(S1 = 10)
 str(outliers)
-bs:::ic50(df, "abs", "conc", "names", outliers, FALSE, FALSE)
+OpenStats:::ic50(df, "abs", "conc", "names", outliers, FALSE, FALSE)
 
 create_outlier_info <- function(l) {
   if (is.null(l)) return("")

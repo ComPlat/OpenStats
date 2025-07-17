@@ -1,8 +1,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14671306.svg)](https://doi.org/10.5281/zenodo.14671306)
 
-![Biostats Logo](Logo/Logo.png)
+![OpenStats Logo](Logo/LogoOpenStats.png)
 
-# Biostats
+# OpenStats
 
 This application provides a user-friendly interface for conducting basic data wrangling, correlation tests, assumption tests (Shapiro-Wilk, Levene's test, QQ plots, etc.), various statistical tests (t-test, ANOVA, Kruskal-Wallis test, Tukey HSD, etc.), and visualizing data using ggplot2.
 
@@ -50,13 +50,13 @@ library(remotes)
 ```
 2. Use the `install_github` function to install the package "COMELN".
 ```R
-remotes::install_github("ComPlat/Biostats", subdir = "comeln")
-remotes::install_github("ComPlat/Biostats", subdir = "bs")
+remotes::install_github("ComPlat/OpenStats", subdir = "comeln")
+remotes::install_github("ComPlat/OpenStats", subdir = "OpenStats")
 ```
 
 3. Restart R/RStudio and start the app
 
 ```R
-bs::biostats()
+OpenStats::open_stats()
 ```
 
