@@ -151,7 +151,7 @@ eval_entry_V1_2 <- function(entry, DataModelState, DataWranglingState, ResultsSt
     },
     DoseResponse = {
       outliers <- entry[["outliers"]]
-      if (outliers == "") outliers <- NULL # correct falsy json parsing
+      outliers <- parse_outlier_history(outliers)
       res <- dose_response_V1_2$new(
         DataModelState$df,
         outliers,

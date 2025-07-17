@@ -76,6 +76,15 @@ create_outlier_info <- function(l) {
   )
   res
 }
+parse_outlier_history <- function(history_outliers) {
+  if (history_outliers == "") return(NULL) # correct falsy json parsing
+  splitted_history <- strsplit(history_outliers, ":")[[1]]
+  name <- splitted_history[[1]]
+  indices <- splitted_history[-1]
+  indices <- strsplit(indices, ",")[[1]]
+  indices <- as.numeric(indices)
+  list(name, indices)
+}
 
 createExcelFile <- function(l) {
   if (length(l) == 0) {

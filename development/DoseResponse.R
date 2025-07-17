@@ -15,8 +15,14 @@ create_outlier_info <- function(l) {
   )
   res
 }
-create_outlier_info(list(S1 = c(1, 2), S2 = 3))
+create_outlier_info(list(S1 = c(1, 2)))
 
 parse_outlier_history <- function(history_outliers) {
-
+  splitted_history <- strsplit(history_outliers, ":")[[1]]
+  name <- splitted_history[[1]]
+  indices <- splitted_history[-1]
+  indices <- strsplit(indices, ",")[[1]]
+  indices <- as.numeric(indices)
+  list(name, indices)
 }
+parse_outlier_history("S1: 1, 20")
