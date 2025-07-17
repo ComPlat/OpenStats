@@ -9,7 +9,7 @@ proxy:
     internal-networking: true
 
   specs:
-    - id: OpenStats
+    - id: openstats
       display-name: OpenStats
       container-image: konradkraemer/openstats:latest
       container-cmd: ["Rscript", "/srv/shiny-server/app.R"]

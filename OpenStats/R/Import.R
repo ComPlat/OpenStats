@@ -1,9 +1,3 @@
-# TODO: update docu. Important: one empty row/col between each table
-# TODO: allow to define seperator --> reload data and delete file after session end.
-# and warn that user shouldn't use comma separated numbers
-# Upload data into R
-# TODO: check that import works also for server version
-
 identify_seperator <- function(path) {
   line <- readLines(path, n = 1)
   if(grepl(";", line)) return(";")
