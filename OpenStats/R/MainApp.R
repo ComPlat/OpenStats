@@ -167,7 +167,7 @@ app <- function() {
         uiOutput("open_formula_editor_main"),
         uiOutput("formulaUI"),
         br(),
-        uiOutput("open_split_by_group"),
+        uiOutput("open_split_by_groupUI"),
         uiOutput("data_splitted"),
         verbatimTextOutput("applied_filter"),
         br(),
@@ -723,7 +723,7 @@ app <- function() {
     })
 
     # Render split by group
-    output[["open_split_by_group"]] <- renderUI({
+    output[["open_split_by_groupUI"]] <- renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
       }
