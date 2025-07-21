@@ -32,11 +32,13 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
         invalidateLater(250)
         if (!is.null(ResultsState$bgp$process) && !ResultsState$bgp$process$is_alive()) {
           res <- tryCatch(ResultsState$bgp$process$get_result(), error = function(e) e)
-          if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
+          if (ResultsState$bgp$cancel_clicked) {
+            ResultsState$bgp$running_status <- "Canceled process"
+            self$process$interrupt()
+            ResultsState$bgp$cancel_clicked <- FALSE
+          } else if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
             ResultsState$bgp$running_status <- sprintf("Error failed with: %s", res$parent$message)
             ResultsState$bgp$com$print_err(res$parent$message)
-          } else if (ResultsState$bgp$cancel_clicked) {
-            ResultsState$bgp$running_status <- "Canceled process"
           } else {
             ResultsState$bgp$warnings <- ResultsState$bgp$process$read_error()
             if (ResultsState$bgp$warnings != "") {
@@ -63,7 +65,6 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           ResultsState$bgp$is_running <- FALSE
           ResultsState$bgp$promise_result_name <- NULL
           ResultsState$bgp$promise_history_entry <- NULL
-          ResultsState$bgp$cancel_clicked <- FALSE
         }
       })
 
@@ -107,7 +108,6 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
 
     cancel = function() {
       req(!is.null(self$process), self$process$is_alive())
-      self$process$interrupt()
       self$running_status <- "Canceled"
       self$cancel_clicked <- TRUE
     },

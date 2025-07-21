@@ -279,29 +279,20 @@ app <- function() {
 
     # React to press cancel
     observeEvent(input$confirm_stop, {
-      removeModal()
       ResultsState$bgp$cancel()
-
-      req(ResultsState$bgp$queued_request)
-      ResultsState$bgp$start(
-        fun = ResultsState$bgp$queued_request$fun,
-        args = ResultsState$bgp$queued_request$args,
-        promise_result_name = ResultsState$bgp$queued_request$promise_result_name,
-        promise_history_entry = ResultsState$bgp$queued_request$promise_history_entry,
-        run_queue = TRUE
-      )
     })
 
     # Show running_status
     output$running_status <- renderUI({
       invalidateLater(750)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") {
+      if ((status != "Idle") && !ResultsState$bgp$cancel_clicked) {
         return(
           div(
             style = "display: flex; align-items: center; gap: 6px;",
             tags$p(status, style = "margin: 0;"),
-            icon("spinner", class = "fa-spin", style = "color: #007BFF;")
+            icon("spinner", class = "fa-spin", style = "color: #007BFF;"),
+            actionButton("confirm_stop", "Stop process", class = "btn-danger")
           )
         )
       } else {

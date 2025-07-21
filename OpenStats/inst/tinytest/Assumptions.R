@@ -13,8 +13,6 @@ app$upload_file(
 wait(app)
 app$set_inputs(conditionedPanels = "Assumption")
 wait(app)
-app$set_window_size(width = 2259, height = 1326)
-wait(app)
 app$click("open_formula_editor")
 wait(app)
 app$set_inputs(`FO-colnames-dropdown_` = "uptake")
