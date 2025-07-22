@@ -1,6 +1,3 @@
-# TODO: conditionMessage(error) has to be changed everywhere to  conditionMessage(attr(error, "condition"))
-# Or instead of extracting the message directly pass the try-error to print_err
-
 bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
   public = list(
     process = NULL,
@@ -26,7 +23,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       self$promise_history_entry <- NULL
     },
 
-    init = function(ResultsState) {
+    init = function(ResultsState, DataModelState, DataWranglingState) {
       # Polling loop
       observe({
         invalidateLater(250)
@@ -49,7 +46,30 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
               self$com$print_err(conditionMessage(e))
               return()
             }
-            ResultsState$all_data[[ResultsState$bgp$promise_result_name]] <- res
+            if (inherits(res, "HistoryReplayResult")) {
+              # Overwrite reactive values
+              DataModelState$df <- res$DataModelState$df
+              DataModelState$formula <- res$DataModelState$formula
+              DataModelState$backup_df <- res$DataModelState$backup_df
+              DataModelState$filter_col <- res$DataModelState$filter_col
+              DataModelState$filter_group <- res$DataModelState$filter_group
+
+              ResultsState$curr_data <- res$ResultsState$curr_data
+              ResultsState$curr_name <- res$ResultsState$curr_name
+              ResultsState$all_data <- res$ResultsState$all_data
+              ResultsState$all_names <- res$ResultsState$all_names
+              ResultsState$history <- res$ResultsState$history
+
+              DataWranglingState$df <- res$DataWranglingState$df
+              DataWranglingState$df_name <- res$DataWranglingState$df_name
+              DataWranglingState$current_page <- res$DataWranglingState$current_page
+              DataWranglingState$total_pages <- res$DataWranglingState$total_pages
+              DataWranglingState$counter_id <- res$DataWranglingState$counter_id
+              DataWranglingState$intermediate_vars <- res$DataWranglingState$intermediate_vars
+              print_success("Successfully applied the analysis to the dataset")
+            } else {
+              ResultsState$all_data[[ResultsState$bgp$promise_result_name]] <- res
+            }
             ResultsState$counter <- ResultsState$counter + 1
             ResultsState$history[[length(ResultsState$history) + 1]] <- ResultsState$bgp$promise_history_entry
             ResultsState$bgp$result_val <- res
@@ -1779,6 +1799,69 @@ set_active_table_V1_2 <- R6::R6Class(
       ResultsState$history[[length(ResultsState$history) + 1]] <- list(
         type = "SetActiveTable",
         "NewActiveTable" = self$name
+      )
+    }
+  )
+)
+
+replay_history_V1_2 <- R6::R6Class(
+  "replay_history_V1_2",
+  public = list(
+    json_string = NULL,
+    df = NULL,
+    all_data = NULL,
+    initialize = function(history_string, df, all_data) {
+      self$json_string <- history_string
+      self$df <- df
+      self$all_data <- all_data
+    },
+    validate = function() {},
+    eval = function(ResultsState) {
+      withCallingHandlers(
+        expr = {
+          ResultsState$bgp$start(
+            fun = function(json_string, df, all_data) {
+              l <- jsonlite::fromJSON(json_string, simplifyVector = FALSE)
+              version = l[[1]]
+              stopifnot(version$type == "Version")
+              stopifnot(version$Nr %in% OpenStats:::get_available_versions())
+              l <- l[-1] # Remove version step as it is not evaluated
+              eval_entry <- OpenStats:::get_correct_eval(version$Nr)[[1]]
+              result_state <- OpenStats:::get_correct_result_state(version$Nr)[[1]]$new(all_data)
+              result_state$bgp$in_backend <- TRUE
+              data_model_state <- OpenStats:::get_correct_data_model_state(version$Nr)[[1]]$new(df)
+              data_wrangling_state <- OpenStats:::get_correct_data_wrangling_state(version$Nr)[[1]]$new(data_model_state)
+              get_result <- OpenStats:::get_correct_get_result_fct(version$Nr)[[1]]
+              for (i in seq_along(l)) {
+                inner_e <- try({
+                  eval_entry(l[[i]], data_model_state, data_wrangling_state, result_state, get_result)
+                })
+                if (inherits(inner_e, "try-error")) {
+                  err <- conditionMessage(attr(inner_e, "condition"))
+                  print(sprintf("Error in step: %s", i))
+                  stop(err)
+                }
+              }
+              return(
+                structure(
+                  list(
+                    ResultsState = result_state,
+                    DataModelState = data_model_state,
+                    DataWranglingState = data_wrangling_state
+                  ),
+                  class = "HistoryReplayResult"
+                )
+              )
+            },
+            args = list(json_string = self$json_string, df = self$df, all_data = self$all_data),
+            promise_result_name = "History",
+            promise_history_entry = "History"
+          )
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
       )
     }
   )

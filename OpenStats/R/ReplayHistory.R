@@ -41,34 +41,9 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
 
     observeEvent(input$confirm_replay, {
       removeModal()
-
-      result <- eval_history(input$history_string, DataModelState$df, ResultsState$all_data)
-      if (is.null(result)) {
-        print_err("History did not run Successfully.")
-        return()
-      }
-
-      # Overwrite reactive values
-      DataModelState$df <- result$DataModelState$df
-      DataModelState$formula <- result$DataModelState$formula
-      DataModelState$backup_df <- result$DataModelState$backup_df
-      DataModelState$filter_col <- result$DataModelState$filter_col
-      DataModelState$filter_group <- result$DataModelState$filter_group
-
-      ResultsState$curr_data <- result$ResultsState$curr_data
-      ResultsState$curr_name <- result$ResultsState$curr_name
-      ResultsState$all_data <- result$ResultsState$all_data
-      ResultsState$all_names <- result$ResultsState$all_names
-      ResultsState$history <- result$ResultsState$history
-
-      DataWranglingState$df <- result$DataWranglingState$df
-      DataWranglingState$df_name <- result$DataWranglingState$df_name
-      DataWranglingState$current_page <- result$DataWranglingState$current_page
-      DataWranglingState$total_pages <- result$DataWranglingState$total_pages
-      DataWranglingState$counter_id <- result$DataWranglingState$counter_id
-      DataWranglingState$intermediate_vars <- result$DataWranglingState$intermediate_vars
-
-      print_success("Successfully applied the analysis to the dataset")
+      rh <- replay_history_V1_2$new(input$history_string, DataModelState$df, ResultsState$all_data)
+      rh$validate()
+      rh$eval(ResultsState)
     })
 
   })

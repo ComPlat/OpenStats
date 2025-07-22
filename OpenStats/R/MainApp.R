@@ -268,7 +268,6 @@ app <- function() {
       counter = 0,
       bgp = bgp
     )
-    bgp$init(ResultsState) # NOTE: creates the polling observer
 
     DataWranglingState <- reactiveValues(
       df = NULL, df_name = "df",
@@ -276,6 +275,7 @@ app <- function() {
       counter_id = 0,
       intermediate_vars = list()
     )
+    bgp$init(ResultsState, DataModelState, DataWranglingState) # NOTE: creates the polling observer
 
     # React to press cancel
     observeEvent(input$confirm_stop, {
