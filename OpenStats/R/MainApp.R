@@ -286,7 +286,7 @@ app <- function() {
     output$running_status <- renderUI({
       invalidateLater(750)
       status <- ResultsState$bgp$running_status
-      if ((status != "Idle") && !ResultsState$bgp$cancel_clicked) {
+      if ((status == "Running...") && !ResultsState$bgp$cancel_clicked) {
         return(
           div(
             style = "display: flex; align-items: center; gap: 6px;",
