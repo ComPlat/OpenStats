@@ -818,79 +818,6 @@ create_new_col_V1_2 <- R6::R6Class(
   )
 )
 
-create_formula_V1_2 <- R6::R6Class(
-  "create_formula_V1_2",
-  public = list(
-    response_var = NULL,
-    right_site = NULL,
-    df = NULL,
-    com = NULL,
-
-    initialize = function(response_var, right_site, df, com = communicator_V1_2) {
-      self$response_var <- response_var
-      self$right_site <- right_site
-      self$df <- df
-      self$com <- com$new()
-    },
-
-    validate = function() {},
-
-    eval = function(ResultsState, DataModelState, model_type, ...) {
-      eq <- NULL
-      if (model_type == "Linear") {
-        formula <- paste(self$response_var, " ~ ", self$right_site)
-        formula <- as.formula(formula)
-        check_ast(formula, colnames(self$df))
-        DataModelState$formula <- new("LinearFormula", formula = formula)
-        model <- lm(formula, data = self$df)
-        eq <- extract_eq(model, wrap = TRUE)
-        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
-          type = "CreateFormula",
-          formula = deparse(formula),
-          "Model Type" = "Linear",
-          details = ""
-        )
-      } else if (model_type == "Generalised Linear Model") {
-        details <- c(...)
-        family <- details[[1]]
-        link_fct <- details[[2]]
-        formula <- paste(self$response_var, " ~ ", self$right_site)
-        formula <- as.formula(formula)
-        check_ast(formula, colnames(self$df))
-        DataModelState$formula <- new("GeneralisedLinearFormula",
-          formula = formula, family = family, link_fct = link_fct
-        )
-        family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
-        model <- glm(formula, data = self$df, family = eval(family))
-        eq <- extract_eq(model, wrap = TRUE)
-        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
-          type = "CreateFormula",
-          formula = deparse(formula),
-          "Model Type" = "Generalised Linear Model",
-          family = details[[1]],
-          "Link function" = link_fct
-        )
-      } else if (model_type == "Optimization Model") {
-        details <- c(...)
-        lower <- details[[1]]
-        upper <- details[[2]]
-        seed <- details[[3]]
-        formula <- paste0(self$response_var, " ~ ", self$right_site)
-        formula <- as.formula(formula)
-        DataModelState$formula <- create_formula_optim(formula, self$df, lower, upper, seed)
-        eq <- paste0(self$response_var, " = ", self$right_site)
-        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
-          type = "CreateFormula",
-          formula = deparse(formula),
-          lower = lower, upper = upper, seed = seed,
-          "Model Type" = "Optimization Model"
-        )
-      }
-
-      return(eq)
-    }
-  )
-)
 summarise_model_V1_2 <- R6::R6Class(
   "summarise_model_V1_2",
   public = list(
@@ -1010,6 +937,93 @@ summarise_model_V1_2 <- R6::R6Class(
       )
     }
 
+  )
+)
+create_formula_V1_2 <- R6::R6Class(
+  "create_formula_V1_2",
+  public = list(
+    response_var = NULL,
+    right_site = NULL,
+    df = NULL,
+    com = NULL,
+
+    initialize = function(response_var, right_site, df, com = communicator_V1_2) {
+      self$response_var <- response_var
+      self$right_site <- right_site
+      self$df <- df
+      self$com <- com$new()
+    },
+
+    validate = function() {},
+
+    eval_eq = function(ResultsState, DataModelState, model_type, ...) {
+      eq <- NULL
+      if (model_type == "Linear") {
+        formula <- paste(self$response_var, " ~ ", self$right_site)
+        formula <- as.formula(formula)
+        check_ast(formula, colnames(self$df))
+        DataModelState$formula <- new("LinearFormula", formula = formula)
+        model <- lm(formula, data = self$df)
+        eq <- extract_eq(model, wrap = TRUE)
+        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
+          type = "CreateFormula",
+          formula = deparse(formula),
+          "Model Type" = "Linear",
+          details = ""
+        )
+      } else if (model_type == "Generalised Linear Model") {
+        details <- c(...)
+        family <- details[[1]]
+        link_fct <- details[[2]]
+        formula <- paste(self$response_var, " ~ ", self$right_site)
+        formula <- as.formula(formula)
+        check_ast(formula, colnames(self$df))
+        DataModelState$formula <- new("GeneralisedLinearFormula",
+          formula = formula, family = family, link_fct = link_fct
+        )
+        family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
+        model <- glm(formula, data = self$df, family = eval(family))
+        eq <- extract_eq(model, wrap = TRUE)
+        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
+          type = "CreateFormula",
+          formula = deparse(formula),
+          "Model Type" = "Generalised Linear Model",
+          family = details[[1]],
+          "Link function" = link_fct
+        )
+      } else if (model_type == "Optimization Model") {
+        details <- c(...)
+        lower <- details[[1]]
+        upper <- details[[2]]
+        seed <- details[[3]]
+        formula <- paste0(self$response_var, " ~ ", self$right_site)
+        formula <- as.formula(formula)
+        DataModelState$formula <- create_formula_optim(formula, self$df, lower, upper, seed)
+        eq <- paste0(self$response_var, " = ", self$right_site)
+        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
+          type = "CreateFormula",
+          formula = deparse(formula),
+          lower = lower, upper = upper, seed = seed,
+          "Model Type" = "Optimization Model"
+        )
+      }
+
+      return(eq)
+    },
+
+    eval = function(ResultsState, DataModelState, model_type, ...) {
+      e <- try({
+        eq <- self$eval_eq(ResultsState, DataModelState, model_type, ...)
+        pm <- summarise_model_V1_2$new(DataModelState$df, DataModelState$formula)
+        pm$validate()
+        pm$eval(ResultsState)
+        eq
+      })
+      if (inherits(e, "try-error")) {
+        self$com$print_err(e)
+      }
+      return(e)
+    }
   )
 )
 
@@ -1750,7 +1764,6 @@ remove_result_V1_2 <- R6::R6Class(
     }
   )
 )
-# TODO: add tests for it
 set_active_table_V1_2 <- R6::R6Class(
   "set_active_table_V1_2",
   public = list(
