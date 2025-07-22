@@ -393,7 +393,6 @@ get_correct_get_result_fct <- function(version) {
   list("1_2" = backend_get_result_V1_2)[version]
 }
 
-
 eval_history <- function(json_string, df, all_data, backend = FALSE) {
   print_err_in_eval_history <- print_err
   if (backend) { # Make it testable
@@ -429,10 +428,13 @@ eval_history <- function(json_string, df, all_data, backend = FALSE) {
   }
 
   return(
-    list(
-      ResultsState = result_state,
-      DataModelState = data_model_state,
-      DataWranglingState = data_wrangling_state
+    structure(
+      list(
+        ResultsState = result_state,
+        DataModelState = data_model_state,
+        DataWranglingState = data_wrangling_state
+      ),
+      class = "HistoryResult"
     )
   )
 }
