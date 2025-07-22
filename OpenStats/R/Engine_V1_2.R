@@ -678,7 +678,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
 
     eval = function(ResultsState, DataWranglingState) {
       e <- try({
-        eval_env <- new.env()
+        eval_env <- create_run_env()
         list2env(self$intermediate_vars, envir = eval_env)
         list2env(DataWranglingState$df, envir = eval_env) # NOTE: this adds each column as own variable
         eval_env[[DataWranglingState$df_name]] <- self$df
@@ -799,7 +799,7 @@ create_new_col_V1_2 <- R6::R6Class(
 
     eval = function(ResultsState, DataWranglingState, DataModelState) {
       e <- try({
-        eval_env <- new.env()
+        eval_env <- create_run_env()
         list2env(self$intermediate_vars, envir = eval_env)
         list2env(self$df, envir = eval_env)  # NOTE: this adds each column as own variable
         eval_env[[DataWranglingState$df_name]] <- self$df
@@ -809,7 +809,7 @@ create_new_col_V1_2 <- R6::R6Class(
         self$df[, self$name] <- new
         DataWranglingState$df <- self$df
         if (!is.null(DataModelState$backup_df)) {
-          eval_env <- new.env()
+          eval_env <- create_run_env()
           list2env(self$intermediate_vars, envir = eval_env)
           list2env(DataModelState$backup_df, envir = eval_env)  # NOTE: this adds each column as own variable
           new <- eval(parse(text = self$operation), envir = eval_env)

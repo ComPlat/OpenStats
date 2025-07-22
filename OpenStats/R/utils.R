@@ -864,3 +864,38 @@ Runif <- function(...) {
   }
   runif(...)
 }
+
+create_run_env <- function() {
+  env <- new.env(parent = emptyenv())
+  env$get_elem <- OpenStats:::get_elem
+  env$get_rows <- OpenStats:::get_rows
+  env$get_cols <- OpenStats:::get_cols
+  env$Mean <- OpenStats:::Mean
+  env$Median <- OpenStats:::Median
+  env$Sum <- OpenStats:::Sum
+  env$Min <- OpenStats:::Min
+  env$Max <- OpenStats:::Max
+  env$C <- OpenStats:::C
+  env$Seq <- OpenStats:::Seq
+  env$DataFrame <- OpenStats:::DataFrame
+  env$as.char <- OpenStats:::as.char
+  env$as.int <- OpenStats:::as.int
+  env$as.real <- OpenStats:::as.real
+  env$as.fact <- OpenStats:::as.fact
+  env$Dnorm <- OpenStats:::Dnorm
+  env$Pnorm <- OpenStats:::Pnorm
+  env$Qnorm <- OpenStats:::Qnorm
+  env$Rnorm <- OpenStats:::Rnorm
+  env$Dbinom <- OpenStats:::Dbinom
+  env$Pbinom <- OpenStats:::Pbinom
+  env$Qbinom <- OpenStats:::Qbinom
+  env$Rbinom <- OpenStats:::Rbinom
+  env$Dpois <- OpenStats:::Dpois
+  env$Ppois <- OpenStats:::Ppois
+  env$Rpois <- OpenStats:::Rpois
+  env$Dunif <- OpenStats:::Dunif
+  env$Punif <- OpenStats:::Punif
+  env$Qunif <- OpenStats:::Qunif
+  env$Runif <- OpenStats:::Runif
+  env
+}
