@@ -112,7 +112,7 @@ p <- create_fill_plot(app)
 ep <- create_expected_plot()
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 pl <- ggplot_build(p)$plot$layers[[1]]
 epl <- ggplot_build(ep)$plot$layers[[1]]
 Map(function(a, b) {
@@ -156,7 +156,7 @@ p <- create_colour_plot(app)
 ep <- create_expected_plot()
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 pl <- ggplot_build(p)$plot$layers[[1]]
 epl <- ggplot_build(ep)$plot$layers[[1]]
 Map(function(a, b) {
@@ -207,7 +207,7 @@ p <- create_specified_yaxis(app)
 ep <- create_expected_plot()
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 pl <- ggplot_build(p)$plot$layers[[1]]
 epl <- ggplot_build(ep)$plot$layers[[1]]
 Map(function(a, b) {
@@ -256,7 +256,7 @@ p <- create_specified_xaxis(app)
 ep <- create_expected_plot()
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 pl <- ggplot_build(p)$plot$layers[[1]]
 epl <- ggplot_build(ep)$plot$layers[[1]]
 Map(function(a, b) {
@@ -305,7 +305,7 @@ p <- create_facet_plot(app)
 ep <- create_expected_plot()
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 pl <- ggplot_build(p)$plot$layers[[1]]
 epl <- ggplot_build(ep)$plot$layers[[1]]
 Map(function(a, b) {
@@ -357,7 +357,7 @@ p <- create_different_theme_plot(app)
 ep <- create_expected_plot()
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 pl <- ggplot_build(p)$plot$layers[[1]]
 epl <- ggplot_build(ep)$plot$layers[[1]]
 Map(function(a, b) {
@@ -395,7 +395,7 @@ ep <- ggplot() +
   facet_wrap(~ .data[[facetVar]], scales = "free")
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 
 # Test line plots
 # =============================================================================
@@ -428,6 +428,6 @@ ep <- ggplot() +
   facet_wrap(~ .data[[facetVar]], scales = "free")
 pd <- ggplot_build(p)$data[[1]]
 epd <- ggplot_build(ep)$data[[1]]
-tinytest::expect_equal(pd, epd)
+expect_equal(pd, epd)
 
 app$stop()

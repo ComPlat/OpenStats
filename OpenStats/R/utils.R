@@ -866,11 +866,12 @@ Runif <- function(...) {
 }
 
 create_run_env <- function() {
-  env <- new.env(parent = emptyenv())
+  env <- new.env(parent = baseenv())
   env$get_elem <- OpenStats:::get_elem
   env$get_rows <- OpenStats:::get_rows
   env$get_cols <- OpenStats:::get_cols
   env$Mean <- OpenStats:::Mean
+  env$SD <- OpenStats:::SD
   env$Median <- OpenStats:::Median
   env$Sum <- OpenStats:::Sum
   env$Min <- OpenStats:::Min

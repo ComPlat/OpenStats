@@ -966,12 +966,14 @@ create_formula_V1_2 <- R6::R6Class(
     right_site = NULL,
     df = NULL,
     com = NULL,
+    com_class = NULL,
 
     initialize = function(response_var, right_site, df, com = communicator_V1_2) {
       self$response_var <- response_var
       self$right_site <- right_site
       self$df <- df
-      self$com <- com$new()
+      self$com_class <- com
+      self$com <- self$com_class$new()
     },
 
     validate = function() {},
@@ -1034,7 +1036,7 @@ create_formula_V1_2 <- R6::R6Class(
     eval = function(ResultsState, DataModelState, model_type, ...) {
       e <- try({
         eq <- self$eval_eq(ResultsState, DataModelState, model_type, ...)
-        pm <- summarise_model_V1_2$new(DataModelState$df, DataModelState$formula)
+        pm <- summarise_model_V1_2$new(DataModelState$df, DataModelState$formula, self$com_class)
         pm$validate()
         pm$eval(ResultsState)
         eq

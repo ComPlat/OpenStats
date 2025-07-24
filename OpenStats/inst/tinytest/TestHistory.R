@@ -1,3 +1,4 @@
+library(tinytest)
 test_data_dir <- system.file("test_data", package = "OpenStats")
 files <- list.files(test_data_dir, pattern = "\\.json$", full.names = TRUE)
 
@@ -11,18 +12,18 @@ load_and_eval_history <- function(file, df) {
 CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[7], CO2)
 result <- result$ResultsState$all_data
-tinytest::expect_true(
+expect_true(
   inherits(result[[1]]@p, "plot"),
   "Summary model 1"
 )
-tinytest::expect_true(
+expect_true(
   identical(
     broom::tidy(glm(uptake ~ Treatment, data = CO2)), result[[1]]@summary
   ),
   "Summary model 1"
 )
 
-tinytest::expect_true(
+expect_true(
   identical(
     {
       family <- "gaussian"
@@ -31,7 +32,7 @@ tinytest::expect_true(
       model <- glm(uptake ~ Treatment, data = CO2, family = eval(family))
       fit <- broom::tidy(anova(model, test = "Chisq"))
     },
-    result[[2]]
+    result[[3]]
   ),
   "anova"
 )
@@ -60,18 +61,18 @@ run_posthoc_glm <- function(method) {
 checks <- c()
 for (i in seq_along(adjustment_methods)) {
   checks <- c(checks,
-    tinytest::expect_true(
+    expect_true(
       identical(
         {
           run_posthoc_glm(adjustment_methods[i])
         },
-        result[[i + 2]]
+        result[[i + 3]]
       ),
       adjustment_methods[i]
     )
   )
 }
-tinytest::expect_true(all(checks), "All PostHoc tests GLM")
+expect_true(all(checks), "All PostHoc tests GLM")
 
 # Test entire analysis
 # ========================================================================================
@@ -79,48 +80,48 @@ CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[6], CO2)
 result <- result$ResultsState$all_data
 
-tinytest::expect_true(
-  inherits(result[[1]]@p, "plot"),
+expect_true(
+  inherits(result[[2]]@p, "plot"),
   "Summary model 1"
 )
-tinytest::expect_true(
+expect_true(
   identical(
     broom::tidy(lm(uptake ~ conc, data = CO2)), result[[1]]@summary
   ),
   "Summary model 1"
 )
-tinytest::expect_true(
+expect_true(
   identical(
     AIC(lm(uptake ~ conc, data = CO2)), result[[1]]@information_criterions[,1]
   ),
   "Summary model 1"
 )
-tinytest::expect_equal(
-  result[[2]], data.frame(mean_conc = mean(CO2$conc)),
+expect_equal(
+  result[[3]], data.frame(mean_conc = mean(CO2$conc)),
   info = "max_conc <- Max(conc)"
 )
-tinytest::expect_equal(
-  result[[3]],
+expect_equal(
+  result[[4]],
   {
     CO2$conc_norm <-  CO2$conc / mean(CO2$conc)
     CO2
   },
   info = "CO2$conc_norm <-  CO2$conc / max(CO2$conc)"
 )
-tinytest::expect_true(
-  inherits(result[[4]], "plot"),
+expect_true(
+  inherits(result[[5]], "plot"),
   info = "Plot model 1"
 )
-tinytest::expect_true(
-  inherits(result[[5]], "plot"),
+expect_true(
+  inherits(result[[6]], "plot"),
   info = "plot uptake against conc_norm"
 )
-tinytest::expect_true(
-  inherits(result[[6]], "data.frame"),
+expect_true(
+  inherits(result[[7]], "data.frame"),
   info = "Shapiro on data"
 )
-tinytest::expect_equal(
-  result[[7]],
+expect_equal(
+  result[[8]],
   {
     fit <- lm(uptake ~ conc, data = CO2)
     r <- resid(fit)
@@ -130,28 +131,28 @@ tinytest::expect_equal(
   },
   info = "CO2$conc_norm <-  CO2$conc / max(CO2$conc)"
 )
-tinytest::expect_true(
-  inherits(result[[8]], "plot"),
+expect_true(
+  inherits(result[[9]], "plot"),
   info = "Diagnostic plots"
 )
-tinytest::expect_true(
-  inherits(result[[9]]@p, "plot"),
+expect_true(
+  inherits(result[[10]]@p, "plot"),
   "Summary model 2"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    broom::tidy(lm(uptake ~ Type, data = CO2)), result[[9]]@summary
+    broom::tidy(lm(uptake ~ Type, data = CO2)), result[[10]]@summary
   ),
   "Summary model 2"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    AIC(lm(uptake ~ Type, data = CO2)), result[[9]]@information_criterions[,1]
+    AIC(lm(uptake ~ Type, data = CO2)), result[[10]]@information_criterions[,1]
   ),
   "Summary model 2"
 )
-tinytest::expect_equal(
-  result[[10]],
+expect_equal(
+  result[[12]],
   {
     res <- broom::tidy(
       car::leveneTest(uptake ~ Type, data = CO2, center = "mean")
@@ -161,24 +162,24 @@ tinytest::expect_equal(
   },
   info = "Levene test on model 2"
 )
-tinytest::expect_true(
-  inherits(result[[11]]@p, "plot"),
+expect_true(
+  inherits(result[[13]]@p, "plot"),
   "Summary model 3"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    broom::tidy(lm(uptake ~ conc, data = CO2)), result[[11]]@summary
+    broom::tidy(lm(uptake ~ conc, data = CO2)), result[[13]]@summary
   ),
   "Summary model 3"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    AIC(lm(uptake ~ conc, data = CO2)), result[[11]]@information_criterions[,1]
+    AIC(lm(uptake ~ conc, data = CO2)), result[[13]]@information_criterions[,1]
   ),
   "Summary model 3"
 )
-tinytest::expect_equal(
-  result[[12]],
+expect_equal(
+  result[[15]],
   {
     res <- broom::tidy(
       cor.test(
@@ -192,8 +193,8 @@ tinytest::expect_equal(
   },
   info = "pearson"
 )
-tinytest::expect_equal(
-  result[[13]],
+expect_equal(
+  result[[16]],
   {
     res <- broom::tidy(
       cor.test(
@@ -207,8 +208,8 @@ tinytest::expect_equal(
   },
   info = "spearman"
 )
-tinytest::expect_equal(
-  result[[14]],
+expect_equal(
+  result[[17]],
   {
     res <- broom::tidy(
       cor.test(
@@ -222,51 +223,51 @@ tinytest::expect_equal(
   },
   info = "kendall"
 )
-tinytest::expect_true(
-  inherits(result[[15]]@p, "plot"),
+expect_true(
+  inherits(result[[18]]@p, "plot"),
   "Summary model 4"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    broom::tidy(lm(uptake ~ Treatment, data = CO2)), result[[15]]@summary
+    broom::tidy(lm(uptake ~ Treatment, data = CO2)), result[[18]]@summary
   ),
   "Summary model 4"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    AIC(lm(uptake ~ Treatment, data = CO2)), result[[15]]@information_criterions[,1]
+    AIC(lm(uptake ~ Treatment, data = CO2)), result[[18]]@information_criterions[,1]
   ),
   "Summary model 4"
 )
-tinytest::expect_equal(
+expect_equal(
   broom::tidy(t.test(uptake ~ Treatment,
     data = CO2, conf.level = 0.95,
     alternative = "two.sided", var.equal = TRUE
   )),
-  result[[16]],
+  result[[20]],
   info = "Ttest"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     fit <- broom::tidy(aov(uptake ~ Treatment, data = CO2))
     fit <- cbind(fit, row.names(fit))
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[17]],
+  result[[21]],
   info = "ANOVA"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     fit <- broom::tidy(kruskal.test(uptake ~ Treatment, data = CO2))
     fit <- cbind(fit, row.names(fit))
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[18]],
+  result[[22]],
   info = "Kruskal Wallis test"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     aov_res <- aov(uptake ~ Treatment, data = CO2)
     bal <- "Balanced"
@@ -283,10 +284,10 @@ tinytest::expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[19]],
+  result[[23]],
   info = "TukeyHSD"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     fit <- with(CO2, agricolae::kruskal(CO2[, "uptake"], CO2[, "Treatment"]),
       alpha = 0.05, p.adj = "Holm", group = TRUE
@@ -296,10 +297,10 @@ tinytest::expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[20]],
+  result[[24]],
   info = "Kruskal Wallis PostHoc test"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     aov_res <- aov(uptake ~ Treatment, data = CO2)
     fit <- agricolae::LSD.test(aov_res,
@@ -310,10 +311,10 @@ tinytest::expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[21]],
+  result[[25]],
   info = "LSD"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     aov_res <- aov(uptake ~ Treatment, data = CO2)
     fit <- agricolae::scheffe.test(aov_res,
@@ -324,26 +325,26 @@ tinytest::expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[22]],
+  result[[26]],
   info = "scheffe"
 )
-tinytest::expect_true(
-  inherits(result[[23]]@p, "plot"),
+expect_true(
+  inherits(result[[27]]@p, "plot"),
   "Summary model 5"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    broom::tidy(lm(uptake ~ conc_norm, data = CO2)), result[[23]]@summary
+    broom::tidy(lm(uptake ~ conc_norm, data = CO2)), result[[28]]@summary
   ),
   "Summary model 5"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    AIC(lm(uptake ~ conc_norm, data = CO2)), result[[23]]@information_criterions[,1]
+    AIC(lm(uptake ~ conc_norm, data = CO2)), result[[28]]@information_criterions[,1]
   ),
   "Summary model 5"
 )
-tinytest::expect_equal(
+expect_equal(
   {
     aov_res <- aov(uptake ~ conc_norm, data = CO2)
     fit <- agricolae::REGW.test(aov_res,
@@ -354,7 +355,7 @@ tinytest::expect_equal(
     names(fit)[ncol(fit)] <- paste0("conc_norm", collapse = ".")
     fit
   },
-  result[[24]],
+  result[[29]],
   info = "REGW"
 )
 
@@ -364,26 +365,26 @@ CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[4], CO2)
 result <- result$ResultsState$all_data
 
-tinytest::expect_true(
+expect_true(
   length(result) == 2,
   info = "Apply filter"
 )
-tinytest::expect_true(
+expect_true(
   inherits(result[[1]], "plot"),
   info = "Apply filter"
 )
-tinytest::expect_true(
+expect_true(
   inherits(result[[2]], "plot"),
   info = "Apply filter"
 )
 
 # Wrong stuff
 # ========================================================================================
-tinytest::expect_null(
+expect_null(
   load_and_eval_history(files[1], CO2),
   info = "Invalid text BlaBla"
 )
-tinytest::expect_null(
+expect_null(
   load_and_eval_history(files[2], CO2),
   info = "Invalid type (RocketLaunch)"
 )
@@ -393,29 +394,29 @@ tinytest::expect_null(
 dose_response_V1_2 <- read.csv(paste0(test_data_dir, "/DoseResponse.csv"))
 result <- load_and_eval_history(files[3], dose_response_V1_2)
 result <- result$ResultsState$all_data
-tinytest::expect_true(
+expect_true(
   inherits(result[[1]], "summaryModel"),
   info = "summary of a model"
 )
-tinytest::expect_equal(
+expect_equal(
   broom::tidy(lm(abs ~ conc, data = dose_response_V1_2)),
   result[[1]]@summary,
   info = "Result summary"
 )
-tinytest::expect_true(
-  inherits(result[[2]], "doseResponse"),
-  info = "Dose response result"
-)
-tinytest::expect_true(
+expect_true(
   inherits(result[[3]], "doseResponse"),
   info = "Dose response result"
 )
-tinytest::expect_true(
+expect_true(
   inherits(result[[4]], "doseResponse"),
   info = "Dose response result"
 )
-tinytest::expect_equal(
-  result[[4]]@outlier_info, "S1: 10, 15",
+expect_true(
+  inherits(result[[5]], "doseResponse"),
+  info = "Dose response result"
+)
+expect_equal(
+  result[[5]]@outlier_info, "S1: 10, 15",
   info = "Dose response result"
 )
 
@@ -424,27 +425,27 @@ tinytest::expect_equal(
 CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[5], CO2)
 result <- result$ResultsState$all_data
-tinytest::expect_true(
-  length(result) == 2,
+expect_true(
+  length(result) == 4,
   info = "Formula editor"
 )
-tinytest::expect_true(
+expect_true(
   inherits(result[[1]]@p, "plot"),
   info = "Formula plot 1"
 )
-tinytest::expect_true(
+expect_true(
   identical(
     broom::tidy(lm(uptake ~ conc, data = CO2)), result[[1]]@summary
   ),
   "Summary model 1"
 )
-tinytest::expect_true(
+expect_true(
   inherits(result[[1]]@p, "plot"),
   info = "Formula plot 2"
 )
-tinytest::expect_true(
+expect_true(
   identical(
-    broom::tidy(lm(uptake ~ conc*Type, data = CO2)), result[[2]]@summary
+    broom::tidy(lm(uptake ~ conc*Type, data = CO2)), result[[3]]@summary
   ),
   "Summary model 2"
 )

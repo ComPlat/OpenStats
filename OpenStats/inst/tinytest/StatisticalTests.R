@@ -40,7 +40,7 @@ CO2$Type <- as.character(CO2$Type)
 expected <- broom::tidy(aov(uptake ~ conc * Treatment + Type, data = CO2))
 expected <- cbind(expected, row.names(expected))
 names(expected)[ncol(expected)] <- paste0("conc * Treatment + Type", collapse = ".")
-tinytest::expect_equal(res[[3]], expected)
+expect_equal(res[[3]], expected)
 
 # Kruskal-Wallis
 app$click("open_formula_editor")
@@ -65,7 +65,7 @@ CO2$Treatment <- as.character(CO2$Treatment)
 expected <- broom::tidy(kruskal.test(uptake ~ conc, data = CO2))
 expected <- cbind(expected, row.names(expected))
 names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-tinytest::expect_equal(res[[5]], expected)
+expect_equal(res[[5]], expected)
 
 # PostHoc tests
 # TukeyHSD
@@ -85,7 +85,7 @@ fit <- agricolae::HSD.test(fit,
 )$groups
 expected <- cbind(fit, row.names(fit))
 names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-tinytest::expect_equal(res[[6]], expected)
+expect_equal(res[[6]], expected)
 
 app$set_inputs(`TESTS-PostHocTests` = "HSD")
 wait(app)
@@ -104,7 +104,7 @@ fit <- agricolae::HSD.test(fit,
 )$groups
 expected <- cbind(fit, row.names(fit))
 names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-tinytest::expect_equal(res[[7]], expected)
+expect_equal(res[[7]], expected)
 
 # Kruskal-Wallis test
 app$set_inputs(`TESTS-PostHocTests` = "kruskalTest")
@@ -124,7 +124,7 @@ fit <- with(df, agricolae::kruskal(df[, dep], df[, "conc"]),
 )$groups
 expected <- cbind(fit, row.names(fit))
 names(expected) <- c("uptake", "groups", "conc")
-tinytest::expect_equal(res[[8]], expected)
+expect_equal(res[[8]], expected)
 
 # LSD
 app$set_inputs(`TESTS-PostHocTests` = "LSD")
@@ -147,7 +147,7 @@ fit <- agricolae::LSD.test(
 )$groups
 expected <- cbind(fit, row.names(fit))
 names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-tinytest::expect_equal(res[[9]], expected)
+expect_equal(res[[9]], expected)
 
 # scheffe
 # aov_res <- aov(formula, data = df)
@@ -168,7 +168,7 @@ fit <- agricolae::scheffe.test(
 )$groups
 expected <- cbind(fit, row.names(fit))
 names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-tinytest::expect_equal(res[[10]], expected)
+expect_equal(res[[10]], expected)
 
 # REGW
 app$set_inputs(`TESTS-PostHocTests` = "REGW")
@@ -187,6 +187,6 @@ fit <- agricolae::REGW.test(
 )$groups
 expected <- cbind(fit, row.names(fit))
 names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-tinytest::expect_equal(res[[11]], expected)
+expect_equal(res[[11]], expected)
 
 app$stop()

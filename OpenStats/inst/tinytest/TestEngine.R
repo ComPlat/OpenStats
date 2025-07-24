@@ -5,7 +5,8 @@ library(tinytest)
 # =======================================================================================
 test_create_formula <- function() {
   df <- CO2
-  ResultsState <- OpenStats:::backend_result_state_V1_2$new(df)
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
 
   cf <- OpenStats:::create_formula_V1_2$new(
@@ -36,7 +37,6 @@ test_summary_model <- function() {
   sum_model$validate()
   sum_model$eval(ResultsState)
   res <- ResultsState$all_data[[length(ResultsState$all_data)]]
-  res
   check1 <- expect_true(inherits(res, "summaryModel"))
   model <- lm(uptake ~ conc, data = CO2)
   check2 <- expect_equal(

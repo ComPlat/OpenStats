@@ -33,7 +33,7 @@ expected <- rbind(
 )
 expected$variable <- c("nonchilled", "chilled")
 expected$`Normal distributed` <- expected$p.value > 0.05
-tinytest::expect_equal(res[["ASS-result_list"]][[3]], expected)
+expect_equal(res[["ASS-result_list"]][[3]], expected)
 
 # Update output value
 app$click("ASS-shapiroResiduals")
@@ -44,7 +44,7 @@ fit <- lm(uptake ~ Treatment, data = CO2)
 r <- resid(fit)
 expected <- broom::tidy(shapiro.test(r))
 expected$`Residuals normal distributed` <- expected$p.value > 0.05
-tinytest::expect_equal(res[["ASS-result_list"]][[4]], expected)
+expect_equal(res[["ASS-result_list"]][[4]], expected)
 
 # Update output value
 app$click("ASS-levene")
@@ -55,7 +55,7 @@ expected <- broom::tidy(car::leveneTest(uptake ~ Treatment,
   data = CO2, center = "mean"
 ))
 expected$`Variance homogenity` <- expected$p.value > 0.05
-tinytest::expect_equal(res[["FO-result_list"]][[5]], expected)
+expect_equal(res[["FO-result_list"]][[5]], expected)
 
 # Update output value
 app$click("ASS-DiagnosticPlot")
@@ -63,7 +63,7 @@ Sys.sleep(20)
 wait(app)
 res <- app$get_values()$export
 wait(app)
-tinytest::expect_equal(inherits(res[["FO-result_list"]][[6]], "plot"), TRUE)
+expect_equal(inherits(res[["FO-result_list"]][[6]], "plot"), TRUE)
 
 wait(app)
 app$stop()

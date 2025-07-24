@@ -44,7 +44,7 @@ link_fct <- "inverse"
 family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
 model <- glm(uptake ~ conc * Treatment + Type, data = CO2, family = eval(family))
 expected <- broom::tidy(anova(model, test = "Chisq"))
-tinytest::expect_equal(res$`FO-result_list`[[3]], expected)
+expect_equal(res$`FO-result_list`[[3]], expected)
 
 # Posthoc tests
 app$set_inputs("TESTS-TestsConditionedPanels" = "Posthoc tests")
@@ -83,7 +83,7 @@ app$click("TESTS-PostHocEmmeansTest")
 Sys.sleep(10)
 res <- app$get_values()$export
 expected <- run_posthoc_glm(choices[1])
-tinytest::expect_equal(res$result_list[[4]], expected)
+expect_equal(res$result_list[[4]], expected)
 # Sidak
 app$set_inputs(`TESTS-PostHocEmmeans` = choices[2])
 wait(app)
@@ -91,7 +91,7 @@ app$click("TESTS-PostHocEmmeansTest")
 Sys.sleep(10)
 res <- app$get_values()$export
 expected <- run_posthoc_glm(choices[2])
-tinytest::expect_equal(res$result_list[[5]], expected)
+expect_equal(res$result_list[[5]], expected)
 # Hommel
 app$set_inputs(`TESTS-PostHocEmmeans` = choices[9])
 wait(app)
@@ -99,6 +99,6 @@ app$click("TESTS-PostHocEmmeansTest")
 Sys.sleep(10)
 res <- app$get_values()$export
 expected <- run_posthoc_glm(choices[9])
-tinytest::expect_equal(res$result_list[[6]], expected)
+expect_equal(res$result_list[[6]], expected)
 
 app$stop()

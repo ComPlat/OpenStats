@@ -40,7 +40,7 @@ expected <- broom::tidy(
     alternative = "two.sided"
   )
 )
-tinytest::expect_equal(res[[3]], expected)
+expect_equal(res[[3]], expected)
 
 # Update output value
 app$set_inputs(`TESTS-altHyp` = "less")
@@ -58,7 +58,7 @@ expected <- broom::tidy(
     alternative = "less"
   )
 )
-tinytest::expect_equal(res[[4]], expected)
+expect_equal(res[[4]], expected)
 
 # Update output value
 app$set_inputs(`TESTS-altHyp` = "greater")
@@ -76,7 +76,7 @@ expected <- broom::tidy(
     alternative = "greater"
   )
 )
-tinytest::expect_equal(res[[5]], expected)
+expect_equal(res[[5]], expected)
 
 # Update output value
 app$set_inputs(`TESTS-varEq` = "noeq")
@@ -94,6 +94,6 @@ expected <- broom::tidy(
     alternative = "greater"
   )
 )
-tinytest::expect_equal(res[[6]], expected)
+expect_equal(res[[6]], expected)
 
 app$stop()

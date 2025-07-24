@@ -31,7 +31,7 @@ res <- app$get_values()$export
 wait(app)
 expected <- cor.test(CO2$uptake, CO2$conc, method = "pearson")
 expected <- broom::tidy(expected)
-tinytest::expect_equal(res[["FO-result_list"]][[3]], expected)
+expect_equal(res[["FO-result_list"]][[3]], expected)
 
 app$click("CORR-spear")
 wait(app)
@@ -39,7 +39,7 @@ res <- app$get_values()$export
 wait(app)
 expected <- cor.test(CO2$uptake, CO2$conc, method = "spearman")
 expected <- broom::tidy(expected)
-tinytest::expect_equal(res[["FO-result_list"]][[4]], expected)
+expect_equal(res[["FO-result_list"]][[4]], expected)
 
 app$click("CORR-kendall")
 wait(app)
@@ -47,7 +47,7 @@ res <- app$get_values()$export
 wait(app)
 expected <- cor.test(CO2$uptake, CO2$conc, method = "kendall")
 expected <- broom::tidy(expected)
-check <- tinytest::expect_equal(res[["FO-result_list"]][[5]], expected)
+expect_equal(res[["FO-result_list"]][[5]], expected)
 
 wait(app)
 app$stop()
