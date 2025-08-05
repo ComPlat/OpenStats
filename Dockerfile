@@ -57,7 +57,7 @@ COPY ./OpenStats/ /home/OpenStats
 USER root
 RUN bash -c "cd /home/MTT; R CMD INSTALL . && cd /home/comeln; R CMD INSTALL . && cd /home/OpenStats; R CMD INSTALL ."
 
-EXPOSE 4001
+# EXPOSE 4001
 COPY ./Start_Server_App.R /srv/shiny-server/app.R
 COPY ./run.sh /home
 
