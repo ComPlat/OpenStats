@@ -1,5 +1,7 @@
+# Rscript -e "source('Start_Server_App.R')" 4000
+port <- ifelse(length(commandArgs(trailingOnly=TRUE)) >= 1, as.numeric(commandArgs(trailingOnly=TRUE)[1]), 3838)
 Sys.setenv(RUN_MODE = "SERVER")
 library(OpenStats)
 app <- OpenStats:::app()
 shinyApp <- shiny::shinyApp(app$ui, app$server)
-shiny::runApp(shinyApp, host = "0.0.0.0", port = 3838)
+shiny::runApp(shinyApp, host = "0.0.0.0", port = port)

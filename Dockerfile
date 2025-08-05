@@ -47,24 +47,25 @@ RUN install2.r --error --skipinstalled \
   emmeans
 
 USER shiny
-COPY ./OpenStats/R ./myapp
-# is not needed anymore
-RUN mkdir /home/shiny/results 
-
+COPY ./OpenStats/R /home/myapp
+RUN mkdir /home/shiny/results
 
 COPY ./MTT/ /home/MTT
 COPY ./comeln/ /home/comeln
 COPY ./OpenStats/ /home/OpenStats
+
 USER root
-RUN bash -c "cd /home/MTT; R CMD INSTALL ."
-RUN bash -c "cd /home/comeln; R CMD INSTALL ."
-RUN bash -c "cd /home/OpenStats; R CMD INSTALL ."
+RUN bash -c "cd /home/MTT; R CMD INSTALL . && cd /home/comeln; R CMD INSTALL . && cd /home/OpenStats; R CMD INSTALL ."
 
 EXPOSE 4001
 COPY ./Start_Server_App.R /srv/shiny-server/app.R
-COPY ./run.sh .
+COPY ./run.sh /home
 
+USER shiny
 ENV SHINY_LOG_STDERR=1
 
-CMD ["/bin/bash", "-c", "./run.sh"]
+# CMD ["/bin/bash", "-c", "/home/run.sh"]
+CMD ["Rscript", "/srv/shiny-server/app.R", "3838"]
 
+# Testing ELN: workshop.chemotion.scc.kit.edu
+# OpenStats running on: https://openstats.chemserv.scc.kit.edu/
