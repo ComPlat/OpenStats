@@ -74,7 +74,6 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         )
       }
       div(
-        h3(class = "title", "Operators"),
         div(
           do.call(tagList, button_list),
           class = "boxed-output"
@@ -106,15 +105,6 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         )
       })
       div(
-        h3(class = "title", "Right Side of Statistical Model"),
-        div(
-          style = "position: relative",
-          actionButton(
-            "FO-formula_docu",
-            label = NULL,
-            icon = icon("question-circle")
-          )
-        ),
         div(
           do.call(tagList, button_list),
           class = "boxed-output"
@@ -140,7 +130,6 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       tooltip <- "Select the dependent variable for your statistical model. This is the outcome you want to predict based on the independent variables."
       div(
         class = "model",
-        h3(class = "title", "Left Side of Statistical Model"),
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -201,16 +190,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         if (input$PredefinedModels == "free") return()
         indices <- sapply(DataModelState$df, is.numeric) |> which()
         colnames <- names(DataModelState$df)[indices]
-        element_list <- list(
-          div(
-            style = "position: relative",
-            actionButton(
-              "FO-formula_docu",
-              label = NULL,
-              icon = icon("question-circle")
-            )
-          )
-        )
+        element_list <- list()
         if (input$PredefinedModels == "linear") {
           element_list[[length(element_list) + 1]] <- div(
             style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
