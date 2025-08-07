@@ -625,8 +625,10 @@ app <- function() {
     observeEvent(input[["open_formula_editor"]], {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       showModal(modalDialog(
-        title = "FormulaEditor",
-        actionButton("FO-formula_docu", label = NULL, icon = icon("question-circle")),
+        title = div(style = "display: flex; align-items: center; justify-content: space-between;",
+          span("FormulaEditor"),
+          actionButton("FO-formula_docu", label = NULL, icon = icon("question-circle"))
+        ),
         FormulaEditorUI("FO"),
         easyClose = TRUE,
         size = "l",

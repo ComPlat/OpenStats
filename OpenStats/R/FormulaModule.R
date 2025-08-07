@@ -6,32 +6,31 @@ FormulaEditorUI <- function(id) {
       column(
         width = 6,
         uiOutput(NS(id, "colnames_dropdown")),
-        br(),
-        br(),
-        br(),
         div(
-          class = "model",
-          actionButton(NS(id, "create_formula"), "Create statistical model", class = "create_button")
-        ),
-        selectInput(NS(id, "model_type"), "Choose the model type",
-          c(
-            "Linear" = "Linear",
-            "Generalised Linear Model" = "Generalised Linear Model",
-            "Optimization Model" = "Optimization Model"
+          selectInput(NS(id, "model_type"), "Change the model type (optional)",
+            c(
+              "Linear" = "Linear",
+              "Generalised Linear Model" = "Generalised Linear Model",
+              "Optimization Model" = "Optimization Model"
+            ),
+            selectize = FALSE
           ),
-          selectize = FALSE
-        ),
-        uiOutput(NS(id, "glm_family_dropdown")),
-        uiOutput(NS(id, "glm_link_fct_dropdown")),
-        uiOutput(NS(id, "optim_predefined_equations")),
-        uiOutput(NS(id, "optim_boundaries"))
+          uiOutput(NS(id, "glm_family_dropdown")),
+          uiOutput(NS(id, "glm_link_fct_dropdown")),
+          uiOutput(NS(id, "optim_predefined_equations")),
+          uiOutput(NS(id, "optim_boundaries")),
+          class = "boxed-output"
+        )
       ),
       column(
         width = 6,
-        uiOutput(NS(id, "colnames_list")),
-        br(),
-        uiOutput(NS(id, "buttons")),
-        uiOutput(NS(id, "rhs"))
+        div(
+          uiOutput(NS(id, "colnames_list")),
+          uiOutput(NS(id, "buttons")),
+          uiOutput(NS(id, "rhs")),
+          actionButton(NS(id, "create_formula"), "Create statistical model", class = "create_button"),
+          class = "boxed-output"
+        )
       )
     )
   )
@@ -75,13 +74,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
       div(
         div(
-          do.call(tagList, button_list),
-          class = "boxed-output"
+          hr(),
+          do.call(tagList, button_list)
         )
       )
     })
 
-    # Create colnames button
+    # Create colnames buttons
     output[["colnames_list"]] <- renderUI({
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
@@ -107,7 +106,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       div(
         div(
           do.call(tagList, button_list),
-          class = "boxed-output"
+          br()
         )
       )
     })
@@ -129,7 +128,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
       tooltip <- "Select the dependent variable for your statistical model. This is the outcome you want to predict based on the independent variables."
       div(
-        class = "model",
+        class = "boxed-output",
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -168,15 +167,15 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       req(is.data.frame(DataModelState$df))
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         div(
-          textAreaInput("FO-editable_code", "Right side of model:", value = "", rows = 12),
-          class = "boxed-output"
+          hr(),
+          textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
         )
       } else if (input$model_type == "Optimization Model") {
         req(input$PredefinedModels)
         if(input$PredefinedModels == "free") {
           div(
-            textAreaInput("FO-editable_code", "Right side of model:", value = "", rows = 12),
-            class = "boxed-output"
+            hr(),
+            textAreaInput("FO-editable_code", "formula terms:", value = "", rows = 12)
           )
         }
       }
