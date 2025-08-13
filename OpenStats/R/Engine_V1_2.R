@@ -824,6 +824,7 @@ create_new_col_V1_2 <- R6::R6Class(
         stop("Error in create new column")
       } else {
         DataModelState$df <- DataWranglingState$df
+        ResultsState$all_data[[DataModelState$active_df_name]] <- DataWranglingState$df
         DataWranglingState$counter_id <- DataWranglingState$counter_id + 1
         ResultsState$counter <- ResultsState$counter + 1
         new_name <- paste0(ResultsState$counter, " Dataset")
