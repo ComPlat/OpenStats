@@ -192,83 +192,79 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         element_list <- list()
         if (input$PredefinedModels == "linear") {
           element_list[[length(element_list) + 1]] <- div(
-            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-            selectInput("FO-linear_lhs_var", label = NULL, choices = colnames, width = "125px"),
-            span(" = "),
-            textInput("FO-linear_slope", label = NULL, value = "Slope", width = "100px"),
-            span(" × "),
-            selectInput("FO-linear_x", label = NULL, choices = colnames, width = "125px"),
-            span(" + "),
-            textInput("FO-linear_intercept", label = NULL, value = "Intercept", width = "125px")
+            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              span("y = Slope * x + Intercept")
+            ),
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              selectInput("FO-linear_lhs_var", label = "y", choices = colnames, width = "125px"),
+              textInput("FO-linear_slope", label = "Slope", value = "Slope", width = "100px"),
+              selectInput("FO-linear_x", label = "x", choices = colnames, width = "125px"),
+              textInput("FO-linear_intercept", label = "Intercept", value = "Intercept", width = "125px")
+            )
           )
         } else if (input$PredefinedModels == "log_linear") {
           element_list[[length(element_list) + 1]] <- div(
-            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-            selectInput("FO-log_linear_lhs_var", label = NULL, choices = colnames, width = "125px"),
-            span(" = "),
-            textInput("FO-log_linear_slope", label = NULL, value = "Slope", width = "100px"),
-            span(" × log("),
-            selectInput("FO-log_linear_x", label = NULL, choices = colnames, width = "125px"),
-            span(") + "),
-            textInput("FO-log_linear_intercept", label = NULL, value = "Intercept", width = "125px")
+            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              span("y = Slope * log(x) + Intercept")
+            ),
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              selectInput("FO-log_linear_lhs_var", label = "y", choices = colnames, width = "125px"),
+              textInput("FO-log_linear_slope", label = "Slope", value = "Slope", width = "100px"),
+              selectInput("FO-log_linear_x", label = "x", choices = colnames, width = "125px"),
+              textInput("FO-log_linear_intercept", label = "Intercept", value = "Intercept", width = "125px")
+            )
           )
         } else if (input$PredefinedModels == "michaelis_menten") {
           element_list[[length(element_list) + 1]] <- div(
-            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-            selectInput("FO-mm_lhs_var", label = NULL, choices = colnames, width = "125px"),
-            span(" = "),
-            textInput("FO-mm_vmax", label = NULL, value = "Vmax", width = "100px"),
-            span(" × "),
-            selectInput("FO-mm_x", label = NULL, choices = colnames, width = "125px"),
-            span(" / ("),
-            textInput("FO-mm_km", label = NULL, value = "Km", width = "100px"),
-            span(" + "),
-            selectInput("FO-mm_x2", label = NULL, choices = colnames, width = "125px"),
-            span(")")
+            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              span("y = (Vmax * s) / (Km + s)")
+            ),
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              selectInput("FO-mm_lhs_var", label = "y", choices = colnames, width = "125px"),
+              textInput("FO-mm_vmax", label = "Vmax", value = "Vmax", width = "100px"),
+              selectInput("FO-mm_x", label = "conc. of (s)", choices = colnames, width = "125px"),
+              textInput("FO-mm_km", label = "Km", value = "Km", width = "100px")
+            )
           )
         } else if (input$PredefinedModels == "one_site_binding") {
           element_list[[length(element_list) + 1]] <- div(
-            style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-            selectInput("FO-binding_lhs_var", label = NULL, choices = colnames, width = "125px"),
-            span(" = "),
-            textInput("FO-binding_bmax", label = NULL, value = "Bmax", width = "100px"),
-            span(" × "),
-            selectInput("FO-binding_x", label = NULL, choices = colnames, width = "125px"),
-            span(" / ("),
-            textInput("FO-binding_kd", label = NULL, value = "Kd", width = "100px"),
-            span(" + "),
-            selectInput("FO-binding_x2", label = NULL, choices = colnames, width = "125px"),
-            span(")")
+            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              span("y = (Bmax * conc) / (Kd + conc)")
+            ),
+            div(
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              selectInput("FO-binding_lhs_var", label = "y", choices = colnames, width = "125px"),
+              textInput("FO-binding_bmax", label = "Bmax", value = "Bmax", width = "100px"),
+              selectInput("FO-binding_x", label = "conc", choices = colnames, width = "125px"),
+              textInput("FO-binding_kd", label = "Kd", value = "Kd", width = "100px")
+            )
           )
         }  else if (input$PredefinedModels == "two_hot_binding") {
           element_list[[length(element_list) + 1]] <- div(
-            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;",
+            style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
             div(
-              style = "display: flex; align-items: center; gap: 12px;",
-              selectInput("FO-hotbind_lhs_var", label = NULL, choices = colnames, width = "125px"),
-              span(" = ("),
-              selectInput("FO-hotbind_conc", label = NULL, choices = colnames, width = "125px"),
-              span(" × 1e-9 ) / ("),
-              selectInput("FO-hotbind_conc2", label = NULL, choices = colnames, width = "125px"),
-              span(" × 1e-9 + "),
-              textInput("FO-hotbind_koff", label = NULL, value = "koff", width = "80px"),
-              span(" / "),
-              textInput("FO-hotbind_kon", label = NULL, value = "kon", width = "80px"),
-              span(")")
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              span("y = (conc * 1e-9) / (conc * 1e-9 + Koff / Kon) * Bmax * (1 - exp(-(Kon * conc * 1e-9 + Koff) * Time))")
             ),
             div(
-              style = "display: flex; align-items: center; gap: 12px;",
-              span(" × "),
-              textInput("FO-hotbind_bmax", label = NULL, value = "Bmax", width = "100px"),
-              span(" × (1 - exp(-("),
-              textInput("FO-hotbind_kon2", label = NULL, value = "kon", width = "80px"),
-              span(" × "),
-              selectInput("FO-hotbind_conc3", label = NULL, choices = colnames, width = "125px"),
-              span(" × 1e-9 + "),
-              textInput("FO-hotbind_koff2", label = NULL, value = "koff", width = "80px"),
-              span(") × "),
-              selectInput("FO-hotbind_time", label = NULL, choices = colnames, width = "125px"),
-              span("))")
+              style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
+              selectInput("FO-hotbind_lhs_var", label = "y", choices = colnames, width = "125px"),
+              selectInput("FO-hotbind_conc", label = "conc", choices = colnames, width = "125px"),
+              textInput("FO-hotbind_koff", label = "Koff", value = "koff", width = "80px"),
+              textInput("FO-hotbind_kon", label = "Kon", value = "kon", width = "80px"),
+              textInput("FO-hotbind_bmax", label = "Bmax", value = "Bmax", width = "100px"),
+              selectInput("FO-hotbind_time", label = "Time", choices = colnames, width = "125px")
             )
           )
         }
@@ -447,21 +443,20 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
                 right_site <- paste0(input[["log_linear_slope"]], "*log(", input[["log_linear_x"]], ")+", input[["log_linear_intercept"]])
               } else if (input$PredefinedModels == "michaelis_menten") {
                 response_var <- input[["mm_lhs_var"]]
-                right_site <- paste0( "(", input[["mm_vmax"]], "*", input[["mm_x"]], ") / (", input[["mm_km"]], "+", input[["mm_x2"]], ")")
+                right_site <- paste0( "(", input[["mm_vmax"]], "*", input[["mm_x"]], ") / (", input[["mm_km"]], "+", input[["mm_x"]], ")")
               } else if (input$PredefinedModels == "one_site_binding") {
                 response_var <- input[["binding_lhs_var"]]
-                right_site <- paste0( "(", input[["binding_bmax"]], "*", input[["binding_x"]], ") / (", input[["binding_kd"]], "+", input[["binding_x2"]], ")")
+                right_site <- paste0( "(", input[["binding_bmax"]], "*", input[["binding_x"]], ") / (", input[["binding_kd"]],
+                  "+", input[["binding_x"]], ")")
               } else if (input$PredefinedModels == "two_hot_binding") {
                 response_var <- input[["hotbind_lhs_var"]]
                 conc <- input[["hotbind_conc"]]
-                conc2 <- input[["hotbind_conc2"]]
-                conc3 <- input[["hotbind_conc3"]]
                 koff <- input[["hotbind_koff"]]
                 kon <- input[["hotbind_kon"]]
                 bmax <- input[["hotbind_bmax"]]
                 time <- input[["hotbind_time"]]
-                first_term <- sprintf("((%s * 1e-9) / (%s * 1e-9 + %s / %s))", conc, conc2, koff, kon)
-                second_term <- sprintf("(1 - exp(-(%s * %s * 1e-9 + %s) * %s))", kon, conc3, koff, time)
+                first_term <- sprintf("((%s * 1e-9) / (%s * 1e-9 + %s / %s))", conc, conc, koff, kon)
+                second_term <- sprintf("(1 - exp(-(%s * %s * 1e-9 + %s) * %s))", kon, conc, koff, time)
                 right_site <- sprintf("%s * %s * %s", first_term, bmax, second_term)
               } else if (input$PredefinedModels == "free") {
                 response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
