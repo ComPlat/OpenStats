@@ -11,7 +11,8 @@ history_to_table <- function(history) {
   list(hist) # NOTE: required to add it to result list otherwise the dataframe is split
 }
 
-eval_entry_V1_2 <- function(entry, DataModelState, DataWranglingState, ResultsState, get_result) {
+eval_entry_V1_2 <- function(entry, DataModelState,
+                            DataWranglingState, ResultsState, get_result) {
   res <- NULL
   switch(
     entry$type,
@@ -165,7 +166,7 @@ eval_entry_V1_2 <- function(entry, DataModelState, DataWranglingState, ResultsSt
       res$eval(ResultsState, entry[["Result name"]])
       get_result(ResultsState)
     },
-    TTest = {
+    TTest= {
       res <- t_test_V1_2$new(
         DataModelState$df,
         DataModelState$formula,
@@ -392,6 +393,9 @@ get_correct_data_wrangling_state <- function(version) {
 get_correct_get_result_fct <- function(version) {
   list("1_2" = backend_get_result_V1_2)[version]
 }
+get_correct_dose_response_state <- function(version) {
+  list("1_2" = backend_dose_response_state_V1_2)[version]
+}
 
 eval_history <- function(json_string, df, all_data, backend = FALSE) {
   print_err_in_eval_history <- print_err
@@ -412,7 +416,8 @@ eval_history <- function(json_string, df, all_data, backend = FALSE) {
     get_result <- get_correct_get_result_fct(version$Nr)[[1]]
     for (i in seq_along(l)) {
       inner_e <- try({
-        eval_entry(l[[i]], data_model_state, data_wrangling_state, result_state, get_result)
+        eval_entry(l[[i]], data_model_state,
+          data_wrangling_state, result_state, get_result)
       })
       if (inherits(inner_e, "try-error")) {
         err <- conditionMessage(attr(inner_e, "condition"))

@@ -4,7 +4,7 @@ files <- list.files("./OpenStats/inst/tinytest", full.names = TRUE)
 
 tinytest::run_test_file(files[1]) # Assumptions
 tinytest::run_test_file(files[2]) # Correlation
-tinytest::run_test_file(files[3]) # Data DataWrangling --> Failed if run as script. But not in interactive mode
+tinytest::run_test_file(files[3]) # Data DataWrangling
 tinytest::run_test_file(files[4]) # DoseResponse
 tinytest::run_test_file(files[5]) # DoseResponseBackend
 tinytest::run_test_file(files[6]) # GLMStatisticalTests

@@ -4,6 +4,10 @@
     "Nr": "1_2"
   },
   {
+    "type": "SetActiveTable",
+    "NewActiveTable": "df0"
+  },
+  {
     "type": "CreateFormula",
     "formula": "uptake ~ conc",
     "Model Type": "Linear",
