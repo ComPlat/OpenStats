@@ -8,7 +8,6 @@ add_theme_optim <- function(p) {
     text = element_text(size = 20),
     axis.text.x = element_text(angle = 45, hjust = 1, size = 14)
   )
-
 }
 
 create_formula_optim <- function(formula, df, lower, upper, seed) {
@@ -59,12 +58,7 @@ determine_pred_variable_optim <- function(formula, df) {
 
 predict_optim <- function(opti_params, loss_fn, df, x_vars, y_var) {
   pred <- loss_fn(opti_params$par, error_calc = FALSE)
-  xdata <- do.call(paste, c(
-    lapply(df[x_vars], function(v) {
-      if (is.numeric(v)) round(v, 3) else v
-    }),
-    sep = "-"
-  ))
+  xdata <- df[, x_vars]
   data.frame(
     x = rep(xdata, 2), y = c(df[[y_var]], pred),
     group = c(rep("Original", nrow(df)), rep("Predicted", nrow(df)))

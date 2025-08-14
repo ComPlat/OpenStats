@@ -326,9 +326,10 @@ test_create_intermediate_var()
 
 test_create_new_col <- function() {
   df <- CO2
-  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list("df0" = df))
   ResultsState$bgp$in_backend <- TRUE
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  DataModelState$active_df_name = "df0"
   DataWranglingState <- OpenStats:::backend_data_wrangling_state_V1_2$new(DataModelState)
 
   cc <- OpenStats:::create_new_col_V1_2$new(

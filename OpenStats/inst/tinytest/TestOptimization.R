@@ -14,7 +14,6 @@ test_create_formula <- function() {
 
   formula_obj <- OpenStats:::create_formula_optim(f, df, lower, upper, seed)
   checks <- c()
-
   checks[[1]] <- expect_inherits(formula_obj, "OptimFormula")
   checks[[2]] <- expect_equal(formula_obj@parameter, c("a", "b"))
   checks[[3]] <- expect_equal(formula_obj@lhs, "y")
