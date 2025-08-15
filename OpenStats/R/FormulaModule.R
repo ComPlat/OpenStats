@@ -449,6 +449,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
                 right_site <- paste0( "(", input[["binding_bmax"]], "*", input[["binding_x"]], ") / (", input[["binding_kd"]],
                   "+", input[["binding_x"]], ")")
               } else if (input$PredefinedModels == "two_hot_binding") {
+                # TODO: is only one conc correct?
                 response_var <- input[["hotbind_lhs_var"]]
                 conc <- input[["hotbind_conc"]]
                 koff <- input[["hotbind_koff"]]

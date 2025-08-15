@@ -58,9 +58,14 @@ determine_pred_variable_optim <- function(formula, df) {
 
 predict_optim <- function(opti_params, loss_fn, df, x_vars, y_var) {
   pred <- loss_fn(opti_params$par, error_calc = FALSE)
-  xdata <- df[, x_vars]
+  xdata <- do.call(paste, c(
+    lapply(df[x_vars], function(v) {
+      if (is.numeric(v)) round(v, 3) else v
+    }),
+    sep = "-"
+  ))
   data.frame(
-    x = rep(xdata, 2), y = c(df[[y_var]], pred),
+    i = rep(1:length(xdata), 2), x = rep(xdata, 2), y = c(df[[y_var]], pred),
     group = c(rep("Original", nrow(df)), rep("Predicted", nrow(df)))
   )
 }
@@ -119,8 +124,8 @@ plot_model_optim <- function(formula_optim, result_optim) {
   x_vars <- result_optim@x_vars
   caption <- paste0(r2_label, ";  ", formula_label)
   p <- ggplot() +
-    geom_point(data = df[df$group == "Original", ], aes(y = y, x = x)) +
-    geom_line(data = df[df$group == "Predicted", ], aes(y = y, x = x, group = 1)) +
+    geom_point(data = df[df$group == "Original", ], aes(y = y, x = i)) +
+    geom_line(data = df[df$group == "Predicted", ], aes(y = y, x = i, group = 1)) +
     labs(y = lhs, x = paste(x_vars, collapse = "-"), caption = caption)
   p <- add_theme_optim(p)
   new("plot", p = p, width = 10, height = 10, resolution = 600)
