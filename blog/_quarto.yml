@@ -18,3 +18,8 @@ format:
   html:
     theme: cosmo
     toc: true
+
+feed:
+  title: "OpenStats – RSS"
+  description: "Posts about OpenStats, R, and modeling"
+  format: atom
