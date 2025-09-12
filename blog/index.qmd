@@ -12,3 +12,4 @@ listing:
 ---
 
 Welcome to the OpenStats blog. New posts appear below.
+
