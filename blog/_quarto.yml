@@ -11,6 +11,8 @@ website:
         text: Home
       - text: Posts
         href: posts/
+      - href: blogroll.qmd
+        text: Blogroll
   open-graph: true
   twitter-card: true
 
