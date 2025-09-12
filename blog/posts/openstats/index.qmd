@@ -1,0 +1,51 @@
+---
+title: "OpenStats: A Shiny app for reproducible statistics"
+date: 2025-09-12
+categories: [R, Rstats]
+format: html
+toc: true
+code-fold: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 4.5
+)
+```
+
+Many scientists use R for data wrangling, visualization, and statistical tests.
+Often, we keep analyses as scripts so we can replay every step months or years later—great for reproducibility.
+But collaborators who don’t code frequently rely on GUI tools, sometimes commercial.
+That gap means not everyone can reproduce results, and the exact sequence of steps soon becomes unclear.
+
+We solved this problem by developing a Shiny app called OpenStats (https://github.com/ComPlat/OpenStats).
+For a detailed description of the app and its usage, please see our preprint:
+https://doi.org/10.26434/chemrxiv-2025-9rgbd
+
+## What is OpenStats
+
+OpenStats is an R package that launches a Shiny app for common statistical workflows.
+It’s designed for non-programmers to analyze data with confidence.
+
+Supported features:
+
+- Data wrangling
+- Visualization
+- Creating statistical models (lm and glm)
+- Test assumptions
+- Run tests (t-test, ANOVA, PostHoc tests, etc.)
+- Dose Response analysis
+
+## History replay
+
+The striking feature of *OpenStats* is that it stores each successful user action in the *history*.
+Alongside the results, the *history* is shown in human-readable form. Thereby, users can retrace each step.
+Moreover, the *history* is stored as JSON, which can be used to replay the entire analysis.
+Thus, users have a wide range of methods plus the replay capabilities of a script.
+
+![History replay in OpenStats. A: The human-readable form of the history. B: Replay of the analysis using the JSON-history](HistoryReplay.png)

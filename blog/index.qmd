@@ -1,0 +1,14 @@
+---
+title: "OpenStats Blog"
+page-layout: full
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  feed: true
+  feed-title: "OpenStats – RSS"
+  feed-description: "Posts about OpenStats, R, and modeling"
+  feed-format: atom
+---
+
+Welcome to the OpenStats blog. New posts appear below.

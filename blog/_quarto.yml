@@ -1,0 +1,20 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "OpenStats"
+  site-url: "https://complat.github.io/OpenStats"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - text: Posts
+        href: posts/
+  open-graph: true
+  twitter-card: true
+
+format:
+  html:
+    theme: cosmo
+    toc: true
