@@ -9,8 +9,6 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - text: Posts
-        href: posts/
       - href: blogroll.qmd
         text: Blogroll
   open-graph: true
