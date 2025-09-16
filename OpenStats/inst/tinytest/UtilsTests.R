@@ -3,30 +3,6 @@ library(ggplot2)
 library(tinytest)
 library(readxl)
 
-# Test outliers back parsing for history
-# =======================================================================================
-test_outlier_parsing <- function() {
-  expected <- list(S1 = c(10, 16))
-  expect_equal(
-    OpenStats:::parse_outlier_history("S1: 10, 16"),
-    expected
-  )
-  expected <- list(S1 = c(10))
-  expect_equal(
-    OpenStats:::parse_outlier_history("S1: 10"),
-    expected
-  )
-  expected <- list(S4 = c(10, 20))
-  expect_equal(
-    OpenStats:::parse_outlier_history("S4: 10, 20"),
-    expected
-  )
-  expect_null(
-    OpenStats:::parse_outlier_history("")
-  )
-}
-test_outlier_parsing()
-
 # Test rng stuff
 # =======================================================================================
 test_Rnorm <- function() {

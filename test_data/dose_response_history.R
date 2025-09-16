@@ -24,7 +24,6 @@ json_string <- '
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
-    "outliers": "S1: 10",
     "Result name": "DoseResponseNr4"
   },
   {
@@ -33,7 +32,6 @@ json_string <- '
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
-    "outliers": "S1: 10, 15",
     "Result name": "DoseResponseNr5"
   }
 ]

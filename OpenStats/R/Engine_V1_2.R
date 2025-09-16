@@ -102,6 +102,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           )
         }
       } else {
+        print("Test")
         self$com$print_err(res)
       }
     },
@@ -402,7 +403,7 @@ visualisation_V1_2 <- R6::R6Class(
     validate = function() {
       # Run first checks:
       if (self$width < 0) {
-        self$com$print_warn("width has to be a positive number; It is set to 10 cm")
+self$com$print_warn("width has to be a positive number; It is set to 10 cm")
         self$width <- 10
       }
       if (self$height < 0) {
@@ -1264,12 +1265,10 @@ diagnostic_plots_V1_2 <- R6::R6Class(
   )
 )
 
-# TODO: update the DoseResponseState in the evaluation of history
 dose_response_V1_2 <- R6::R6Class(
   "dose_response_V1_2",
   public = list(
     df = NULL,
-    outliers = NULL,
     is_xlog = NULL,
     is_ylog = NULL,
     substance_names = NULL,
@@ -1278,79 +1277,27 @@ dose_response_V1_2 <- R6::R6Class(
     res_df = NULL,
     res_p = NULL,
 
-    initialize = function(df, outliers,
+    initialize = function(df,
                           is_xlog, is_ylog,
                           substance_names,
                           formula, com = communicator_V1_2) {
       self$df <- df
       self$df[, substance_names] <- self$df[, substance_names] |> as.character()
-      self$outliers <- outliers
       self$is_xlog <- is_xlog
       self$is_ylog <- is_ylog
       self$substance_names <- substance_names
       self$formula <- formula@formula
       self$com <- com$new()
-
-      # TODO: parse outlier info to list
-
     },
 
     validate = function() {},
-
-    set_result = function(ResultsState, res_df, res_p) {
-      # TODO: check is this required?
-      # NOTE: this is only the case if history is replayed
-      # To keep the structure of the complex dose response state
-        new_result_name <- ""
-        if (is.null(self$outliers)) { # Running the entire analysis
-          ResultsState$curr_data <- new("doseResponse", df = res_df, p = res_p, outlier_info = "")
-          ResultsState$curr_name <- paste(
-            "Test Nr", length(ResultsState$all_names) + 1,
-            "Conducted dose response analysis"
-          )
-          ResultsState$counter <- ResultsState$counter + 1
-          new_result_name <- paste0(
-            ResultsState$counter, " Dose response analysis"
-          )
-          ResultsState$all_data[[new_result_name]] <- new(
-            "doseResponse",
-            df = res_df, p = res_p, outlier_info = ""
-          )
-        } else { # Rerun with outliers
-          ResultsState$curr_data <- new(
-            "doseResponse",
-            df = res_df, p = res_p, outlier_info = create_outlier_info(self$outliers)
-          )
-          ResultsState$curr_name <- paste(
-            "Test Nr", length(ResultsState$all_names) + 1,
-            "Conducted dose response analysis"
-          )
-          ResultsState$counter <- ResultsState$counter + 1
-          new_result_name <- paste0(
-            ResultsState$counter, " Dose response analysis"
-          )
-          ResultsState$all_data[[new_result_name]] <- new(
-            "doseResponse",
-            df = res_df, p = res_p, outlier_info = create_outlier_info(self$outliers)
-          )
-        }
-        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
-          type = "DoseResponse",
-          "Column containing the names" = self$substance_names,
-          "Log transform x-axis" = self$is_xlog,
-          "Log transform y-axis" = self$is_ylog,
-          "formula" = deparse(self$formula),
-          outliers = create_outlier_info(self$outliers),
-          "Result name" = new_result_name
-        )
-    },
 
     eval = function(ResultsState, new_name) {
       withCallingHandlers(
         expr = {
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
-            fun = function(df, formula, substance_names, outliers, is_xlog, is_ylog) {
+            fun = function(df, formula, substance_names, is_xlog, is_ylog) {
               f <- as.character(formula)
               dep <- f[2]
               indep <- f[3]
@@ -1363,7 +1310,7 @@ dose_response_V1_2 <- R6::R6Class(
 
                 res <- OpenStats:::ic50(
                   df, dep,
-                  indep, substance_names, outliers,
+                  indep, substance_names,
                   is_xlog, is_ylog
                 )
                 if (inherits(res, "errorClass")) {
@@ -1390,11 +1337,14 @@ dose_response_V1_2 <- R6::R6Class(
               if (inherits(err, "try-error")) {
                 stop(err)
               }
-              new("doseResponse", df = res_df, p = res_p, outlier_info = OpenStats:::create_outlier_info(outliers))
+              new("doseResponse", df = res_df, p = res_p,
+                name_col = substance_names, formula = formula,
+                xTransform = is_xlog, yTransform = is_ylog,
+                current_page = 1L)
             },
             args = list(
               df = self$df, formula = self$formula, substance_names = self$substance_names,
-              outliers = self$outliers, is_xlog = self$is_xlog, is_ylog = self$is_ylog
+              is_xlog = self$is_xlog, is_ylog = self$is_ylog
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry
@@ -1414,7 +1364,6 @@ dose_response_V1_2 <- R6::R6Class(
         "Log transform x-axis" = self$is_xlog,
         "Log transform y-axis" = self$is_ylog,
         "formula" = deparse(self$formula),
-        outliers = create_outlier_info(self$outliers),
         "Result name" = new_name
       )
     }

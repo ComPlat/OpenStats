@@ -159,27 +159,9 @@ drawplotOnlyRawData <- function(df, abs_col, conc_col, title) {
   return(p)
 }
 
-addOutlierLayer <- function(df_outlier, abs_col, conc_col, p) {
-  if (nrow(df_outlier) == 0) {
-    return(p)
-  }
-  p <- p +
-    geom_point(
-      data = df_outlier,
-      aes(
-        x = df_outlier[, conc_col],
-        y = df_outlier[, abs_col], color = "Outlier"
-      )
-    ) +
-    scale_color_manual(
-      name = "",
-      values = "darkorange"
-    )
-}
-
 drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
                      IC50_relative, IC50_relative_lower, IC50_relative_higher,
-                     df_outlier, islog_x, islog_y) {
+                     islog_x, islog_y) {
   min_conc <- min(df[, conc_col])
   max_conc <- max(df[, conc_col])
   grid <- seq(min_conc, max_conc, 0.1)
@@ -191,7 +173,6 @@ drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
   )
   p <- drawplotOnlyRawData(df, abs_col, conc_col, title) +
     geom_line(data = data, aes(x = conc, y = abs))
-  p <- addOutlierLayer(df_outlier, abs_col, conc_col, p)
   max_conc <- max(df[, conc_col]) +
     0.1 * (max(df[, conc_col]) - min(df[, conc_col]))
   min_conc <- min(df[, conc_col]) - 0.1 * min(df[, conc_col])
@@ -235,7 +216,7 @@ drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
 }
 
 ic50_internal <- function(df, abs, conc,
-                          title, df_outlier, islog_x, islog_y) {
+                          title, islog_x, islog_y) {
   model <- drm(abs ~ conc,
     data = df, fct = LL.4(),
     robust = "median"
@@ -253,7 +234,7 @@ ic50_internal <- function(df, abs, conc,
   )
   p <- drawplot(
     df, abs, conc, model, valid_points, title, res$IC50_relative,
-    res$IC50_relative_lower, res$IC50_relative_higher, df_outlier,
+    res$IC50_relative_lower, res$IC50_relative_higher,
     islog_x, islog_y
   )
   return(list(res, p))
@@ -293,7 +274,7 @@ transform_conc_dr <- function(conc_col) {
 #' df <- read.csv(paste0(path, "/ExampleData.txt"))
 #' ic50(df, "abs", "conc", "names", NULL, FALSE, FALSE)
 ic50 <- function(df, abs_col, conc_col,
-                 substance_name_col, outliers,
+                 substance_name_col,
                  islog_x, islog_y) {
   # Checks
   err <- check_dr_df(df, abs_col, conc_col, substance_name_col)
@@ -315,21 +296,14 @@ ic50 <- function(df, abs_col, conc_col,
   res <- list()
   for (i in seq_along(substances)) {
     df_temp <- df[df$names == substances[i], ]
-    df_outlier <- data.frame()
-    outliers_temp <- outliers[[substances[i]]]
-    if (!is.null(outliers_temp)) {
-      df_outlier <- df_temp[outliers_temp, ]
-      df_temp <- df_temp[-outliers_temp, ]
-    }
     df_temp <- df_temp[!sapply(df_temp$conc, is.na), ]
-    df_outlier <- df_outlier[!sapply(df_outlier$conc, is.na), ]
 
     m <- tryCatch(
       {
         m <- ic50_internal(
           df_temp,
           "abs", "conc",
-          substances[i], df_outlier,
+          substances[i],
           islog_x, islog_y
         )
       },

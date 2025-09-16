@@ -151,11 +151,8 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       get_result(ResultsState)
     },
     DoseResponse = {
-      outliers <- entry[["outliers"]]
-      outliers <- parse_outlier_history(outliers)
       res <- dose_response_V1_2$new(
         DataModelState$df,
-        outliers,
         entry[["Log transform x-axis"]],
         entry[["Log transform y-axis"]],
         entry[["Column containing the names"]],

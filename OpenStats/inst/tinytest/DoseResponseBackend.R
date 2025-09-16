@@ -4,20 +4,20 @@ library(tinytest)
 test_errorClass <- function() {
   checks <- list()
   err <- OpenStats:::errorClass$new("An error message")
-  checks[[1]] <- expect_false(err$isNull())
-  checks[[2]] <- expect_equal(err$error_message, "An error message")
+  checks[[1]] <- !err$isNull()
+  checks[[2]] <- err$error_message == "An error message"
   err_null <- OpenStats:::errorClass$new()
-  checks[[3]] <- expect_true(err_null$isNull())
+  checks[[3]] <- err_null$isNull()
   all(unlist(checks))
 }
 
 # Test cases for shapenumber
 test_shapenumber <- function() {
   checks <- list()
-  checks[[1]] <- expect_equal(OpenStats:::shapenumber(123.456), signif(123.456))
-  checks[[2]] <- expect_equal(OpenStats:::shapenumber(Inf), NA)
-  checks[[3]] <- expect_equal(OpenStats:::shapenumber(-Inf), NA)
-  checks[[4]] <- expect_equal(OpenStats:::shapenumber(NA), NA)
+  checks[[1]] <- OpenStats:::shapenumber(123.456) == signif(123.456)
+  checks[[2]] <- is.na(OpenStats:::shapenumber(Inf))
+  checks[[3]] <- is.na(OpenStats:::shapenumber(-Inf))
+  checks[[4]] <- is.na(OpenStats:::shapenumber(NA))
   all(unlist(checks))
 }
 
@@ -87,16 +87,16 @@ test_ic50 <- function() {
     conc = c(1, 10, 100, 1000, 10000),
     names = c("A", "A", "A", "A", "A")
   )
-  result <- OpenStats:::ic50(data, "abs", "conc", "names", NULL, FALSE, FALSE)
+  result <- OpenStats:::ic50(data, "abs", "conc", "names", FALSE, FALSE)
   checks[[1]] <- expect_true(is.list(result))
   checks[[2]] <- expect_true(is.data.frame(result[[1]][[1]]))
   all(unlist(checks))
 }
 
 # Run all tests
-test_errorClass()
-test_shapenumber()
-test_robust_68_percentile()
-test_rsdr()
-test_false_discovery_rate()
-test_ic50()
+expect_true(test_errorClass())
+expect_true(test_shapenumber())
+expect_true(test_robust_68_percentile())
+expect_true(test_rsdr())
+expect_true(test_false_discovery_rate())
+expect_true(test_ic50())

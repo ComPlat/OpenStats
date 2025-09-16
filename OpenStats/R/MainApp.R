@@ -266,7 +266,8 @@ app <- function() {
       all_data = list(), all_names = list(),
       history = list(),
       counter = 0,
-      bgp = bgp
+      bgp = bgp,
+      registered_pagers = character()
     )
 
     DataWranglingState <- reactiveValues(
@@ -507,6 +508,21 @@ app <- function() {
             DTOutput(paste0("res_", name)),
             actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
+        } else if (inherits(temp, "doseResponse")) {
+          div(
+            class = "var-box-output",
+            div(
+              class = "var-box-name",
+              name
+            ),
+            plotOutput(paste0("res_dose_response_", name),
+              width = "100%", height = "800px"
+            ),
+            actionButton(paste0("res_previous_", name), "Previous plot"),
+            actionButton(paste0("res_next_", name), "Next plot"),
+            DTOutput(paste0("res_dose_response_df_", name)),
+            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+          )
         } else if (inherits(temp, "plot")) {
           div(
             class = "var-box-output",
@@ -563,21 +579,16 @@ app <- function() {
           if (is.vector(temp)) {
             output[[paste0("res_", name)]] <- renderPrint(temp)
           } else if (is.data.frame(temp)) {
-            output[[paste0("res_", name)]] <- renderDT(temp)
+            output[[paste0("res_", name)]] <- render_df(temp)
+          } else if (inherits(temp, "doseResponse")) {
+            output[[paste0("res_dose_response_", name)]] <- renderPlot(temp@p[[temp@current_page]])
+            output[[paste0("res_dose_response_df_", name)]] <- render_df(temp@df, 2)
           } else if (inherits(temp, "plot")) {
             output[[paste0("res_", name)]] <- renderPlot(temp@p)
-          } else if (inherits(temp, "doseResponse")) {
-            message <- paste0(
-              "Dose response analysis. (Outliers: ",
-              paste0(temp@outlier_info, collapse = ";"),
-              "). Too long to display",
-              collapse = " "
-            )
-            output[[paste0("res_", name)]] <- renderPrint(message)
           } else if (inherits(temp, "summaryModel")) {
             output[[paste0("res_plot_", name)]] <- renderPlot(temp@p)
-            output[[paste0("res_summary_", name)]] <- renderDT(temp@summary)
-            output[[paste0("res_information_criterion_", name)]] <- renderDT(temp@information_criterions)
+            output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
+            output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
           } else {
             output[[paste0("res_", name)]] <- renderPrint(temp)
           }
@@ -607,6 +618,34 @@ app <- function() {
           ignoreInit = TRUE
         )
       })
+    })
+    # Handle previous & next buttons of dose response plots
+    observe({
+      if (length(ResultsState$all_data) == 0) return()
+      all_names <- names(ResultsState$all_data)
+      already   <- ResultsState$registered_pagers
+      to_add    <- setdiff(all_names, already)
+      if (!length(to_add)) return()
+      lapply(to_add, function(name) {
+        observeEvent(input[[paste0("res_previous_", name)]], ignoreInit = TRUE, {
+          obj <- ResultsState$all_data[[name]]
+          if (is.null(obj)) return()
+          if (obj@current_page >= 2L) {
+            obj@current_page <- obj@current_page - 1L
+            ResultsState$all_data[[name]] <- obj
+          }
+        })
+        observeEvent(input[[paste0("res_next_", name)]], ignoreInit = TRUE, {
+          obj <- ResultsState$all_data[[name]]
+          if (is.null(obj)) return()
+          n <- length(obj@p)
+          if (obj@current_page < n) {
+            obj@current_page <- obj@current_page + 1L
+            ResultsState$all_data[[name]] <- obj
+          }
+        })
+      })
+      ResultsState$registered_pagers <- union(already, to_add)
     })
 
     # Observe open formula editor

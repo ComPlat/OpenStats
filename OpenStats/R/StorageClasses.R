@@ -26,9 +26,14 @@ setClass("doseResponse",
   slots = c(
     df = "data.frame",
     p = "ANY",
-    outlier_info = "character"
+    name_col = "character",
+    formula = "formula",
+    xTransform = "logical",
+    yTransform = "logical",
+    current_page = "integer"
   )
 )
+
 setClass("plot",
   slots = c(
     p = "ANY",

@@ -21,7 +21,6 @@
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
-    "outliers": "",
     "Result name": "DoseResponseNr3"
   },
   {
@@ -30,7 +29,6 @@
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
-    "outliers": "S1: 10",
     "Result name": "DoseResponseNr4"
   },
   {
@@ -39,7 +37,6 @@
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
-    "outliers": "S1: 10, 15",
     "Result name": "DoseResponseNr5"
   }
 ]

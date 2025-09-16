@@ -415,10 +415,6 @@ expect_true(
   inherits(result[[6]], "doseResponse"),
   info = "Dose response result"
 )
-expect_equal(
-  result[[6]]@outlier_info, "S1: 10, 15",
-  info = "Dose response result"
-)
 
 # Test formula
 # ========================================================================================

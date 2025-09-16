@@ -590,7 +590,6 @@ test_dose_response <- function() {
 
   dr <- OpenStats:::dose_response_V1_2$new(
     df = df,
-    outliers = NULL,
     is_xlog = FALSE,
     is_ylog = FALSE,
     substance_names = "name",

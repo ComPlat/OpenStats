@@ -15,25 +15,6 @@ num_to_factor <- function(df, cols) {
   return(df)
 }
 
-parse_outlier_info <- function(outliers) {
-  if (is.null(outliers)) return(outliers)
-  outliers <- strsplit(outliers, split = ";")[[1]]
-  outlier_values <- lapply(outliers, function(obj) {
-    gsub("^.*?:\\s*", "", obj)
-  })
-  outlier_values <- lapply(outlier_values, function(obj) {
-    obj <- strsplit(obj, split = ",")[[1]]
-    as.numeric(obj)
-  })
-  names <- lapply(outliers, function(obj) {
-    name <- gsub(":.*$", "", obj)
-    gsub(" ", "", name)
-  })
-  if (length(names) == 1 && names == "") return(NULL)
-  names(outlier_values) <- names
-  outlier_values
-}
-
 char_to_orig_type <- function(vec) {
   if (is.list(vec)) vec <- unlist(vec)
   if (any(is.na(as.numeric(vec)))) {
@@ -63,31 +44,6 @@ DF2String <- function(df) {
   res <- paste0(res, "\n")
   res <- Reduce(paste0, res)
   return(res)
-}
-
-create_outlier_info <- function(l) {
-  if (is.null(l)) return("")
-  res <- sapply(
-    seq_len(length(l)), function(idx) {
-      n <- names(l)[idx]
-      points <- paste0(l[[idx]], collapse = ", ")
-      paste0(n, ": ", points)
-    }
-  )
-  res
-}
-parse_outlier_history <- function(history_outliers) {
-  if (history_outliers == "") {
-    return(NULL) # correct falsy json parsing
-  }
-  splitted_history <- strsplit(history_outliers, ":")[[1]]
-  name <- splitted_history[[1]]
-  indices <- splitted_history[-1]
-  indices <- strsplit(indices, ",")[[1]]
-  indices <- as.numeric(indices)
-  l <- list(indices)
-  names(l) <- name
-  l
 }
 
 createExcelFile <- function(l) {
@@ -899,4 +855,22 @@ create_run_env <- function() {
   env$Qunif <- OpenStats:::Qunif
   env$Runif <- OpenStats:::Runif
   env
+}
+
+render_df <- function(df, n_fixed_cols = 1) {
+  renderDT(
+    df,
+    extensions = c("Buttons", "FixedColumns", "Scroller"),
+    options = list(
+      dom = "Bfrtip",
+      scrollX = TRUE,
+      scrollY = "45vh",
+      scroller = TRUE,
+      paging = TRUE,
+      deferRender = TRUE,
+      autoWidth = TRUE,
+      fixedColumns = list(leftColumns = n_fixed_cols)
+    ),
+    class = "compact stripe nowrap"
+  )
 }
