@@ -587,8 +587,8 @@ app <- function() {
             output[[paste0("res_", name)]] <- renderPlot(temp@p)
           } else if (inherits(temp, "summaryModel")) {
             output[[paste0("res_plot_", name)]] <- renderPlot(temp@p)
-            output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
-            output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
+            output[[paste0("res_summary_", name)]] <- renderDT(temp@summary)
+            output[[paste0("res_information_criterion_", name)]] <- renderDT(temp@information_criterions)
           } else {
             output[[paste0("res_", name)]] <- renderPrint(temp)
           }
