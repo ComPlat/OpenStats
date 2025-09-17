@@ -30,7 +30,7 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
 
       showModal(modalDialog(
         title = "Confirm History Replay",
-        "This will overwrite all current results and data. Do you want to continue?",
+        "Do you want to run the history? This can take a while",
         easyClose = FALSE,
         footer = tagList(
           modalButton("Cancel"),

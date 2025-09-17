@@ -858,19 +858,23 @@ create_run_env <- function() {
 }
 
 render_df <- function(df, n_fixed_cols = 1) {
-  renderDT(
-    df,
-    extensions = c("Buttons", "FixedColumns", "Scroller"),
-    options = list(
-      dom = "Bfrtip",
-      scrollX = TRUE,
-      scrollY = "45vh",
-      scroller = TRUE,
-      paging = TRUE,
-      deferRender = TRUE,
-      autoWidth = TRUE,
-      fixedColumns = list(leftColumns = n_fixed_cols)
-    ),
-    class = "compact stripe nowrap"
-  )
+  small <- nrow(df) <= 20 && ncol(df) <= 8
+  if (small) {
+    renderDT(df)
+  } else {
+    renderDT(
+      df,
+      extensions = c("Buttons", "FixedColumns", "Scroller"),
+      options = list(
+        dom = "Bfrtip",
+        scrollX = TRUE,
+        # scrollY = "45vh",
+        scroller = TRUE,
+        paging = TRUE,
+        fixedColumns = list(leftColumns = n_fixed_cols)
+      ),
+      class = "compact stripe nowrap"
+    )
+  }
+
 }

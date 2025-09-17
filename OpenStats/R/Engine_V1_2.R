@@ -47,18 +47,15 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
               return()
             }
             if (inherits(res, "HistoryReplayResult")) {
-              # Overwrite reactive values
               DataModelState$df <- res$DataModelState$df
               DataModelState$formula <- res$DataModelState$formula
               DataModelState$backup_df <- res$DataModelState$backup_df
               DataModelState$filter_col <- res$DataModelState$filter_col
               DataModelState$filter_group <- res$DataModelState$filter_group
 
-              ResultsState$curr_data <- res$ResultsState$curr_data
-              ResultsState$curr_name <- res$ResultsState$curr_name
-              ResultsState$all_data <- res$ResultsState$all_data
-              ResultsState$all_names <- res$ResultsState$all_names
-              ResultsState$history <- res$ResultsState$history
+              ResultsState$all_data <- c(ResultsState$all_data, res$ResultsState$all_data)
+              ResultsState$history <- c(ResultsState$history, res$ResultsState$history)
+              ResultsState$counter <- length(ResultsState$all_data)
 
               DataWranglingState$df <- res$DataWranglingState$df
               DataWranglingState$df_name <- res$DataWranglingState$df_name
@@ -183,14 +180,12 @@ backend_get_result_V1_2 <- function(ResultsState) {
 backend_result_state_V1_2 <- R6::R6Class(
   "backend_result_state_V1_2",
   public = list(
-    curr_data = NULL, curr_name = NULL,
-    all_data = list(), all_names = list(),
+    all_data = list(),
     history = list(),
     counter = 0,
     bgp = NULL,
     initialize = function(all_data) {
       self$all_data <- all_data
-      self$all_names <- names(all_data)
       self$bgp <- bg_process_V1_2$new(500, backend_communicator_V1_2)
     }
   )
