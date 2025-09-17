@@ -102,7 +102,6 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           )
         }
       } else {
-        print("Test")
         self$com$print_err(res)
       }
     },
@@ -403,7 +402,7 @@ visualisation_V1_2 <- R6::R6Class(
     validate = function() {
       # Run first checks:
       if (self$width < 0) {
-self$com$print_warn("width has to be a positive number; It is set to 10 cm")
+        self$com$print_warn("width has to be a positive number; It is set to 10 cm")
         self$width <- 10
       }
       if (self$height < 0) {
@@ -1786,11 +1785,14 @@ replay_history_V1_2 <- R6::R6Class(
               get_result <- OpenStats:::get_correct_get_result_fct(version$Nr)[[1]]
               for (i in seq_along(l)) {
                 inner_e <- try({
+                  if (l[[i]]$type == "ModelSummary") {
+                    next
+                  }
                   eval_entry(l[[i]], data_model_state, data_wrangling_state, result_state, get_result)
                 })
                 if (inherits(inner_e, "try-error")) {
                   err <- conditionMessage(attr(inner_e, "condition"))
-                  print(sprintf("Error in step: %s", i))
+                  print(sprintf("Error in step: %s", i + 1))
                   stop(err)
                 }
               }

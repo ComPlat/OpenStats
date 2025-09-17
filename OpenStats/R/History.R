@@ -109,13 +109,6 @@ eval_entry_V1_2 <- function(entry, DataModelState,
           entry[["lower"]], entry[["upper"]], entry[["seed"]])
       }
     },
-    ModelSummary = {
-      res <- summarise_model_V1_2$new(
-        DataModelState$df, DataModelState$formula,
-        backend_communicator_V1_2)
-      res$validate()
-      res$eval(ResultsState)
-    },
     ShapiroOnData = {
       res <- shapiro_on_data_V1_2$new(
         DataModelState$df,  DataModelState$formula,
@@ -390,9 +383,6 @@ get_correct_data_wrangling_state <- function(version) {
 get_correct_get_result_fct <- function(version) {
   list("1_2" = backend_get_result_V1_2)[version]
 }
-get_correct_dose_response_state <- function(version) {
-  list("1_2" = backend_dose_response_state_V1_2)[version]
-}
 
 eval_history <- function(json_string, df, all_data, backend = FALSE) {
   print_err_in_eval_history <- print_err
@@ -413,12 +403,15 @@ eval_history <- function(json_string, df, all_data, backend = FALSE) {
     get_result <- get_correct_get_result_fct(version$Nr)[[1]]
     for (i in seq_along(l)) {
       inner_e <- try({
+        if (l[[i]]$type == "ModelSummary") {
+          next
+        }
         eval_entry(l[[i]], data_model_state,
           data_wrangling_state, result_state, get_result)
       })
       if (inherits(inner_e, "try-error")) {
         err <- conditionMessage(attr(inner_e, "condition"))
-        print_err_in_eval_history(sprintf("Error in step: %s", i))
+        print_err_in_eval_history(sprintf("Error in step: %s", i + 1))
         stop(err)
       }
     }
