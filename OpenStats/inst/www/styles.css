@@ -9,19 +9,29 @@
   padding-right: 20px;
 }
 .add-button::after {
-  content: '\\2295';
   position: absolute;
   top: 1.1px;
   right: 5px;
   font-size: 16px;
   font-weight: bold;
   color: #900C3F;
-  background-color: white;
   width: 15px;
   height: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.df-button {
+  background-color: #d5f5e3;  /* light green */
+  border: 1px solid #a2d9b1;
+  color: #000;
+  margin: 3px;
+}
+.colnames-button {
+  background-color: #d0eaff;  /* light blue */
+  border: 1px solid #90c5f0;
+  color: #000;
+  margin: 3px;
 }
 .model {
   background-color: #f8f9fa;
@@ -36,4 +46,58 @@
   margin-bottom: 10px;
   color: #333;
 }
-
+.create_button{
+  background-color: #04AA6D; /* Green */
+  border: none;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+.var-output {
+  border: 2px solid #900C3F;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+  display: inline-block;
+  width: auto;
+}
+.var-box-output {
+  border: 2px solid #900C3F;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+.var-box-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+.info-box {
+  background-color: #e6f2ff; /* light blue */
+  border: 1px solid #99ccff; /* soft blue border */
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+  font-size: 16px;
+  color: #003366; /* dark blue text for contrast */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.info-box h3 {
+  margin: 0;
+  font-weight: bold;
+}
+.nav-tabs > li > a {
+  text-decoration: none;
+  color: #900C3F;
+  font-weight: bold;
+  margin-right: 15px;
+}
+.nav-tabs > li > a:hover {
+  text-decoration: underline;
+  color: #333;
+}

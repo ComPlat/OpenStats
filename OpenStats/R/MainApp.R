@@ -1,21 +1,3 @@
-js_scripts <- function() {
-  if (Sys.getenv("RUN_MODE") == "BROWSER") {
-    tagList(
-      includeScript("www/FileSaver.min.js"),
-      includeScript("www/html2canvas.min.js"),
-      includeScript("www/jszip.min.js"),
-      includeScript("www/download.js")
-    )
-  } else {
-    tagList(
-      includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
-      includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
-      includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
-      includeScript(system.file("www/download.js", package = "OpenStats"))
-    )
-  }
-}
-
 upload_ui_field <- function() {
   if (Sys.getenv("RUN_MODE") != "SERVER") {
     res <- conditionalPanel(
@@ -34,124 +16,17 @@ upload_ui_field <- function() {
 }
 
 app <- function() {
-  js <- js_scripts()
   uploadUIField <- upload_ui_field()
   ui <- fluidPage(
     useShinyjs(),
-    js,
-    # includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
-    # includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
-    # includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
-    # includeScript(system.file("www/download.js", package = "OpenStats")),
+    tagList(
+      includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
+      includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
+      includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
+      includeScript(system.file("www/download.js", package = "OpenStats"))
+    ),
     tags$head(
-      # tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"),
-      # tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"),
-      # tags$script(src tags$script(src = "js/jszip.min.js"),
-      tags$style(HTML("
-        .boxed-output {
-        border: 2px solid #900C3F;
-        padding: 10px;
-        border-radius: 5px;
-        margin-top: 10px;
-        }
-        .add-button {
-        position: relative;
-        padding-right: 20px;
-        }
-        .add-button::after {
-        position: absolute;
-        top: 1.1px;
-        right: 5px;
-        font-size: 16px;
-        font-weight: bold;
-        color: #900C3F;
-        width: 15px;
-        height: 15px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        }
-        .df-button {
-        background-color: #d5f5e3;  /* light green */
-        border: 1px solid #a2d9b1;
-        color: #000;
-        margin: 3px;
-        }
-        .colnames-button {
-        background-color: #d0eaff;  /* light blue */
-        border: 1px solid #90c5f0;
-        color: #000;
-        margin: 3px;
-        }
-        .model {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border: 2px solid #c8c8c8;
-        border-radius: 5px;
-        margin-top: 10px;
-        }
-        .title {
-        font-size: 14px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #333;
-        }
-        .create_button{
-        background-color: #04AA6D; /* Green */
-        border: none;
-        color: black;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        }
-        .var-output {
-        border: 2px solid #900C3F;
-        padding: 10px;
-        border-radius: 5px;
-        margin-top: 10px;
-        display: inline-block;
-        width: auto;
-        }
-        .var-box-output {
-        border: 2px solid #900C3F;
-        padding: 10px;
-        border-radius: 5px;
-        margin-top: 10px;
-        }
-        .var-box-name {
-        font-size: 15px;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 8px;
-        margin-top: 4px;
-        }
-        .info-box {
-        background-color: #e6f2ff; /* light blue */
-        border: 1px solid #99ccff; /* soft blue border */
-        border-radius: 8px;
-        padding: 16px;
-        margin-top: 12px;
-        font-size: 16px;
-        color: #003366; /* dark blue text for contrast */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-        .info-box h3 {
-        margin: 0;
-        font-weight: bold;
-        }
-        .nav-tabs > li > a {
-        text-decoration: none;
-        color: #900C3F;
-        font-weight: bold;
-        margin-right: 15px;
-        }
-        .nav-tabs > li > a:hover {
-        text-decoration: underline;
-        color: #333;
-        }
-        "))
+      includeCSS(system.file("www/styles.css", package = "OpenStats"))
     ),
     sidebarLayout(
       sidebarPanel(
@@ -409,7 +284,7 @@ app <- function() {
     }
     output$df <- renderDT({
       req(DataModelState$df)
-      datatable(DataModelState$df, options = list(pageLength = 10))
+      DT::datatable(DataModelState$df, options = list(pageLength = 10))
     })
     observe({
       req(!is.null(DataModelState$df))
@@ -418,7 +293,7 @@ app <- function() {
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(type = "Version", Nr = get_current_version())
       }
       output$df <- renderDT(
-        datatable(DataModelState$df, options = list(pageLength = 10))
+        DT::datatable(DataModelState$df, options = list(pageLength = 10))
       )
     })
 
