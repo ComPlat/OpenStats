@@ -868,8 +868,7 @@ render_df <- function(df, n_fixed_cols = 1) {
       options = list(
         dom = "Bfrtip",
         scrollX = TRUE,
-        # scrollY = "45vh",
-        scroller = TRUE,
+        # scroller = TRUE,
         paging = TRUE,
         fixedColumns = list(leftColumns = n_fixed_cols)
       ),

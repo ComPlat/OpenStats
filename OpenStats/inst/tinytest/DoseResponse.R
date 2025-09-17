@@ -11,8 +11,6 @@ app$upload_file(
   file = system.file("/test_data/DoseResponse.csv", package = "OpenStats")
 )
 wait(app)
-app$set_window_size(width = 2259, height = 1326)
-wait(app)
 app$set_inputs(conditionedPanels = "Dose Response analysis")
 wait(app)
 
@@ -32,15 +30,16 @@ app$set_inputs(`DOSERESPONSE-substanceNames` = "names")
 wait(app)
 app$click("DOSERESPONSE-ic50")
 wait(app)
+Sys.sleep(20)
 
 res <- app$get_values()$export
 res <- res[["FO-result_list"]]
-res_df <- res[[3]]@df
+res_df <- res[[length(res)]]@df
 
 data <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats"))
 expected <- OpenStats:::ic50(
   data, "abs", "conc",
-  "names", NULL,
+  "names",
   FALSE, FALSE
 )
 dfs <- lapply(expected, function(x) {

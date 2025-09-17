@@ -448,6 +448,8 @@ app <- function() {
       }
       res <- ResultsState$all_data
       res_ui_list <- lapply(names(res), function(name) {
+        rendered <- attributes(ResultsState$all_data[[name]])$rendered
+        if (!is.null(rendered) && rendered) return()
         observeEvent(res[[name]], {
           temp <- res[[name]]
           if (is.vector(temp)) {
@@ -467,6 +469,7 @@ app <- function() {
             output[[paste0("res_", name)]] <- renderPrint(temp)
           }
         })
+        attr(ResultsState$all_data[[name]], "rendered") <- TRUE
       })
       do.call(tagList, res_ui_list)
     })
