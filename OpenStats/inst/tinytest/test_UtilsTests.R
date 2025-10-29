@@ -1,6 +1,3 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
 library(OpenStats)
 library(ggplot2)
 library(tinytest)
@@ -1215,6 +1212,8 @@ test_stack_unstackDF()
 # =======================================================================================
 # TODO: update test
 test_createJSString <- function() {
+  if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
+  if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()
   # 1. Create a plot object
   p <- ggplot(data = iris, aes(x = Species, y = Sepal.Length)) +
     geom_boxplot()
@@ -1268,13 +1267,15 @@ test_createJSString <- function() {
   ) |> print()
 
   # Cleanup
-  # unlink(diag_fn)
+  unlink(diag_fn)
 }
 test_createJSString()
 
 # Test createExcelFile
 # =======================================================================================
 test_createExcelFile <- function() {
+  if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
+  if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()
   p <- ggplot(
     data = iris,
     aes(x = Species, y = Sepal.Length)
@@ -1310,8 +1311,8 @@ test_createExcelFile <- function() {
   ) |> print()
 
   # Cleanup
-  # file.remove(file)
-  # unlink(temp_files)
+  file.remove(file)
+  unlink(temp_files)
 }
 test_createExcelFile()
 
