@@ -1,3 +1,6 @@
+if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
+if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
+
 wait <- function(app) {
   try(app$wait_for_idle(), silent = TRUE)
 }

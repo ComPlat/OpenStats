@@ -245,7 +245,23 @@ app <- function() {
     })
 
     download_file <- reactive({
-      file <- COMELN::download(session, "/home/shiny/results")
+      out_dir <- file.path(tempdir(), "openstats-results")
+      if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+
+      if (!requireNamespace("COMELN", quietly = TRUE)) {
+        shiny::validate(shiny::need(FALSE,
+          paste(
+            "Feature requires the 'COMELN' package.",
+            "Install it to enable downloads.",
+            'For GitHub: remotes::install_github("ComPlat/OpenStats", subdir = "comeln")'
+          )
+        ))
+        return(NULL)
+      }
+      downloader <- getExportedValue("COMELN", "download")
+
+      file <- downloader(session, out_dir) #"/home/shiny/results"
+
       readData(file, DataModelState, ResultsState)
       print_req(
         is.data.frame(DataModelState$df),
@@ -718,7 +734,18 @@ app <- function() {
           "Defined filename does not have xlsx as extension"
         )
         excelFile <- createExcelFile(l)
-        upload(session, excelFile, new_name = input$user_filename)
+        if (!requireNamespace("COMELN", quietly = TRUE)) {
+          shiny::validate(shiny::need(FALSE,
+            paste(
+              "Feature requires the 'COMELN' package.",
+              "Install it to enable uploads",
+              'For GitHub: remotes::install_github("ComPlat/OpenStats", subdir = "comeln")'
+            )
+          ))
+          return(NULL)
+        }
+        uploader <- getExportedValue("COMELN", "upload")
+        uploader(session, excelFile, new_name = input$user_filename)
       } else if (Sys.getenv("RUN_MODE") == "LOCAL") {
         print_req(
           check_filename_for_server(input$user_filename) || check_filename_for_serverless(input$user_filename),

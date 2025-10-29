@@ -8,7 +8,7 @@ Authors@R: person(given = "Krämer",
     role = c("aut", "cre"),
     email = "konrad.kraemer@kit.edu")
 Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
-Description: offering a shiny app to conduct common tasks encountered in the analysis of datasets in biology or chemistry.
+Description: Offering a shiny app to conduct common tasks encountered in the analysis of datasets in biology or chemistry.
 License: GPL-3
 Depends: R (>= 4.1.0)
 Imports:
@@ -32,18 +32,18 @@ Imports:
   equatiomatic,
   openxlsx,
   car,
-  COMELN,
-  httr,
-  jose,
   openssl,
   jsonlite,
   emmeans,
   readxl,
   stats,
   methods,
-  utils
+  utils,
+  httr,
+  jose
 Suggests:
   tinytest,
-  shinytest2
+  shinytest2,
+  COMELN
 Encoding: UTF-8
 

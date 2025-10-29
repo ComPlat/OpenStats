@@ -13,6 +13,6 @@ The app provides an interactive interface for performing and visualizing common 
 }
 \examples{
 \donttest{
-#OpenStats::open_stats()
+OpenStats::open_stats()
 }
 }

@@ -1,3 +1,6 @@
+if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
+if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
+
 library(ggplot2)
 library(shinytest2)
 library(tinytest)
