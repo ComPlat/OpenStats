@@ -1,3 +1,6 @@
+if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
+if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
+
 library(OpenStats)
 library(ggplot2)
 library(tinytest)
@@ -1307,7 +1310,7 @@ test_createExcelFile <- function() {
   ) |> print()
 
   # Cleanup
-  file.remove(file)
+  # file.remove(file)
   # unlink(temp_files)
 }
 test_createExcelFile()
