@@ -1265,7 +1265,7 @@ test_createJSString <- function() {
   ) |> print()
 
   # Cleanup
-  unlink(diag_fn)
+  # unlink(diag_fn)
 }
 test_createJSString()
 
@@ -1308,7 +1308,7 @@ test_createExcelFile <- function() {
 
   # Cleanup
   file.remove(file)
-  unlink(temp_files)
+  # unlink(temp_files)
 }
 test_createExcelFile()
 
