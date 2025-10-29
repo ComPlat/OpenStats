@@ -46,6 +46,7 @@ jobs:
             any::rcmdcheck
             any::tinytest
             any::shinytest2
+            github::ComPlat/OpenStats/comeln
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
