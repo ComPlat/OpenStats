@@ -143,6 +143,8 @@ check_fit <- function(model, min_conc, max_conc,
 }
 
 drawplotOnlyRawData <- function(df, abs_col, conc_col, title) {
+  conc <- function() stop("Should never be called") # Please R CMD check
+
   data_measured <- data.frame(conc = df[, conc_col], abs = df[, abs_col])
   p <- ggplot() +
     geom_boxplot(
@@ -162,6 +164,9 @@ drawplotOnlyRawData <- function(df, abs_col, conc_col, title) {
 drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
                      IC50_relative, IC50_relative_lower, IC50_relative_higher,
                      islog_x, islog_y) {
+
+  conc <- function() stop("Should never be called") # Please R CMD check
+
   min_conc <- min(df[, conc_col])
   max_conc <- max(df[, conc_col])
   grid <- seq(min_conc, max_conc, 0.1)

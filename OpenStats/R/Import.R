@@ -180,9 +180,9 @@ readData <- function(path, DataModelState, ResultsState) {
     stop("File size exceeds the 50 MB limit. Please upload a smaller file.")
   }
   tables <- try(read_data_excel(path), silent = TRUE)
-  if (class(tables) == "try-error") {
+  if (inherits(tables, "try-error")) {
     tables <- try(read_data_csv(path))
-    if (class(tables) == "try-error") {
+    if (inherits(tables, "try-error")) {
       stop(tables)
     }
   }

@@ -1,4 +1,5 @@
 CooksDistance <- function(df, formula) {
+  Index <- function() stop("Should never be called") # Please R CMD check
   # https://rpubs.com/DragonflyStats/Cooks-Distance
   model <- NULL
   if (inherits(formula, "LinearFormula")) {
@@ -45,6 +46,11 @@ CooksDistance <- function(df, formula) {
 }
 
 diagnosticPlots <- function(df, formula) {
+  x <- function() stop("Should never be called") # Please R CMD check
+  y <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
+  quantiles <- function() stop("Should never be called") # Please R CMD check
+
   model <- NULL
   if (inherits(formula, "LinearFormula")) {
     model <- lm(formula@formula, data = df)

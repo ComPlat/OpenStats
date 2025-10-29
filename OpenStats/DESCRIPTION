@@ -1,12 +1,16 @@
 Package: OpenStats
 Type: Package
-Title: OpenStats
+Title: Statistical Analysis in the Web for Biologists and Chemists
 Version: 1.2
-Date: 2022-03-24
-Author: Konrad Krämer
-Maintainer: <konrad_kraemer@kit.edu>
-Description: offering a shiny app to common statistics conducted in biology and chemistry
+Date: 2025-10-24
+Authors@R: person(given = "Krämer",
+    family = "Konrad",
+    role = c("aut", "cre"),
+    email = "konrad.kraemer@kit.edu")
+Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
+Description: offering a shiny app to conduct common tasks encountered in the analysis of datasets in biology or chemistry.
 License: GPL-3
+Depends: R (>= 4.1.0)
 Imports:
   shiny,
   DT,
@@ -33,6 +37,13 @@ Imports:
   jose,
   openssl,
   jsonlite,
-  emmeans
+  emmeans,
+  readxl,
+  stats,
+  methods,
+  utils
+Suggests:
+  tinytest,
+  shinytest2
 Encoding: UTF-8
 

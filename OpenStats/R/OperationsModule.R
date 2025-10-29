@@ -35,7 +35,7 @@ OperatorEditorSidebar <- function(id) {
       actionButton(NS(id, "atan"), "atan", class = "add-button"),
       actionButton(NS(id, "abs"), "abs", class = "add-button", title = "absolute value |x| equivalent to abs(x)"),
       actionButton(NS(id, "ceil"), "ceiling", class = "add-button", title = "Round up to the nearest integer."),
-      actionButton(NS(id, "floor"), "floor", class = "add-button", title = "Round down to the nearest integer (⌊x⌋)"),
+      actionButton(NS(id, "floor"), "floor", class = "add-button", title = "Round down to the nearest integer"),
       actionButton(NS(id, "trunc"), "trunc", class = "add-button", title = "Truncate decimal part, keeping only the integer part"),
       actionButton(NS(id, "round"), "round", class = "add-button", title = "Round to the nearest integer or specified precision"),
       class = "boxed-output"

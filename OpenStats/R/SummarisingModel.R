@@ -65,6 +65,10 @@ add_y_lab_title <- function(p, ytitle) {
 }
 
 plot_one_pred <- function(pred_df, type, pred, response) {
+  predicted <- function() stop("Should never be called") # Please R CMD check
+  conf.low <- function() stop("Should never be called") # Please R CMD check
+  conf.high <- function() stop("Should never be called") # Please R CMD check
+
   aes_one <- aes(x = .data[[pred[1]]], y = predicted)
   p <- NULL
   if (type == "numeric") {
@@ -83,6 +87,10 @@ plot_one_pred <- function(pred_df, type, pred, response) {
   return(add_y_lab_title(p, response))
 }
 plot_two_pred <- function(pred_df, types, preds, response) {
+  predicted <- function() stop("Should never be called") # Please R CMD check
+  conf.low <- function() stop("Should never be called") # Please R CMD check
+  conf.high <- function() stop("Should never be called") # Please R CMD check
+
   aes_one <- aes(x = .data[[preds[1]]], y = predicted)
   p <- NULL
   if (types[1] == "numeric" && types[2] != "numeric") {
@@ -207,7 +215,7 @@ plot_pred_lm <- function(data, formula) {
   model <- lm(formula, data)
   # R²
   r2 <- summary(model)$r.squared
-  r2_label <- sprintf("R² = %.3f", r2)
+  r2_label <- sprintf("R^2 = %.3f", r2)
   n <- 100
   new_data <- create_new_data(formula, data, predictors, n)
   types <- determine_types(predictors, data)
@@ -247,7 +255,7 @@ plot_pred_glm <- function(data, formula) {
   model <- glm(formula, data = data, family = eval(family))
   # R²
   r2 <- summary(model)$r.squared
-  r2_label <- sprintf("R² = %.3f", r2)
+  r2_label <- sprintf("R^2 = %.3f", r2)
   n <- 100
   new_data <- create_new_data(formula, data, predictors, n)
   types <- determine_types(predictors, data)

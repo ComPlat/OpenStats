@@ -74,7 +74,7 @@ calc_r2_optim <- function(df, lhs) {
   pred <- df[df$group == "Predicted", "y"]
   actual <- df[df$group == "Original", "y"]
   r2 <- 1 - sum((actual - pred)^2) / sum((actual - mean(actual))^2)
-  r2_label <- sprintf("R² = %.3f", r2)
+  r2_label <- sprintf("R^2 = %.3f", r2)
   r2_label
 }
 
@@ -116,6 +116,9 @@ optimize <- function(formula, df) {
 # Summary of "model"
 # ====================================================================================
 plot_model_optim <- function(formula_optim, result_optim) {
+  y <- function() stop("Should never be called") # Please R CMD check
+  i <- function() stop("Should never be called") # Please R CMD check
+
   df <- result_optim@predicted_df
   lhs <- formula_optim@lhs
   r2_label <- calc_r2_optim(df, lhs)
