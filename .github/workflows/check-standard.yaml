@@ -53,4 +53,6 @@ jobs:
         with:
           working-directory: OpenStats
           upload-snapshots: true
-          args: '--as-cran --no-manual'
+          args:
+            - --as-cran
+            - --no-manual
