@@ -41,9 +41,15 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          working-directory: OpenStats
+          extra-packages: |
+            any::rcmdcheck
+            any::tinytest
+            any::shinytest2
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
+          working-directory: OpenStats
           upload-snapshots: true
+          args: '--as-cran --no-manual'
