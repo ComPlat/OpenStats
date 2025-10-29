@@ -843,7 +843,7 @@ create_run_env <- function() {
   env$DataFrame <- DataFrame
   env$as.char <- as.char
   env$as.int <- as.int
-  env$as.real <- as.double
+  env$as.real <- as.numeric
   env$as.fact <- as.fact
   env$Dnorm <- Dnorm
   env$Pnorm <- Pnorm
