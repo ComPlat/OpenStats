@@ -343,13 +343,7 @@ get_cols <- function(df, ...) {
 
 get_rows <- function(df, expr) {
   stopifnot("Expected dataframe" = is.data.frame(df))
-  mask <- eval(substitute(expr), df, parent.frame())
-
-  if (!is.logical(mask) || length(mask) != nrow(df)) {
-    stop("`expr` must evaluate to a logical vector of length nrow(df).")
-  }
-  mask[is.na(mask)] <- FALSE
-  df[mask, , drop = FALSE]
+  subset(df, expr)
 }
 
 create_df_name <- function(current_df_name, column_names) {

@@ -148,9 +148,20 @@ app <- function() {
       df = NULL, df_name = "df",
       current_page = 1, total_pages = 1,
       counter_id = 0,
-      intermediate_vars = list()
+      intermediate_vars = list(),
+      code_string = NULL
     )
     bgp$init(ResultsState, DataModelState, DataWranglingState) # NOTE: creates the polling observer
+
+    observeEvent(ResultsState$counter, { # For testing
+      session$userData$export <- ResultsState$all_data
+    }, ignoreInit = TRUE)
+    observe({ # For testing; need to use the invalidate later pattern to gather the code_string
+      invalidateLater(500)
+      session$userData$export_iv <- DataWranglingState$intermediate_vars
+      session$userData$export_code_string <- DataWranglingState$code_string
+    })
+    exportTestValues(result_list = ResultsState$all_data)
 
     # React to press cancel
     observeEvent(input$confirm_stop, {
@@ -794,6 +805,5 @@ app <- function() {
       }
     })
   }
-
   return(list(ui = ui, server = server))
 }

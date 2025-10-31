@@ -1210,7 +1210,6 @@ test_stack_unstackDF()
 
 # Test createJSString
 # =======================================================================================
-# TODO: update test
 test_createJSString <- function() {
   if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
   if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()

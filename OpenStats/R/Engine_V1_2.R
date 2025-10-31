@@ -23,68 +23,71 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       self$promise_history_entry <- NULL
     },
 
+    tick = function(ResultsState, DataModelState, DataWranglingState) {
+      if (!is.null(ResultsState$bgp$process) && !ResultsState$bgp$process$is_alive()) {
+        res <- tryCatch(ResultsState$bgp$process$get_result(), error = function(e) e)
+        if (ResultsState$bgp$cancel_clicked) {
+          ResultsState$bgp$running_status <- "Canceled process"
+          self$process$interrupt()
+          ResultsState$bgp$cancel_clicked <- FALSE
+        } else if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
+          ResultsState$bgp$running_status <- sprintf("Error failed with: %s", res$parent$message)
+          ResultsState$bgp$com$print_err(res$parent$message)
+        } else {
+          ResultsState$bgp$warnings <- ResultsState$bgp$process$read_error()
+          if (ResultsState$bgp$warnings != "") {
+            ResultsState$bgp$com$print_warn(ResultsState$bgp$warnings)
+          }
+          e <- try(check_rls(ResultsState$all_data, res))
+          if (inherits(e, "try-error")) {
+            self$com$print_err(conditionMessage(e))
+            return()
+          }
+          if (inherits(res, "HistoryReplayResult")) {
+            DataModelState$df <- res$DataModelState$df
+            DataModelState$formula <- res$DataModelState$formula
+            DataModelState$backup_df <- res$DataModelState$backup_df
+            DataModelState$filter_col <- res$DataModelState$filter_col
+            DataModelState$filter_group <- res$DataModelState$filter_group
+
+            ResultsState$all_data <- c(ResultsState$all_data, res$ResultsState$all_data)
+            ResultsState$history <- c(ResultsState$history, res$ResultsState$history)
+            ResultsState$counter <- length(ResultsState$all_data)
+
+            DataWranglingState$df <- res$DataWranglingState$df
+            DataWranglingState$df_name <- res$DataWranglingState$df_name
+            DataWranglingState$current_page <- res$DataWranglingState$current_page
+            DataWranglingState$total_pages <- res$DataWranglingState$total_pages
+            DataWranglingState$counter_id <- res$DataWranglingState$counter_id
+            DataWranglingState$intermediate_vars <- res$DataWranglingState$intermediate_vars
+            print_success("Successfully applied the analysis to the dataset")
+          } else {
+            ResultsState$all_data[[ResultsState$bgp$promise_result_name]] <- res
+          }
+          ResultsState$counter <- ResultsState$counter + 1
+          ResultsState$history[[length(ResultsState$history) + 1]] <- ResultsState$bgp$promise_history_entry
+          ResultsState$bgp$result_val <- res
+          ResultsState$bgp$running_status <- "Idle"
+
+          if (!self$in_backend) {
+            exportTestValues(
+              result_list = ResultsState$all_data
+            )
+          }
+        }
+        ResultsState$bgp$process <- NULL
+        ResultsState$bgp$is_running <- FALSE
+        ResultsState$bgp$promise_result_name <- NULL
+        ResultsState$bgp$promise_history_entry <- NULL
+      }
+    },
+
     init = function(ResultsState, DataModelState, DataWranglingState) {
       # Polling loop
       observe({
         invalidateLater(250)
-        if (!is.null(ResultsState$bgp$process) && !ResultsState$bgp$process$is_alive()) {
-          res <- tryCatch(ResultsState$bgp$process$get_result(), error = function(e) e)
-          if (ResultsState$bgp$cancel_clicked) {
-            ResultsState$bgp$running_status <- "Canceled process"
-            self$process$interrupt()
-            ResultsState$bgp$cancel_clicked <- FALSE
-          } else if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
-            ResultsState$bgp$running_status <- sprintf("Error failed with: %s", res$parent$message)
-            ResultsState$bgp$com$print_err(res$parent$message)
-          } else {
-            ResultsState$bgp$warnings <- ResultsState$bgp$process$read_error()
-            if (ResultsState$bgp$warnings != "") {
-              ResultsState$bgp$com$print_warn(ResultsState$bgp$warnings)
-            }
-            e <- try(check_rls(ResultsState$all_data, res))
-            if (inherits(e, "try-error")) {
-              self$com$print_err(conditionMessage(e))
-              return()
-            }
-            if (inherits(res, "HistoryReplayResult")) {
-              DataModelState$df <- res$DataModelState$df
-              DataModelState$formula <- res$DataModelState$formula
-              DataModelState$backup_df <- res$DataModelState$backup_df
-              DataModelState$filter_col <- res$DataModelState$filter_col
-              DataModelState$filter_group <- res$DataModelState$filter_group
-
-              ResultsState$all_data <- c(ResultsState$all_data, res$ResultsState$all_data)
-              ResultsState$history <- c(ResultsState$history, res$ResultsState$history)
-              ResultsState$counter <- length(ResultsState$all_data)
-
-              DataWranglingState$df <- res$DataWranglingState$df
-              DataWranglingState$df_name <- res$DataWranglingState$df_name
-              DataWranglingState$current_page <- res$DataWranglingState$current_page
-              DataWranglingState$total_pages <- res$DataWranglingState$total_pages
-              DataWranglingState$counter_id <- res$DataWranglingState$counter_id
-              DataWranglingState$intermediate_vars <- res$DataWranglingState$intermediate_vars
-              print_success("Successfully applied the analysis to the dataset")
-            } else {
-              ResultsState$all_data[[ResultsState$bgp$promise_result_name]] <- res
-            }
-            ResultsState$counter <- ResultsState$counter + 1
-            ResultsState$history[[length(ResultsState$history) + 1]] <- ResultsState$bgp$promise_history_entry
-            ResultsState$bgp$result_val <- res
-            ResultsState$bgp$running_status <- "Idle"
-
-            if (!self$in_backend) {
-              exportTestValues(
-                result_list = ResultsState$all_data
-              )
-            }
-          }
-          ResultsState$bgp$process <- NULL
-          ResultsState$bgp$is_running <- FALSE
-          ResultsState$bgp$promise_result_name <- NULL
-          ResultsState$bgp$promise_history_entry <- NULL
-        }
+        self$tick(ResultsState, DataModelState, DataWranglingState)
       })
-
     },
 
     start_direct = function(fun, args = list(), promise_result_name, promise_history_entry, ResultsState) {
@@ -107,7 +110,8 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
                      in_background = TRUE, ResultsState = NULL) {
       # NOTE: ResultsState is required to store the results when no background process is used.
       # Therefore, default is NULL
-      if (!in_background) {
+      background <- getOption("OpenStats.background", TRUE)
+      if (!in_background || !background) {
         req(!is.null(ResultsState), "`ResultsState` must be provided when not running in background.")
         self$start_direct(fun, args, promise_result_name, promise_history_entry, ResultsState)
         return()
@@ -146,7 +150,7 @@ backend_get_result_V1_2 <- function(ResultsState) {
   res <- tryCatch(ResultsState$bgp$process$get_result(), error = function(e) e)
   if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
     ResultsState$bgp$running_status <- sprintf("Error failed with: %s", res$message)
-    ResultsState$bgp$com$print_err(res$parent$message) # TODO: the different error types have to be handled
+    try(ResultsState$bgp$com$print_err(res$parent$message), silent = TRUE) # TODO: the different error types have to be handled
     ResultsState$bgp$cancel_clicked <- FALSE
     ResultsState$bgp$is_running <- FALSE
   } else if (ResultsState$bgp$cancel_clicked) {
@@ -215,6 +219,7 @@ backend_data_wrangling_state_V1_2 <- R6::R6Class(
     total_pages = 1,
     counter_id = 0,
     intermediate_vars = list(),
+    code_string = NULL,
     initialize = function(DataModelState) {
       self$df_name <- create_df_name(self$df_name, names(DataModelState$df))
       self$df <- DataModelState$df
@@ -426,8 +431,6 @@ visualisation_V1_2 <- R6::R6Class(
                        facet_mode, facet_var, facet_y_scaling,
                        xrange_min, xrange_max, yrange_min, yrange_max,
                        width, height, resolution) {
-          print(xrange_min)
-          print(xrange_max)
           withCallingHandlers(
             {
               if (method == "box") {
@@ -470,7 +473,8 @@ visualisation_V1_2 <- R6::R6Class(
           self$width, self$height, self$resolution
         ),
         promise_result_name = new_result_name,
-        promise_history_entry = promise_history_entry
+        promise_history_entry = promise_history_entry,
+        in_background = TRUE, ResultsState
       )
     },
     create_history = function(new_result_name) {
@@ -536,7 +540,8 @@ visualisation_model_V1_2 <- R6::R6Class(
               df = self$df, formula = self$formula, layer = self$layer
             ),
             promise_result_name = new_name,
-            promise_history_entry = promise_history_entry
+            promise_history_entry = promise_history_entry,
+            in_background = TRUE, ResultsState
           )
         },
         warning = function(warn) {
@@ -1239,7 +1244,8 @@ diagnostic_plots_V1_2 <- R6::R6Class(
             },
             args = list(df = self$df, formula = self$formula),
             promise_result_name = new_name,
-            promise_history_entry = promise_history_entry
+            promise_history_entry = promise_history_entry,
+            in_background = TRUE, ResultsState
           )
         },
         warning = function(warn) {
@@ -1341,7 +1347,8 @@ dose_response_V1_2 <- R6::R6Class(
               is_xlog = self$is_xlog, is_ylog = self$is_ylog
             ),
             promise_result_name = new_name,
-            promise_history_entry = promise_history_entry
+            promise_history_entry = promise_history_entry,
+            in_background = TRUE, ResultsState
           )
         },
         warning = function(warn) {
@@ -1410,7 +1417,8 @@ t_test_V1_2 <- R6::R6Class(
               variances_equal = self$variances_equal
             ),
             promise_result_name = new_name,
-            promise_history_entry = promise_history_entry
+            promise_history_entry = promise_history_entry,
+            in_background = TRUE, ResultsState
           )
         },
         warning = function(warn) {
@@ -1533,7 +1541,8 @@ statistical_tests_V1_2 <- R6::R6Class(
               p_val = self$p_val, method = method
             ),
             promise_result_name = new_name,
-            promise_history_entry = promise_history_entry
+            promise_history_entry = promise_history_entry,
+            in_background = TRUE, ResultsState
           )
         }
       )
@@ -1580,7 +1589,8 @@ statistical_tests_V1_2 <- R6::R6Class(
             },
             args = list( formula = self$formula, df = self$df, method = method),
               promise_result_name = new_name,
-            promise_history_entry = promise_history_entry
+              promise_history_entry = promise_history_entry,
+              in_background = TRUE, ResultsState
           )
         })
     },

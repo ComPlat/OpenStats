@@ -213,6 +213,11 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       })
     })
 
+    update_code_text <- function(updated_text) {
+      DataWranglingState$code_string <- updated_text
+      updateTextAreaInput(session, "editable_code", value = updated_text)
+    }
+
     # React to df button
     observe({
       req(DataWranglingState$df)
@@ -220,7 +225,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       observeEvent(input[[paste0("dataset_", var, "_", DataWranglingState$counter_id)]], {
         current_text <- input[["editable_code"]]
         updated_text <- paste(current_text, var, sep = " ")
-        updateTextAreaInput(session, "editable_code", value = updated_text)
+        update_code_text(updated_text)
       })
     })
 
@@ -263,7 +268,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         observeEvent(input[[paste0("colnames_", col, "_", DataWranglingState$counter_id)]], {
           current_text <- input[["editable_code"]]
           updated_text <- paste(current_text, col, sep = " ")
-          updateTextAreaInput(session, "editable_code", value = updated_text)
+        update_code_text(updated_text)
         })
       })
     })
@@ -331,7 +336,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         observeEvent(input[[paste0("intermediate_vars_", var, "_", DataWranglingState$counter_id)]], {
           current_text <- input[["editable_code"]]
           updated_text <- paste(current_text, var, sep = " ")
-          updateTextAreaInput(session, "editable_code", value = updated_text)
+          update_code_text(updated_text)
         })
       })
     })
@@ -342,10 +347,12 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       if (input$iv == "") {
         runjs("document.getElementById('OP-iv').focus();")
       }
+      background <- !getOption("OpenStats.background", TRUE)
+      string <- if (background) DataWranglingState$code_string else input$editable_code
       civ <- create_intermediate_var_V1_2$new(
         df = DataWranglingState$df, df_name = DataWranglingState$df_name,
         intermediate_vars = DataWranglingState$intermediate_vars,
-        operation = input$editable_code,
+        operation = string,
         name = input$iv
       )
       e <- try({
@@ -366,10 +373,12 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       if (input$nc== "") {
         runjs("document.getElementById('OP-nc').focus();")
       }
+      background <- !getOption("OpenStats.background", TRUE)
+      string <- if (background) DataWranglingState$code_string else input$editable_code
       cnc <- create_new_col_V1_2$new(
         df = DataWranglingState$df, df_name = DataWranglingState$df_name,
         intermediate_vars = DataWranglingState$intermediate_vars,
-        operation = input$editable_code,
+        operation = string,
         name = input$nc
       )
       e <- try({
@@ -385,342 +394,342 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     observeEvent(input$add, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "+", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
 
     observeEvent(input$sub, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "-", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
 
     observeEvent(input$mul, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "*", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
 
     observeEvent(input$div, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "/", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
 
     observeEvent(input$bracket_open, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$bracket_close, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, ")", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$comma, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, ",", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
 
     observeEvent(input$log, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "log(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$log10, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "log10(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$sqrt, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "sqrt(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$exp, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "exp(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$exponent, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "^(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$sin, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "sin(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$cos, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "cos(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$tan, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "tan(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$sinh, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "sinh(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$cosh, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "cosh(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$tanh, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "tanh(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$asin, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "asin(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$acos, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "acos(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$atan, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "atan(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$abs, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "abs(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$ceil, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "ceiling(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$floor, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "floor(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$trunc, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "trunc(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$round, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "round(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$larger, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, ">", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$smaller, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "<", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$larger_eq, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, ">=", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$smaller_eq, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "<=", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$eq, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "==", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$not_eq, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "!=", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$paste, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "paste(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$paste0, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "paste0(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$tolower, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "tolower(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$toupper, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "toupper(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$get_elem, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "get_elem(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$get_rows, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "get_rows(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$get_cols, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "get_cols(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$mean, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Mean(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$sd, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "SD(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$median, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Median(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$sum, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Sum(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$min, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Min(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$max, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Max(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$c, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "C(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$seq, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Seq(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$df, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "DataFrame(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$as_char, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "as.char(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$as_int, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "as.int(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$as_real, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "as.real(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$as_fact, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "as.fact(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$dnorm, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Dnorm(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$pnorm, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Pnorm(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$qnorm, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Qnorm(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$rnorm, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Rnorm(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$dbinom, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Dbinom(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$pbinom, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Pbinom(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$qbinom, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Qbinom(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$rbinom, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Rbinom(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$dpois, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Dpois(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$ppois, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Ppois(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$rpois, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Rpois(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$dunif, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Dunif(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$punif, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Punif(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$qunif, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Qunif(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
     observeEvent(input$runif, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "Runif(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_code_text(updated_text)
     })
 
   })

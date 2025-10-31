@@ -1,9 +1,14 @@
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+run_test <- function(f) {
+  if (coverage_test) f(FALSE) else f(TRUE)
+}
 library(OpenStats)
 library(tinytest)
 
 # Test create formula
 # =======================================================================================
 test_create_formula <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -24,6 +29,7 @@ test_create_formula <- function() {
 test_create_formula()
 
 test_summary_model <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -54,6 +60,7 @@ test_summary_model()
 # Test correlation_V1_2
 # =======================================================================================
 test_corr <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -154,7 +161,9 @@ test_corr()
 
 # Test visualisation_V1_2
 # =======================================================================================
-test_vis_all <- function() {
+test_vis_all <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   outer_checks <- c()
   for (method in c("box", "dot", "line")) {
@@ -187,7 +196,7 @@ test_vis_all <- function() {
     )
 
     p <- vis$eval(ResultsState)
-    OpenStats:::backend_get_result_V1_2(ResultsState)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
     p <- ResultsState$all_data[[length(ResultsState$all_data)]]
     # Basic checks
     checks <- c(checks, expect_true(inherits(p, "plot")))
@@ -209,9 +218,11 @@ test_vis_all <- function() {
   }
   expect_true(all(outer_checks))
 }
-test_vis_all()
+run_test(test_vis_all)
 
-test_vis_warn_size <- function() {
+test_vis_warn_size <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -231,11 +242,13 @@ test_vis_warn_size <- function() {
   checks2 <- expect_equal(vis$height, 100)
   expect_true(all(c(checks1, checks2)))
 }
-test_vis_warn_size()
+run_test(test_vis_warn_size)
 
 # Plot model
 # =======================================================================================
-test_plot_model <- function() {
+test_plot_model <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -245,16 +258,17 @@ test_plot_model <- function() {
   plot_model <- OpenStats:::visualisation_model_V1_2$new(df, formula, "box")
   plot_model$validate()
   plot_model$eval(ResultsState)
-  OpenStats:::backend_get_result_V1_2(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
   p <- ResultsState$all_data[[length(ResultsState$all_data)]]
   check <- expect_true(inherits(p, "plot"))
   expect_true(check)
 }
-test_plot_model()
+run_test(test_plot_model)
 
 # Filter data
 # =======================================================================================
 test_apply_filter <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -275,6 +289,7 @@ test_apply_filter <- function() {
 test_apply_filter()
 
 test_remove_filter <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -298,6 +313,7 @@ test_remove_filter()
 # Data wrangling
 # =======================================================================================
 test_create_intermediate_var <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -325,6 +341,7 @@ test_create_intermediate_var <- function() {
 test_create_intermediate_var()
 
 test_create_new_col <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list("df0" = df))
   ResultsState$bgp$in_backend <- TRUE
@@ -353,6 +370,7 @@ test_create_new_col <- function() {
 test_create_new_col()
 
 test_remove_intermediate_var <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -372,7 +390,9 @@ test_remove_intermediate_var()
 
 # Statistical tests
 # =======================================================================================
-test_t_test <- function() {
+test_t_test <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
@@ -390,7 +410,7 @@ test_t_test <- function() {
   )
 
   result <- tt$eval(ResultsState)
-  OpenStats:::backend_get_result_V1_2(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
   result <- ResultsState$all_data[[length(ResultsState$all_data)]]
 
   check1 <- expect_true("estimate" %in% colnames(result))
@@ -399,9 +419,11 @@ test_t_test <- function() {
   checks <- c(check1, check2, check3)
   expect_true(all(checks))
 }
-test_t_test()
+run_test(test_t_test)
 
-test_statistical_methods <- function() {
+test_statistical_methods <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   df$group <- rep(c("A", "B", "C", "D"), length.out = nrow(df))
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
@@ -423,7 +445,7 @@ test_statistical_methods <- function() {
     )
 
     result <- st$eval(ResultsState, method = method)
-    OpenStats:::backend_get_result_V1_2(ResultsState)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
     result <- ResultsState$all_data[[length(ResultsState$all_data)]]
     check1 <- expect_true(is.data.frame(result) || is.matrix(result))
     check2 <- expect_equal(ResultsState$counter, 1)
@@ -434,9 +456,11 @@ test_statistical_methods <- function() {
   }
   expect_true(all(outer_checks))
 }
-test_statistical_methods()
+run_test(test_statistical_methods)
 
-test_statistical_methods_glm <- function() {
+test_statistical_methods_glm <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   df$group <- rep(c("A", "B", "C", "D"), length.out = nrow(df))
   df$Treatment <- factor(df$Treatment)
@@ -470,7 +494,7 @@ test_statistical_methods_glm <- function() {
 
     result <- st$eval(ResultsState, method = method)
 
-    OpenStats:::backend_get_result_V1_2(ResultsState)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
     result <- ResultsState$all_data[[length(ResultsState$all_data)]]
     check1 <- expect_true(is.data.frame(result) || is.matrix(result))
     check2 <- expect_equal(ResultsState$counter, 1)
@@ -482,12 +506,13 @@ test_statistical_methods_glm <- function() {
 
   expect_true(all(outer_checks))
 }
-test_statistical_methods_glm()
+run_test(test_statistical_methods_glm)
 
 
 # Assumptions
 # =======================================================================================
 test_shapiro_on_data <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   df$group <- rep(c("A", "B"), length.out = nrow(df))
   formula <- as.formula("uptake ~ group")
@@ -509,6 +534,7 @@ test_shapiro_on_data <- function() {
 test_shapiro_on_data()
 
 test_shapiro_on_residuals <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   df$group <- rep(c("A", "B"), length.out = nrow(df))
   formula <- as.formula("uptake ~ group")
@@ -531,6 +557,7 @@ test_shapiro_on_residuals <- function() {
 test_shapiro_on_residuals()
 
 test_levene <- function() {
+  options(OpenStats.background = FALSE)
   df <- CO2
   df$group <- rep(c("A", "B"), length.out = nrow(df))
   formula <- as.formula("uptake ~ group")
@@ -552,7 +579,9 @@ test_levene <- function() {
 }
 test_levene()
 
-test_diagnostic_plots <- function() {
+test_diagnostic_plots <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- CO2
   df$group <- rep(c("A", "B"), length.out = nrow(df))
   formula <- as.formula("uptake ~ group")
@@ -563,7 +592,7 @@ test_diagnostic_plots <- function() {
 
   dp <- OpenStats:::diagnostic_plots_V1_2$new(df = df, formula = formula, com = OpenStats:::backend_communicator_V1_2)
   dp$eval(ResultsState)
-  OpenStats:::backend_get_result_V1_2(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
   p <- ResultsState$all_data[[length(ResultsState$all_data)]]
 
   check1 <- expect_true(inherits(p, "plot"))
@@ -572,11 +601,13 @@ test_diagnostic_plots <- function() {
   checks <- c(check1, check2, check3)
   expect_true(all(checks))
 }
-test_diagnostic_plots()
+run_test(test_diagnostic_plots)
 
 # Dose response
 # =======================================================================================
-test_dose_response <- function() {
+test_dose_response <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
   df <- data.frame(
     dose = rep(c(0.1, 1, 10, 100), each = 5),
     response = c(100, 90, 80, 60, 50, 98, 85, 75, 58, 48, 95, 80, 70, 55, 45, 92, 78, 65, 50, 40),
@@ -599,7 +630,7 @@ test_dose_response <- function() {
 
   new_name <- "Mock"
   dr$eval(ResultsState, new_name)
-  OpenStats:::backend_get_result_V1_2(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
   res <- ResultsState$all_data[[length(ResultsState$all_data)]]
 
   check1 <- expect_true(inherits(res, "doseResponse"))
@@ -608,11 +639,12 @@ test_dose_response <- function() {
   checks <- c(check1, check2, check3)
   expect_true(all(checks))
 }
-test_dose_response()
+run_test(test_dose_response)
 
 # Remove result from ResultList
 # =======================================================================================
 test_remove_result <- function() {
+  options(OpenStats.background = FALSE)
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
   ResultsState$all_data <- list("MyResult" = 42)
