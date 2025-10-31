@@ -479,6 +479,7 @@ app <- function() {
         if (!is.null(rendered) && rendered) return()
         observeEvent(res[[name]], {
           temp <- res[[name]]
+          set_rendered <- if (inherits(temp, "doseResponse")) FALSE else TRUE
           if (is.vector(temp)) {
             output[[paste0("res_", name)]] <- renderPrint(temp)
           } else if (is.data.frame(temp)) {
@@ -495,8 +496,8 @@ app <- function() {
           } else {
             output[[paste0("res_", name)]] <- renderPrint(temp)
           }
+          if (set_rendered) attr(ResultsState$all_data[[name]], "rendered") <- TRUE
         })
-        attr(ResultsState$all_data[[name]], "rendered") <- TRUE
       })
       do.call(tagList, res_ui_list)
     })
