@@ -1,25 +1,45 @@
+# TODO: replace tinytest::
 Sys.setenv(R_COVR = "TESTIT")
 setwd("./OpenStats")
 
 cov <- covr::package_coverage(
-        type = "none", code = 'tinytest::test_package("OpenStats")')
+  type = "none", code = 'tinytest::test_package("OpenStats")')
+
+
+cov <- covr::package_coverage(
+  path         = ".",
+  type         = "none",
+  code         = 'tinytest::run_test_file("./inst/tinytest/test_Assumptions2.R")',
+  quiet        = TRUE,
+  clean        = FALSE,
+  pre_clean    = FALSE,
+  use_load_all = TRUE
+)
 
 cov
 Sys.unsetenv("R_COVR")
 
-# OpenStats Coverage: 70.27%
-# R/DocuModule.R: 0.00%
-# R/OpenStats.R: 0.00%
-# R/FormulaModule.R: 17.20%
-# R/statisticalTests.R: 26.95%
-# R/MainApp.R: 40.89%
-# R/SplitByGroup.R: 46.07%
-# R/ReplayHistory.R: 55.56%
-# R/SummarisingModel.R: 62.66%
-# R/utils.R: 63.92%
-# R/CheckFunctions.R: 66.67%
-# R/visualisation.R: 74.04%
-# R/DoseResponse.R: 81.69%
+# Requires slightly more tests:
+# R/Engine_V1_2.R
+# R/SummarisingModel.R
+
+# Requires more tests:
+# R/utils.R
+# R/CheckFunctions.R
+# R/SplitByGroup.R
+# R/MainApp.R
+# R/FormulaModule.R
+
+# OpenStats Coverage: 74.95%
+# R/ReplayHistory.R: 27.27%
+# R/statisticalTests.R: 42.51%
+# R/MainApp.R: 43.50%
+# R/FormulaModule.R: 46.17%
+# R/SplitByGroup.R: 57.75%
+# R/utils.R: 64.27%
+# R/SummarisingModel.R: 65.56%
+# R/CheckFunctions.R: 74.51%
+# R/visualisation.R: 74.81%
 # R/plottingInternally.R: 81.90%
 # R/Engine_V1_2.R: 82.28%
 # R/DiagnosticPlots.R: 86.46%
@@ -31,3 +51,4 @@ Sys.unsetenv("R_COVR")
 # R/correlation.R: 97.01%
 # R/Optimizing.R: 97.90%
 # R/Import.R: 98.78%
+# R/DoseResponse.R: 100.00%

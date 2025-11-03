@@ -365,6 +365,11 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
 
+    update_rhs_text <- function(updated_text) {
+      DataModelState$rhs_string <- updated_text
+      updateTextAreaInput(session, "editable_code", value = updated_text)
+    }
+
     # React to colnames buttons
     observe({
       req(DataModelState$df)
@@ -373,7 +378,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         observeEvent(input[[paste0("colnames_", col, "_", DataModelState$counter_id)]], {
           current_text <- input[["editable_code"]]
           updated_text <- paste(current_text, col, sep = " ")
-          updateTextAreaInput(session, "editable_code", value = updated_text)
+          update_rhs_text(updated_text)
         })
       })
     })
@@ -381,49 +386,49 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     observeEvent(input$add, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "+", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$mul, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "*", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$minus, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "-", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$colon, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, ":", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$div, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "/", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$nested, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "%in%", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$interaction_level, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "^", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     observeEvent(input$I, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "I(", sep = " ")
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      update_rhs_text(updated_text)
     })
 
     # React to create formula
@@ -465,7 +470,8 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               }
             } else {
               response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
-              right_site <- input[["editable_code"]]
+              background <- !getOption("OpenStats.background", TRUE)
+              right_site <- if (background) DataModelState$rhs_string else input[["editable_code"]]
             }
             cf <- create_formula_V1_2$new(response_var, right_site, DataModelState$df)
             cf$validate()

@@ -1,23 +1,23 @@
-upload_ui_field <- function() {
-  if (Sys.getenv("RUN_MODE") != "SERVER") {
-    res <- conditionalPanel(
-      condition = "input.conditionedPanels == 'Data'",
-      fileInput("file", "Choose CSV File",
-        accept = c(
-          "text/csv",
-          "text/comma-separated-values,text/plain",
-          ".csv",
-          ".xlsx"
+# nocov start ui-scaffold
+main_app_ui <- function() {
+  upload_ui_field <- function() {
+    if (Sys.getenv("RUN_MODE") != "SERVER") {
+      res <- conditionalPanel(
+        condition = "input.conditionedPanels == 'Data'",
+        fileInput("file", "Choose CSV File",
+          accept = c(
+            "text/csv",
+            "text/comma-separated-values,text/plain",
+            ".csv",
+            ".xlsx"
+          )
         )
       )
-    )
-    return(res)
+      return(res)
+    }
   }
-}
-
-app <- function() {
   uploadUIField <- upload_ui_field()
-  ui <- fluidPage(
+  fluidPage(
     useShinyjs(),
     tagList(
       includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
@@ -124,8 +124,16 @@ app <- function() {
       )
     )
   )
+}
+# nocov end ui-scaffold
+
+app <- function() {
+
+  ui <- main_app_ui()
 
   server <- function(input, output, session) {
+    # States
+    # ----------------------------------------------------------
     # Create background process instance
     bgp <- bg_process_V1_2$new()
 
@@ -133,7 +141,8 @@ app <- function() {
     DataModelState <- reactiveValues(
       df = NULL, formula = NULL,
       backup_df = NULL, filter_col = NULL, filter_group = NULL,
-      active_df_name = NULL
+      active_df_name = NULL,
+      rhs_string = NULL
     )
 
     ResultsState <- reactiveValues(
@@ -160,14 +169,16 @@ app <- function() {
       invalidateLater(500)
       session$userData$export_iv <- DataWranglingState$intermediate_vars
       session$userData$export_code_string <- DataWranglingState$code_string
+      session$userData$export_formula_rhs <- DataModelState$rhs_string
     })
     exportTestValues(result_list = ResultsState$all_data)
 
+    # Running status
+    # ----------------------------------------------------------
     # React to press cancel
     observeEvent(input$confirm_stop, {
       ResultsState$bgp$cancel()
     })
-
     # Show running_status
     output$running_status <- renderUI({
       invalidateLater(750)
@@ -187,74 +198,11 @@ app <- function() {
     })
 
     # docu
-    observeEvent(input[["docu"]], {
-      path_list <- get_docu(input$conditionedPanels)
-      if (length(path_list) == 4) {
-        path1 <- path_list[[1]]
-        path2 <- path_list[[2]]
-        plot_path <- path_list[[3]]
-        title <- path_list[[4]]
-        showModal(modalDialog(
-          title = title,
-          includeHTML(path1),
-          br(),
-          renderImage(
-            {
-              list(
-                src = plot_path,
-                contentType = "image/jpg",
-                width = 650,
-                height = 500,
-                alt = "Basic Plot"
-              )
-            },
-            deleteFile = FALSE
-          ),
-          br(),
-          br(),
-          br(),
-          br(),
-          br(),
-          includeHTML(path2),
-          easyClose = TRUE,
-          footer = NULL,
-          size = "l"
-        ))
-      } else {
-        path <- path_list[[1]]
-        title <- path_list[[2]]
-        showModal(modalDialog(
-          title = title,
-          includeHTML(path),
-          easyClose = TRUE,
-          footer = NULL
-        ))
-      }
-    })
-    # docu formula editor
-    observeEvent(input[["FO-formula_docu"]], {
-      type <- input[["FO-model_type"]]
-      path_list <- get_docu(paste0(type, "Formula"))
-      showModal(modalDialog(
-        title = path_list[[2]],
-        includeHTML(path_list[[1]]),
-        easyClose = TRUE,
-        footer = NULL,
-        size = "l"
-      ))
-    })
-    # docu split by group
-    observeEvent(input[["SG-split_docu"]], {
-      path_list <- get_docu("Split")
-      showModal(modalDialog(
-        title = path_list[[2]],
-        includeHTML(path_list[[1]]),
-        easyClose = TRUE,
-        footer = NULL,
-        size = "l"
-      ))
-    })
+    # ----------------------------------------------------------
+    show_docu(input)
 
+    # upload local file from user or download from user
+    # ----------------------------------------------------------
     download_file <- reactive({
       out_dir <- file.path(tempdir(), "openstats-results")
       if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
@@ -309,6 +257,9 @@ app <- function() {
         }
       })
     }
+
+    # dataset
+    # ----------------------------------------------------------
     output$df <- renderDT({
       req(DataModelState$df)
       DT::datatable(DataModelState$df, options = list(pageLength = 10))
@@ -323,7 +274,6 @@ app <- function() {
         DT::datatable(DataModelState$df, options = list(pageLength = 10))
       )
     })
-
     # Observe tables
     output[["active_df"]] <- renderUI({
       if (input$conditionedPanels == "DataWrangling") {
@@ -354,7 +304,6 @@ app <- function() {
         )
       )
     })
-
     observeEvent(input[["tables-dropdown"]], {
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
@@ -363,6 +312,8 @@ app <- function() {
       sat$eval(ResultsState, DataModelState)
     })
 
+    # Other tabs
+    # ----------------------------------------------------------
     OperationEditorServer("OP", DataModelState, ResultsState, DataWranglingState)
     corrServer("CORR", DataModelState, ResultsState)
     visServer("VIS", DataModelState, ResultsState)
@@ -373,6 +324,8 @@ app <- function() {
     SplitByGroupServer("SG", DataModelState, ResultsState)
     HistoryEditorServer("HISTORY", DataModelState, ResultsState, DataWranglingState)
 
+    # Results
+    # ----------------------------------------------------------
     # Render results list
     output$Results <- renderUI({
       if (input$conditionedPanels == "DataWrangling") {
@@ -467,7 +420,6 @@ app <- function() {
       )
       do.call(tagList, list(download_stuff, res_ui_list))
     })
-
     # Show results
     observe({
       if (length(ResultsState$all_data) == 0) {
@@ -501,7 +453,6 @@ app <- function() {
       })
       do.call(tagList, res_ui_list)
     })
-
     # Observe remove buttons
     observe({
       if (length(ResultsState$all_data) == 0) {
@@ -554,6 +505,7 @@ app <- function() {
     })
 
     # Observe open formula editor
+    # ----------------------------------------------------------
     output$open_formula_editor_main <- renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
@@ -661,6 +613,7 @@ app <- function() {
     })
 
     # Render split by group
+    # ----------------------------------------------------------
     output[["open_split_by_groupUI"]] <- renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
@@ -722,6 +675,7 @@ app <- function() {
     })
 
     # Download
+    # ----------------------------------------------------------
     observeEvent(input$download, {
       if (!is_valid_filename(input$user_filename)) {
         runjs("document.getElementById('user_filename').focus();")

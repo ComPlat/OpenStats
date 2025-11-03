@@ -204,6 +204,7 @@ backend_data_model_state_V1_2 <- R6::R6Class(
     filter_col = NULL,
     filter_group = NULL,
     active_df_name = NULL,
+    rhs_string = NULL,
     initialize = function(df) {
       self$df <- df
     }

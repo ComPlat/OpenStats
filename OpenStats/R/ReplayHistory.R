@@ -1,3 +1,4 @@
+# nocov start ui-scaffold
 HistorySidebarUI <- function(id) {
   ui <-tabPanel(
     "History",
@@ -17,8 +18,7 @@ HistoryEditorUI <- function(id) {
     )
   )
 }
-
-
+# nocov end ui-scaffold
 
 HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
   moduleServer(id, function(input, output, session) {

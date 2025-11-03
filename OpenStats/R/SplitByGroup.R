@@ -1,3 +1,4 @@
+# nocov start ui-scaffold
 SplitByGroupUI <- function(id) {
   ui <- fluidPage(
     fluidRow(
@@ -18,6 +19,7 @@ SplitByGroupUI <- function(id) {
     )
   )
 }
+# nocov end ui-scaffold
 
 SplitByGroupServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {

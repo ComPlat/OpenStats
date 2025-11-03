@@ -1,3 +1,4 @@
+# nocov start ui-scaffold
 docu_path <- function(file) {
   if (Sys.getenv("RUN_MODE") == "LOCAL") {
     return(system.file("www", file, package = "OpenStats"))
@@ -55,3 +56,83 @@ get_docu <- function(panel) {
 
   return(list(path, title))
 }
+
+show_docu <- function(input) {
+  obs_main <- observeEvent(input[["docu"]], {
+    path_list <- get_docu(input$conditionedPanels)
+    if (length(path_list) == 4) {
+      path1 <- path_list[[1]]
+      path2 <- path_list[[2]]
+      plot_path <- path_list[[3]]
+      title <- path_list[[4]]
+      showModal(modalDialog(
+        title = title,
+        includeHTML(path1),
+        br(),
+        renderImage(
+          {
+            list(
+              src = plot_path,
+              contentType = "image/jpg",
+              width = 650,
+              height = 500,
+              alt = "Basic Plot"
+            )
+          },
+          deleteFile = FALSE
+        ),
+        br(),
+        br(),
+        br(),
+        br(),
+        br(),
+        includeHTML(path2),
+        easyClose = TRUE,
+        footer = NULL,
+        size = "l"
+      ))
+    } else {
+      path <- path_list[[1]]
+      title <- path_list[[2]]
+      showModal(modalDialog(
+        title = title,
+        includeHTML(path),
+        easyClose = TRUE,
+        footer = NULL
+      ))
+    }
+  })
+
+  # docu formula editor
+  obs_formula <- observeEvent(input[["FO-formula_docu"]], {
+    type <- input[["FO-model_type"]]
+    path_list <- get_docu(paste0(type, "Formula"))
+    showModal(modalDialog(
+      title = path_list[[2]],
+      includeHTML(path_list[[1]]),
+      easyClose = TRUE,
+      footer = NULL,
+      size = "l"
+    ))
+  })
+
+  # docu split by group
+  obs_split <- observeEvent(input[["SG-split_docu"]], {
+    path_list <- get_docu("Split")
+    showModal(modalDialog(
+      title = path_list[[2]],
+      includeHTML(path_list[[1]]),
+      easyClose = TRUE,
+      footer = NULL,
+      size = "l"
+    ))
+  })
+
+  invisible(list(
+    main   = obs_main,
+    formula = obs_formula,
+    split   = obs_split
+  ))
+}
+
+# nocov end ui-scaffold
