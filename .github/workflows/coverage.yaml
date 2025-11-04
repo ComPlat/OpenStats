@@ -16,19 +16,24 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Install system deps
-        run: sudo apt-get update
-
-      # install deps INSIDE the package dir
       - name: Install R deps
         working-directory: OpenStats
         run: |
-          Rscript -e 'install.packages(c("remotes", "covr", "ggplot2", "tinytest"))'
+          Rscript -e 'install.packages(c("remotes", "covr"))'
           Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
-      - name: Run coverage
+      - name: Run coverage and write reports
         working-directory: OpenStats
         run: |
-          Rscript -e 'covr::codecov(path = ".", type = c("tests"))'
-        env:
-          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+          Rscript -e 'cov <- covr::package_coverage(); \
+                      covr::report(cov, file = "coverage.html"); \
+                      jsonlite::write_json(covr::to_shiny_data(cov), "coverage.json", pretty = TRUE); \
+                      cat("Total coverage:", covr::percent_coverage(cov), "%\n")'
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            OpenStats/coverage.html
+            OpenStats/coverage.json
