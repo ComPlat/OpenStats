@@ -26,9 +26,10 @@ jobs:
           Rscript -e 'install.packages(c("remotes", "covr", "ggplot2", "tinytest"))'
           Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
+
       - name: Run coverage
         working-directory: OpenStats
         run: |
-          Rscript -e 'cov <- covr::package_coverage(); print(cov); covr::codecov(cov, path = ".")'
+          Rscript -e 'covr::codecov(path = ".", type = c("tests"))'
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
