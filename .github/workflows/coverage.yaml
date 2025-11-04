@@ -27,6 +27,6 @@ jobs:
 
       - name: Run coverage
         run: |
-          Rscript -e 'cov <- covr::package_coverage(); print(cov); covr::codecov(cov)'
+          Rscript -e 'cov <- covr::package_coverage("OpenStats"); print(cov); covr::codecov(cov)'
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
