@@ -19,7 +19,7 @@ jobs:
       - name: Install R deps
         working-directory: OpenStats
         run: |
-          Rscript -e 'install.packages(c("remotes", "covr"))'
+          Rscript -e 'install.packages(c("remotes", "covr", "jsonlite"))'
           Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
       - name: Run coverage and write reports
