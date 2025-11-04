@@ -26,7 +26,6 @@ jobs:
           Rscript -e 'install.packages(c("remotes", "covr", "ggplot2", "tinytest"))'
           Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
-
       - name: Run coverage
         working-directory: OpenStats
         run: |
