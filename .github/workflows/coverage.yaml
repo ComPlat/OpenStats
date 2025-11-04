@@ -27,7 +27,7 @@ jobs:
 
 
       - name: Run coverage
-        working-directory: OpenStats
+        working-directory: OpenStats/OpenStats
         run: |
           Rscript -e 'cov <- covr::package_coverage(); print(cov); covr::codecov(cov)'
         env:
