@@ -25,7 +25,7 @@ jobs:
       - name: Run coverage and write reports
         working-directory: OpenStats
         run: |
-          Rscript -e 'cov <- covr::package_coverage(); df <- as.data.frame(cov); write.csv(df, "coverage.csv", row.names = FALSE); write.csv(as.data.frame(covr::percent_coverage(cov), "coverage_total.csv", row.names = FALSE)'
+          Rscript -e 'cov <- covr::package_coverage(); df <- as.data.frame(cov); write.csv(df, "coverage.csv", row.names = FALSE); write.csv(as.data.frame(covr::percent_coverage(cov)), "coverage_total.csv", row.names = FALSE)'
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
