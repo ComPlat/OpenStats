@@ -25,10 +25,10 @@ jobs:
       - name: Run coverage and write reports
         working-directory: OpenStats
         run: |
-          Rscript -e 'cov <- covr::package_coverage(); \
-                      covr::report(cov, file = "coverage.html"); \
-                      jsonlite::write_json(covr::to_shiny_data(cov), "coverage.json", pretty = TRUE); \
-                      cat("Total coverage:", covr::percent_coverage(cov), "%\n")'
+          Rscript -e 'cov <- covr::package_coverage(); saveRDS(cov, "coverage.rds")'
+          Rscript -e 'cov <- readRDS("coverage.rds"); covr::report(cov, file = "coverage.html")'
+          Rscript -e 'cov <- readRDS("coverage.rds"); jsonlite::write_json(covr::to_shiny_data(cov), "coverage.json", pretty = TRUE)'
+          Rscript -e 'cov <- readRDS("coverage.rds"); cat("Total coverage:", covr::percent_coverage(cov), "%\n")'
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
