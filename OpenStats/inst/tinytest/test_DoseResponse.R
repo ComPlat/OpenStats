@@ -1,47 +1,9 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
+df <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats"))
 
-library(shinytest2)
-library(tinytest)
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
-}
-app <- OpenStats:::app()
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/DoseResponse.csv", package = "OpenStats")
-)
-wait(app)
-app$set_inputs(conditionedPanels = "Dose Response analysis")
-wait(app)
-
-# Define formula
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "abs")
-wait(app)
-app$set_inputs(`FO-editable_code` = "conc")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
-
-app$set_inputs(`DOSERESPONSE-substanceNames` = "names")
-wait(app)
-app$click("DOSERESPONSE-ic50")
-wait(app)
-Sys.sleep(20)
-
-res <- app$get_values()$export
-res <- res[["FO-result_list"]]
-res_df <- res[[length(res)]]@df
-
-data <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats"))
+# Expected
+# =================================================================
 expected <- OpenStats:::ic50(
-  data, "abs", "conc",
+  df, "abs", "conc",
   "names",
   FALSE, FALSE
 )
@@ -51,12 +13,56 @@ dfs <- lapply(expected, function(x) {
   }
 })
 expected <- do.call(rbind, dfs)
+
+# Helper
+# =================================================================
+sync_code <- function(session) {
+  session$setInputs(`OP-editable_code` = session$userData$export_code_string)
+  session$flushReact()
+}
+
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
+library(tinytest)
+
+app <- OpenStats:::app()
+srv <- app$server
+
+# dose response in server
+# =================================================================
+test_dose_response <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df      <- df
+    DataModelState$formula <- new("LinearFormula", formula = abs ~ conc)
+    session$setInputs(`DOSERESPONSE-substanceNames` = "names")
+    session$setInputs(`DOSERESPONSE-yTransform` = FALSE)
+    session$setInputs(`DOSERESPONSE-xTransform` = FALSE)
+    session$setInputs(`DOSERESPONSE-ic50` = 1)
+
+    t0 <- Sys.time()
+    l0 <- length(ResultsState$all_data)
+    repeat {
+      ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+      session$flushReact()
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 30) break
+      Sys.sleep(0.05)
+    }
+    ex <<- session$userData$export
+  })
+  ex
+}
+
+# compare it
+# =================================================================
+res <- test_dose_response (app, srv)
+res_df <- res[[1]]@df
+
 equal <- Map(function(a, b) {
   a <- a[!is.na(a)]
   b <- b[!is.na(b)]
   all(a == b)
 }, res_df, expected) |> unlist() |> all()
 expect_true(equal)
-
-
-app$stop()

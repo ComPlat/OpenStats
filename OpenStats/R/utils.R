@@ -498,6 +498,7 @@ check_formula <- function(formula) {
 }
 
 # Own stats functions handling NA
+# nocov start own stats handling NA
 Mean <- function(x) {
   if (!is.numeric(x)) {
     x <- as.numeric(x)
@@ -539,6 +540,7 @@ Max <- function(x) {
   }
   max(x, na.rm = TRUE)
 }
+# nocov end own stats handling NA
 
 # Check filename
 extract_extension <- function(filename) {
@@ -705,21 +707,20 @@ Seq <- function(...) {
   return(seq(start, end, by))
 }
 
+# nocov start own helper
 C <- function(...) {
   c(...)
 }
-
 Dnorm <- function(...) {
   dnorm(...)
 }
-
 Pnorm <- function(...) {
   pnorm(...)
 }
-
 Qnorm <- function(...) {
   qnorm(...)
 }
+# nocov end own helper
 
 Rnorm <- function(...) {
   args <- list(...)
@@ -738,17 +739,17 @@ Rnorm <- function(...) {
   rnorm(...)
 }
 
+# nocov start own helper
 Dbinom <- function(...) {
   dbinom(...)
 }
-
 Pbinom <- function(...) {
   pbinom(...)
 }
-
 Qbinom <- function(...) {
   qbinom(...)
 }
+# nocov end own helper
 
 Rbinom <- function(...) {
   args <- list(...)
@@ -767,13 +768,14 @@ Rbinom <- function(...) {
   rbinom(...)
 }
 
+# nocov start own helper
 Dpois <- function(...) {
   dpois(...)
 }
-
 Ppois <- function(...) {
   ppois(...)
 }
+# nocov end own helper
 
 Rpois <- function(...) {
   args <- list(...)
@@ -792,17 +794,17 @@ Rpois <- function(...) {
   rpois(...)
 }
 
+# nocov start own helper
 Dunif <- function(...) {
   dunif(...)
 }
-
 Punif <- function(...) {
   punif(...)
 }
-
 Qunif <- function(...) {
   qunif(...)
 }
+# nocov end own helper
 
 Runif <- function(...) {
   args <- list(...)
@@ -821,6 +823,7 @@ Runif <- function(...) {
   runif(...)
 }
 
+# nocov start own helper
 create_run_env <- function() {
   env <- new.env(parent = baseenv())
   env$get_elem <- get_elem
@@ -877,3 +880,4 @@ render_df <- function(df, n_fixed_cols = 1) {
   }
 
 }
+# nocov end own helper

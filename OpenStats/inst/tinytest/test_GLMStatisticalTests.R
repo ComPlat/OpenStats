@@ -1,57 +1,21 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+run_test <- function(f) {
+  if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
-library(shinytest2)
+
+sync_code <- function(session) {
+  session$setInputs(`OP-editable_code` = session$userData$export_code_string)
+  session$flushReact()
+}
+
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
 library(tinytest)
+
 app <- OpenStats:::app()
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/CO2.csv", package = "OpenStats")
-)
-wait(app)
-app$set_inputs(conditionedPanels = "Tests")
-wait(app)
+srv <- app$server
 
-# Define formula
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-model_type` = "Generalised Linear Model")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "uptake")
-wait(app)
-app$set_inputs(`FO-Family` = "Gamma")
-wait(app)
-app$set_inputs(`FO-Link_function` = "inverse")
-wait(app)
-app$set_inputs(`FO-editable_code` = "conc * Treatment + Type")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
-
-# ANOVA
-app$click("TESTS-aovTest")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-CO2$Treatment <- as.character(CO2$Treatment)
-CO2$Type <- as.character(CO2$Type)
-family <- "Gamma"
-link_fct <- "inverse"
-family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
-model <- glm(uptake ~ conc * Treatment + Type, data = CO2, family = eval(family))
-expected <- broom::tidy(anova(model, test = "Chisq"))
-expect_equal(res$`FO-result_list`[[3]], expected)
-
-# Posthoc tests
-app$set_inputs("TESTS-TestsConditionedPanels" = "Posthoc tests")
-wait(app)
 run_posthoc_glm <- function(method) {
   family <- "Gamma"
   link_fct <- "inverse"
@@ -68,6 +32,7 @@ run_posthoc_glm <- function(method) {
   fit <- pairs(emm, adjust = method)
   as.data.frame(fit)
 }
+
 choices <- c(
   "tukey",
   "sidak",
@@ -79,29 +44,57 @@ choices <- c(
   "hochberg",
   "hommel"
 )
-# Tukey
-app$set_inputs(`TESTS-PostHocEmmeans` = choices[1])
-wait(app)
-app$click("TESTS-PostHocEmmeansTest")
-Sys.sleep(10)
-res <- app$get_values()$export
-expected <- run_posthoc_glm(choices[1])
-expect_equal(res$result_list[[4]], expected)
-# Sidak
-app$set_inputs(`TESTS-PostHocEmmeans` = choices[2])
-wait(app)
-app$click("TESTS-PostHocEmmeansTest")
-Sys.sleep(10)
-res <- app$get_values()$export
-expected <- run_posthoc_glm(choices[2])
-expect_equal(res$result_list[[5]], expected)
-# Hommel
-app$set_inputs(`TESTS-PostHocEmmeans` = choices[9])
-wait(app)
-app$click("TESTS-PostHocEmmeansTest")
-Sys.sleep(10)
-res <- app$get_values()$export
-expected <- run_posthoc_glm(choices[9])
-expect_equal(res$result_list[[6]], expected)
 
-app$stop()
+for (choice in choices) {
+  test_glm_stats_tests <- function(app, srv, in_background) {
+    options(OpenStats.background = in_background)
+
+    CO2$Treatment <- as.factor(CO2$Treatment)
+    CO2$Type <- as.factor(CO2$Type)
+    CO2$conc <- as.factor(CO2$conc)
+    expected <- run_posthoc_glm(choice)
+
+    ib <- getOption("OpenStats.background", TRUE)
+    got <- NULL
+    shiny::testServer(srv, {
+      DataModelState$df      <- CO2
+      DataModelState$formula <- new(
+        "GeneralisedLinearFormula",
+        formula = uptake ~ conc * Treatment + Type,
+        family = "Gamma", link_fct = "inverse"
+      )
+      session$flushReact()
+
+      counter <- ResultsState$counter
+
+      session$setInputs(`TESTS-PostHocEmmeans` = choice)
+      session$setInputs(`TESTS-PostHocEmmeansTest` = 1)
+      session$setInputs(`TESTS-padj` = "holm")
+
+      t0 <- Sys.time()
+      l0 <- length(ResultsState$all_data)
+      repeat {
+        ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+        session$flushReact()
+
+        if (nzchar(ResultsState$bgp$running_status) &&
+          grepl("Error|Canceled", ResultsState$bgp$running_status, ignore.case = TRUE)) {
+          stop(paste("bgp:", ResultsState$bgp$running_status))
+        }
+
+        ex <- session$userData$export
+        if (!is.null(ex) && (counter < ResultsState$counter)) break
+
+        if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 20)
+        stop(paste("timeout; have keys:", paste(names(ex %||% list()), collapse = ",")))
+
+        Sys.sleep(0.05)
+      }
+
+      got <<- session$userData$export[[ResultsState$counter]]
+      attr(got, "rendered") <<- NULL
+    })
+    print(tinytest::expect_equal(expected, got))
+  }
+  run_test(test_glm_stats_tests)
+}

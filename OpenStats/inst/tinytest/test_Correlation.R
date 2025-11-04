@@ -1,56 +1,39 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
-library(shinytest2)
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
 library(tinytest)
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
-}
+
 app <- OpenStats:::app()
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/CO2.csv", package = "OpenStats")
-)
-wait(app)
-# app$set_window_size(width = 2259, height = 1326)
-# wait(app)
-app$set_inputs(conditionedPanels = "Correlation")
-wait(app)
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "uptake")
-wait(app)
-app$click("FO-colnames_conc_")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
-app$click("CORR-pear")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-expected <- cor.test(CO2$uptake, CO2$conc, method = "pearson")
-expected <- broom::tidy(expected)
-expect_equal(res[["FO-result_list"]][[3]], expected)
+srv <- app$server
 
-app$click("CORR-spear")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-expected <- cor.test(CO2$uptake, CO2$conc, method = "spearman")
-expected <- broom::tidy(expected)
-expect_equal(res[["FO-result_list"]][[4]], expected)
+test_correlation <- function(app, srv) {
+  expected_pear <- cor.test(CO2$uptake, CO2$conc, method = "pearson")
+  expected_pear <- broom::tidy(expected_pear)
+  expected_spear <- cor.test(CO2$uptake, CO2$conc, method = "spearman")
+  expected_spear <- broom::tidy(expected_spear)
+  expected_kendall <- cor.test(CO2$uptake, CO2$conc, method = "kendall")
+  expected_kendall <- broom::tidy(expected_kendall)
+  ex_pear <- NULL
+  ex_spear <- NULL
+  ex_kendall <- NULL
+  
+  shiny::testServer(srv, {
+    DataModelState$df      <- CO2
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
 
-app$click("CORR-kendall")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-expected <- cor.test(CO2$uptake, CO2$conc, method = "kendall")
-expected <- broom::tidy(expected)
-expect_equal(res[["FO-result_list"]][[5]], expected)
-
-wait(app)
-app$stop()
+    session$flushReact()
+    session$setInputs(`CORR-conflevel` = 0.95)
+    session$setInputs(`CORR-alt` = "two.sided")
+    session$setInputs(`CORR-pear` = 1)
+    session$setInputs(`CORR-spear` = 1)
+    session$setInputs(`CORR-kendall` = 1)
+    ex_pear <<- session$userData$export[[1]]
+    attr(ex_pear, "rendered") <<- NULL
+    ex_spear <<- session$userData$export[[2]]
+    attr(ex_spear, "rendered") <<- NULL
+    ex_kendall <<- session$userData$export[[3]]
+    attr(ex_kendall, "rendered") <<- NULL
+  })
+  tinytest::expect_equal(ex_pear, expected_pear)
+  tinytest::expect_equal(ex_spear, expected_spear)
+  tinytest::expect_equal(ex_kendall, expected_kendall)
+}
+test_correlation(app, srv)

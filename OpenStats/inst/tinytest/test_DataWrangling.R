@@ -1,719 +1,511 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
-library(shinytest2)
-library(tinytest)
-library(OpenStats)
+sync_code <- function(session) {
+  session$setInputs(`OP-editable_code` = session$userData$export_code_string)
+  session$flushReact()
+}
 
 trim <- function(s) {
   gsub("\t|\n| ", "", s)
 }
 
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+run_test <- function(f) {
+  if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
 
-reset <- function(app) {
-  app$set_inputs(`OP-editable_code` = "")
-  wait(app)
-}
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
+library(tinytest)
 
 app <- OpenStats:::app()
-# Create app
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/CO2.csv", package = "OpenStats")
-)
-wait(app)
-app$set_inputs(`conditionedPanels` = "DataWrangling")
-wait(app)
+srv <- app$server
 
 # Seq tests
 # =================================================================
-app$click("OP-seq")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]]
-app$set_inputs(
-  `OP-editable_code` = paste0( content, "1, 100, 1")
-)
-app$click("OP-bracket_close")
-wait(app)
-app$set_inputs(`OP-iv` = "Seq")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "Seq(1,100,1)")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$Seq, seq(1, 100, 1))
+test_seq <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  expected_string <- "Seq(1,100,1)"
+  expected <- seq(1, 100, 1)
+  ex <- NULL
+  ex_string <- NULL
+  shiny::testServer(srv, {
+
+    DataModelState$df <- CO2
+    ResultsState$all_data <- list(df = CO2)
+    DataModelState$active_df_name <- "df"
+    DataWranglingState$df_name <- "df"
+    DataWranglingState$df <- CO2
+    DataWranglingState$intermediate_vars <- list(df = CO2)
+
+    session$setInputs(active_tab = "DataWrangling")
+
+    session$flushReact()
+    session$setInputs(`OP-seq` = 1)
+    current_string <- session$userData$export_code_string
+    session$setInputs(`OP-editable_code` = paste0(current_string, "1, 100, 1"))
+    session$setInputs(`OP-bracket_close` = 1)
+    session$setInputs(`OP-iv` = "Seq")
+    session$setInputs(`OP-run_op_intermediate` = 1)
+    ex <<- session$userData$export_iv[[2]]
+    ex_string <<- session$userData$export_code_string |> trim()
+  })
+  tinytest::expect_equal(ex, expected)
+  tinytest::expect_equal(ex_string, expected_string)
+}
+test_seq(app, srv)
 
 # dataframe tests
 # =================================================================
-reset(app)
-app$click("OP-df")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-comma")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-wait(app)
-app$set_inputs(`OP-iv` = "df_new")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "DataFrame(conc,conc)")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-df_new <- data.frame(CO2$conc, CO2$conc)
-names(df_new) <- c("conc", "conc")
-expect_equal(iv_list$df_new, df_new)
-reset(app)
+test_df <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  expected_string <- "DataFrame(conc,conc)"
+  expected <- data.frame(CO2$conc, CO2$conc)
+  ex <- NULL
+  shiny::testServer(srv, {
+
+    DataModelState$df <- CO2
+    ResultsState$all_data <- list(df = CO2)
+    DataModelState$active_df_name <- "df"
+    DataWranglingState$df_name <- "df"
+    DataWranglingState$df <- CO2
+    DataWranglingState$intermediate_vars <- list(df = CO2)
+
+    session$setInputs(active_tab = "DataWrangling")
+
+    session$flushReact()
+    session$setInputs(`OP-df` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_conc_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_conc_0` = 2); sync_code(session)
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "df_new"); sync_code(session)
+    session$setInputs(`OP-run_op_intermediate` = 1)
+    ex <<- session$userData$export_iv[[2]]
+    ex_string <<- session$userData$export_code_string |> trim()
+  })
+  tinytest::expect_equal(ex, expected)
+  tinytest::expect_equal(ex_string, expected_string)
+}
+test_df(app, srv)
 
 # random tests
 # =================================================================
-random_funcs <- c(
-  "dnorm", "pnorm", "qnorm",
-  "dbinom", "pbinom", "qbinom",
-  "dpois", "ppois",
-  "dunif", "punif", "qunif"
-)
-args <- list(
-  0, 0, 0.2,
-  "0, 10, 0.5", "0, 10, 0.5", "0, 10, 0.5",
-  "0, 2", "0, 2",
-  "0, 0, 2", "0.2, 0, 3", "0.2, 0, 3"
-)
-
-checks <- c()
-for (i in seq_along(random_funcs)) {
-  expr <- paste0(random_funcs[i], "(", args[[i]], ")")
-  res <- eval(parse(text = expr))
-  func <- paste0("OP-", random_funcs[i])
-  app$set_inputs(`OP-editable_code` = "")
-  wait(app)
-  app$click(paste0(func))
-  wait(app)
-  app$set_inputs(
-    `OP-editable_code` = paste0(app$get_values()$input[["OP-editable_code"]], args[[i]])
+test_random <- function(app, srv) {
+  random_funcs <- c(
+    "dnorm", "pnorm", "qnorm", "rnorm",
+    "dbinom", "pbinom", "qbinom", "rbinom",
+    "dpois", "ppois", "rpois",
+    "dunif", "punif", "qunif", "runif"
   )
-  wait(app)
-  app$click("OP-bracket_close")
-  wait(app)
-  app$set_inputs(`OP-iv` = func)
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  output <- iv_list[[make.names(func)]]
-  checks <- c(checks, expect_equal(output, res))
-}
-expect_true(all(checks))
-
-# NOTE: this is necessary as no seed can be set
-validate_distribution <- function(values, dist, ...) {
-  if (dist == "normal") {
-    one <- expect_true(abs(mean(values) - 0) < 0.1, info = "Normal mean should be close to 0")
-    two <- expect_true(abs(sd(values) - 1) < 0.1, info = "Normal sd should be close to 1")
-    return(all(one, two))
-  } else if (dist == "uniform") {
-    one <- expect_true(all(values >= 0 & values <= 1), info = "Uniform values should be in [0,1]")
-    two <- expect_true(abs(mean(values) - 0.5) < 0.1, info = "Uniform mean should be close to 0.5")
-    return(all(one, two))
-  } else if (dist == "pois") {
-    one <- expect_true(abs(mean(values) - 2) < 0.1, info = "Uniform mean should be close to 0.5")
-    return(one)
-    # NOTE: set lambda to 2
-  } else if (dist == "binom") {
-    # Assuming size = 10 trials, and probability of success = 0.5
-    n_trials <- 10
-    prob_success <- 0.5
-    one <- expect_true(abs(mean(values) - (n_trials * prob_success)) < 0.5,
-      info = "Binomial mean should be close to n * p"
-    )
-    two <- expect_true(abs(var(values) - (n_trials * prob_success * (1 - prob_success))) < 0.5,
-      info = "Binomial variance should be close to n * p * (1 - p)"
-    )
-    return(all(one, two))
+  args <- list(
+    0, 0, 0.2, 5,
+    "0, 10, 0.5", "0, 10, 0.5", "0, 10, 0.5", "1, 1000, 0.001",
+    "0, 2", "0, 2", "20, 0.2",
+    "0, 0, 2", "0.2, 0, 3", "0.2, 0, 3", 1
+  )
+  paste_and_eval <- function(fct, args) {
+    eval(str2lang(paste0(fct, "(", args, ")")))
   }
+  options(OpenStats.background = FALSE)
+  expected <- list()
+  ex <- list()
+
+  for (i in seq_len(length(random_funcs))) {
+    set.seed(42)
+    expected[[random_funcs[[i]]]] <- paste_and_eval(random_funcs[[i]], args[[i]])
+    rf <- paste0("OP-", random_funcs[[i]])
+    arg <- args[[i]]
+    shiny::testServer(srv, {
+      set.seed(42)
+      DataModelState$df <- CO2
+      ResultsState$all_data <- list(df = CO2)
+      DataModelState$active_df_name <- "df"
+      DataWranglingState$df_name <- "df"
+      DataWranglingState$df <- CO2
+      DataWranglingState$intermediate_vars <- list(df = CO2)
+      session$setInputs(active_tab = "DataWrangling")
+
+      session$flushReact()
+      do.call(session$setInputs, setNames(list(1), rf))
+      session$setInputs(rf = 1); sync_code(session)
+      current_string <- session$userData$export_code_string
+      session$setInputs(`OP-editable_code` = paste0(current_string, arg));
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+      session$setInputs(`OP-iv` = "rand"); sync_code(session)
+      session$setInputs(`OP-run_op_intermediate` = 1)
+
+      ex[[random_funcs[[i]]]] <<- session$userData$export_iv[[2]]
+    })
+
+  }
+  tinytest::expect_equal(ex, expected)
 }
-random_funcs <- c(
-  "norm", "unif", "pois", "binom"
-)
-args <- list(
-  "10000", "10001", "10002, 2", "10000, 10, 0.5"
-)
-checks <- c()
-for (i in seq_along(random_funcs)) {
-  func <- paste0("OP-r", random_funcs[i])
-  reset(app)
-  wait(app)
-  app$click(paste0(func))
-  wait(app)
-  app$set_inputs(
-    `OP-editable_code` =
-      paste0(app$get_values()$input[["OP-editable_code"]], args[[i]])
+test_random(app, srv)
+
+# math
+# =================================================================
+test_unary <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- list()
+  expected <- list(
+    log(CO2$uptake), log10(CO2$uptake),
+    sqrt(CO2$uptake), exp(CO2$uptake),
+    sin(CO2$uptake), cos(CO2$uptake), tan(CO2$uptake),
+    sinh(CO2$uptake), cosh(CO2$uptake), tanh(CO2$uptake),
+    asin(CO2$uptake), acos(CO2$uptake), atan(CO2$uptake),
+    abs(CO2$uptake), ceiling(CO2$uptake), floor(CO2$uptake),
+    trunc(CO2$uptake), round(CO2$uptake)
   )
-  wait(app)
-  app$click("OP-bracket_close")
-  wait(app)
-  app$set_inputs(`OP-iv` = func)
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  wait(app)
-  output <- iv_list[[make.names(func)]]
-  checks <- c(checks, validate_distribution(output, random_funcs[i]))
+  functions <- c(
+    "OP-log", "OP-log10", "OP-sqrt", "OP-exp",
+    "OP-sin", "OP-cos", "OP-tan",
+    "OP-sinh", "OP-cosh", "OP-tanh",
+    "OP-asin", "OP-acos", "OP-atan",
+    "OP-abs", "OP-ceil", "OP-floor",
+    "OP-trunc", "OP-round"
+  )
+  for (i in seq_len(length(functions))) {
+    f <- functions[[i]]
+    shiny::testServer(srv, {
+      DataModelState$df <- CO2
+      ResultsState$all_data <- list(df = CO2)
+      DataModelState$active_df_name <- "df"
+      DataWranglingState$df_name <- "df"
+      DataWranglingState$df <- CO2
+      DataWranglingState$intermediate_vars <- list(df = CO2)
+
+      session$setInputs(active_tab = "DataWrangling")
+
+      session$flushReact()
+      do.call(session$setInputs, setNames(list(1), f))
+      session$setInputs(f = 1); sync_code(session)
+      session$setInputs(`OP-colnames_uptake_0` = 1); sync_code(session)
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+      session$setInputs(`OP-iv` = "temp"); sync_code(session)
+      session$setInputs(`OP-run_op_intermediate` = 1)
+      ex[[i]] <<- session$userData$export_iv[[2]]
+    })
+  }
+  tinytest::expect_equal(ex, expected)
 }
-expect_true(all(checks))
-reset(app)
+test_unary(app, srv)
 
-# Test arithmetic operations
-# =================================================================
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$set_inputs(`OP-iv` = "Plus")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "conc+conc")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$Plus, CO2$conc + CO2$conc)
+test_binary <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- list()
+  expected <- list(
+    CO2$conc + CO2$conc,
+    CO2$conc - CO2$conc,
+    CO2$conc * CO2$conc,
+    CO2$conc / CO2$conc
 
-reset(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-sub")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$set_inputs(`OP-iv` = "MINUS")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "conc-conc")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$MINUS, CO2$conc - CO2$conc)
+  )
+  functions <- c(
+    "OP-add", "OP-sub", "OP-mul", "OP-div"
+  )
+  for (i in seq_len(length(functions))) {
+    f <- functions[[i]]
+    shiny::testServer(srv, {
+      DataModelState$df <- CO2
+      ResultsState$all_data <- list(df = CO2)
+      DataModelState$active_df_name <- "df"
+      DataWranglingState$df_name <- "df"
+      DataWranglingState$df <- CO2
+      DataWranglingState$intermediate_vars <- list(df = CO2)
 
-reset(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-div")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$set_inputs(`OP-iv` = "DIVIDE")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "conc/conc")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$DIVIDE, CO2$conc / CO2$conc)
+      session$setInputs(active_tab = "DataWrangling")
 
-reset(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-mul")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$set_inputs(`OP-iv` = "MULTIPLY")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "conc*conc")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$MULTIPLY, CO2$conc * CO2$conc)
-
-reset(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-bracket_open")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-mul")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$set_inputs(`OP-iv` = "ARITHMETIC")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "conc+(conc*conc)")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$ARITHMETIC, CO2$conc + (CO2$conc * CO2$conc))
-
-reset(app)
-app$click("OP-get_elem")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-comma")
-wait(app)
-app$set_inputs(`OP-editable_code` = paste0(app$get_values()$input[["OP-editable_code"]], " 1"))
-app$click("OP-bracket_close")
-app$set_inputs(`OP-iv` = "GET_ELEM_AND_COMMA")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "get_elem(conc,1)")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$GET_ELEM_AND_COMMA, CO2$conc[1])
-
-# Test math functions
-# =================================================================
-reset(app)
-app$click("OP-log")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-log10")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-sqrt")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-exp")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-app$set_inputs(`OP-iv` = "MATH1")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "log(conc)+log10(conc)+sqrt(conc)+exp(conc)")
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-conc <- CO2$conc
-expect_equal(iv_list$MATH1, log(conc) + log10(conc) + sqrt(conc) + exp(conc))
-
-reset(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-exponent")
-wait(app)
-app$set_inputs(
-  `OP-editable_code` = paste0(app$get_values()$input[["OP-editable_code"]], " 2")
-)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-sin")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-cos")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-tan")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-sinh")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-cosh")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-tanh")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$set_inputs(`OP-iv` = "MATH2")
-wait(app)
-app$click("OP-run_op_intermediate")
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(
-  content,
-  "conc^(2)+sin(conc)+cos(conc)+tan(conc)+sinh(conc)+cosh(conc)+tanh(conc)"
-)
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list$MATH2, eval(parse(text = content)))
-
-
-app$set_inputs(`OP-editable_code` = "1")
-app$set_inputs(`OP-iv` = "One")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-reset(app)
-app$click("OP-asin")
-wait(app)
-app$click("OP-intermediate_vars_One_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-acos")
-wait(app)
-app$click("OP-intermediate_vars_One_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-atan")
-wait(app)
-app$click("OP-intermediate_vars_One_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$set_inputs(`OP-iv` = "MATH3")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-app$click("OP-run_op_intermediate")
-expect_equal(
-  content,
-  "asin(One)+acos(One)+atan(One)"
-)
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-One <- 1
-expect_equal(iv_list$MATH3, eval(parse(text = content)))
-
-
-app$set_inputs(`OP-editable_code` = "-1.5")
-wait(app)
-app$set_inputs(`OP-iv` = "Num")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-reset(app)
-app$click("OP-abs")
-wait(app)
-app$click("OP-intermediate_vars_Num_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-app$click("OP-ceil")
-wait(app)
-app$click("OP-intermediate_vars_Num_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-app$click("OP-floor")
-wait(app)
-app$click("OP-intermediate_vars_Num_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-trunc")
-wait(app)
-app$click("OP-intermediate_vars_Num_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-add")
-wait(app)
-app$click("OP-round")
-wait(app)
-app$click("OP-intermediate_vars_Num_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$set_inputs(`OP-iv` = "MATH4")
-wait(app)
-content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-wait(app)
-app$click("OP-run_op_intermediate")
-expect_equal(
-  content, "abs(Num)+ceiling(Num)+floor(Num)+trunc(Num)+round(Num)"
-)
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-Num <- -1.5
-expect_equal(iv_list$MATH4, eval(parse(text = content)))
-
-# Test comparison operations
-# =================================================================
-reset(app)
-app$set_inputs(`OP-editable_code` = "C(1, 2, 2, 2)")
-wait(app)
-app$set_inputs(`OP-iv` = "Vec1")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-app$set_inputs(`OP-editable_code` = "C(1, 2, 3, 4)")
-wait(app)
-app$set_inputs(`OP-iv` = "Vec2")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-Vec1 <- c(1, 2, 2, 2)
-Vec2 <- c(1, 2, 3, 4)
-operations <- c(
-  "OP-eq", "OP-not_eq", "OP-larger",
-  "OP-smaller", "OP-larger_eq", "OP-smaller_eq"
-)
-checks <- c()
-for (i in operations) {
-  app$set_inputs(`OP-editable_code` = "")
-  wait(app)
-  app$click("OP-intermediate_vars_Vec1_0")
-  wait(app)
-  app$click(i)
-  wait(app)
-  app$click("OP-intermediate_vars_Vec2_0")
-  wait(app)
-  app$set_inputs(`OP-iv` = i)
-  wait(app)
-  content <- app$get_values()$input[["OP-editable_code"]]
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  checks <- c(checks, expect_equal(iv_list[[make.names(i)]], eval(parse(text = content))))
+      session$flushReact()
+      session$setInputs(`OP-colnames_conc_0` = 1); sync_code(session)
+      do.call(session$setInputs, setNames(list(1), f))
+      session$setInputs(f = 1); sync_code(session)
+      session$setInputs(`OP-colnames_conc_0` = 2); sync_code(session)
+      current_string <- session$userData$export_code_string
+      session$setInputs(`OP-iv` = "temp"); sync_code(session)
+      session$setInputs(`OP-run_op_intermediate` = 1)
+      ex[[i]] <<- session$userData$export_iv[[2]]
+    })
+  }
+  tinytest::expect_equal(ex, expected)
 }
-expect_true(all(checks))
+test_binary(app, srv)
 
-# Test statistical operations and utilities
+# comparison
 # =================================================================
-operations <- c(
-  "OP-mean", "OP-median", "OP-min",
-  "OP-max", "OP-sum", "OP-sd"
-)
-Mean <- OpenStats:::Mean
-Median <- OpenStats:::Median
-Min <- OpenStats:::Min
-Max <- OpenStats:::Max
-Sum <- OpenStats:::Sum
-SD <- OpenStats:::SD
-conc <- CO2$conc
-checks <- c()
-for (i in operations) {
-  reset(app)
-  app$click(i)
-  wait(app)
-  app$set_inputs(`OP-iv` = i)
-  wait(app)
-  app$click("OP-colnames_conc_0")
-  wait(app)
-  app$click("OP-bracket_close")
-  wait(app)
-  content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  checks <- c(checks, expect_equal(iv_list[[make.names(i)]], eval(parse(text = content))))
+test_comparisons <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- list()
+  a <- c(1, 2, 2, 2)
+  b <- 1:4
+  expected <- list(
+    a == b, a != b, a > b, a < b, a >= b, a <= b
+  )
+  functions <- c(
+    "OP-eq", "OP-not_eq", "OP-larger",
+    "OP-smaller", "OP-larger_eq", "OP-smaller_eq"
+  )
+  for (i in seq_len(length(functions))) {
+    f <- functions[[i]]
+    shiny::testServer(srv, {
+      DataModelState$df <- CO2
+      ResultsState$all_data <- list(df = CO2)
+      DataModelState$active_df_name <- "df"
+      DataWranglingState$df_name <- "df"
+      DataWranglingState$df <- CO2
+      DataWranglingState$intermediate_vars <- list(df = CO2)
+
+      session$setInputs(active_tab = "DataWrangling")
+
+      session$flushReact()
+      session$setInputs(`OP-c` = 1)
+      current_string <- session$userData$export_code_string
+      session$setInputs(`OP-editable_code` = paste0(current_string, "1, 2, 2, 2"))
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+      session$setInputs(`OP-iv` = "a");
+      session$setInputs(`OP-run_op_intermediate` = 1);
+      session$userData$export_code_string <- ""; sync_code(session)
+
+      session$flushReact()
+      session$setInputs(`OP-c` = 1)
+      current_string <- session$userData$export_code_string
+      session$setInputs(`OP-editable_code` = paste0(current_string, "1, 2, 3, 4"))
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+      session$setInputs(`OP-iv` = "b");
+      session$setInputs(`OP-run_op_intermediate` = 2);
+      session$userData$export_code_string <- ""; sync_code(session)
+
+      session$flushReact()
+      session$setInputs(`OP-intermediate_vars_a_0` = 1); sync_code(session)
+
+      do.call(session$setInputs, setNames(list(1), f))
+      session$setInputs(f = 1); sync_code(session)
+
+      session$setInputs(`OP-intermediate_vars_b_0` = 2);
+
+      session$setInputs(`OP-iv` = "temp"); sync_code(session)
+      session$setInputs(`OP-run_op_intermediate` = 1)
+      ex[[i]] <<- session$userData$export_iv[[4]]
+    })
+  }
+  tinytest::expect_equal(ex, expected)
 }
-expect_true(all(checks))
+test_comparisons(app, srv)
 
-reset(app)
-app$click("OP-get_rows")
-wait(app)
-app$set_inputs(`OP-iv` = "get_rows")
-wait(app)
-app$click("OP-colnames_df_0")
-wait(app)
-app$click("OP-comma")
-wait(app)
-app$set_inputs(`OP-editable_code` = paste0(app$get_values()$input[["OP-editable_code"]], " conc == 95"))
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-expect_equal(iv_list[["get_rows"]]$uptake, CO2[conc == 95, "uptake"])
-
-reset(app)
-app$click("OP-get_cols")
-wait(app)
-app$set_inputs(`OP-iv` = "get_cols")
-wait(app)
-app$click("OP-colnames_df_0")
-wait(app)
-app$click("OP-comma")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-comma")
-wait(app)
-app$click("OP-colnames_conc_0")
-wait(app)
-app$click("OP-comma")
-wait(app)
-app$click("OP-colnames_uptake_0")
-wait(app)
-app$click("OP-bracket_close")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-iv_list <- app$get_values()$export[["OP-iv_list"]]
-wait(app)
-expect_true(all(iv_list[["get_cols"]] == CO2[, c("conc", "conc", "uptake")]))
-
-# Test string functions
+# stats
 # =================================================================
-app$set_inputs(`OP-editable_code` = 'C("A", "B", "C")')
-wait(app)
-app$set_inputs(`OP-iv` = "S1")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-app$set_inputs(`OP-editable_code` = 'C("d", "e", "f")')
-wait(app)
-app$set_inputs(`OP-iv` = "S2")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-S1 <- c("A", "B", "C")
-S2 <- c("d", "e", "f")
-operations <- c(
-  "OP-paste", "OP-paste0"
-)
-checks <- c()
-for (i in operations) {
-  app$set_inputs(`OP-editable_code` = "")
-  wait(app)
-  app$click(i)
-  wait(app)
-  app$click("OP-intermediate_vars_S1_0")
-  wait(app)
-  app$click("OP-comma")
-  wait(app)
-  app$click("OP-intermediate_vars_S2_0")
-  wait(app)
-  app$click("OP-bracket_close")
-  wait(app)
-  app$set_inputs(`OP-iv` = i)
-  wait(app)
-  content <- app$get_values()$input[["OP-editable_code"]]
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  checks <- c(checks, expect_equal(iv_list[[make.names(i)]], eval(parse(text = content))))
-}
-expect_true(all(checks))
+test_stats <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- list()
+  a <- 1:4
+  expected <- list(
+    mean(a), median(a), min(a), max(a), sum(a), sd(a)
+  )
+  functions <- c(
+    "OP-mean", "OP-median", "OP-min",
+    "OP-max", "OP-sum", "OP-sd"
+  )
+  for (i in seq_len(length(functions))) {
+    f <- functions[[i]]
+    shiny::testServer(srv, {
+      DataModelState$df <- CO2
+      ResultsState$all_data <- list(df = CO2)
+      DataModelState$active_df_name <- "df"
+      DataWranglingState$df_name <- "df"
+      DataWranglingState$df <- CO2
+      DataWranglingState$intermediate_vars <- list(df = CO2)
 
-operations <- c(
-  "OP-tolower", "OP-toupper"
-)
-checks <- c()
-for (i in operations) {
-  reset(app)
-  wait(app)
-  app$click(i)
-  wait(app)
-  app$click("OP-intermediate_vars_S1_0")
-  wait(app)
-  app$click("OP-bracket_close")
-  wait(app)
-  app$set_inputs(`OP-iv` = i)
-  wait(app)
-  content <- app$get_values()$input[["OP-editable_code"]]
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  checks <- c(checks, expect_equal(iv_list[[make.names(i)]], eval(parse(text = content))))
-}
-expect_true(all(checks))
+      session$setInputs(active_tab = "DataWrangling")
 
-# Test casts
+      session$flushReact()
+      session$setInputs(`OP-c` = 1)
+      current_string <- session$userData$export_code_string
+      session$setInputs(`OP-editable_code` = paste0(current_string, "1, 2, 3, 4"))
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+      session$setInputs(`OP-iv` = "a");
+      session$setInputs(`OP-run_op_intermediate` = 1);
+      session$userData$export_code_string <- ""; sync_code(session)
+
+      do.call(session$setInputs, setNames(list(1), f))
+      session$setInputs(f = 1); sync_code(session)
+      session$setInputs(`OP-intermediate_vars_a_0` = 1); sync_code(session)
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+
+      session$setInputs(`OP-iv` = "temp"); sync_code(session)
+      session$setInputs(`OP-run_op_intermediate` = 1)
+      ex[[i]] <<- session$userData$export_iv[[3]]
+    })
+  }
+  tinytest::expect_equal(ex, expected)
+}
+test_stats(app, srv)
+
+# indexing
 # =================================================================
-app$set_inputs(`OP-editable_code` = 'C("10.5", "1.4", "1.3", 3.14)')
-wait(app)
-app$set_inputs(`OP-iv` = "S3")
-wait(app)
-app$click("OP-run_op_intermediate")
-wait(app)
-S3 <- c("10.5", "1.4", "1.3", 3.14)
-operations <- c(
-  "OP-as_int", "OP-as_real", "OP-as_fact", "OP-as_char"
-)
-as.int <- as.integer
-as.real <- as.numeric
-as.fact <- as.factor
-as.char <- as.character
-checks <- c()
-for (i in operations) {
-  app$set_inputs(`OP-editable_code` = "")
-  wait(app)
-  app$click(i)
-  wait(app)
-  app$click("OP-intermediate_vars_S3_0")
-  wait(app)
-  app$click("OP-bracket_close")
-  wait(app)
-  app$set_inputs(`OP-iv` = i)
-  wait(app)
-  content <- app$get_values()$input[["OP-editable_code"]]
-  wait(app)
-  app$click("OP-run_op_intermediate")
-  wait(app)
-  iv_list <- app$get_values()$export[["OP-iv_list"]]
-  checks <- c(checks, expect_equal(iv_list[[make.names(i)]], eval(parse(text = content))))
-}
-expect_true(all(checks))
+test_indexing <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  CO2 <- as.data.frame(CO2) # required to remove some special classes: "nfnGroupedData" "nmGroupedData" "groupedData"
+  ex <- list()
+  expected <- list(
+    CO2[, c("conc", "conc", "uptake")],
+    CO2[CO2$conc > 700, ]
+  )
+  shiny::testServer(srv, {
+    DataModelState$df <- CO2
+    ResultsState$all_data <- list(df = CO2)
+    DataModelState$active_df_name <- "df"
+    DataWranglingState$df_name <- "df"
+    DataWranglingState$df <- CO2
+    DataWranglingState$intermediate_vars <- list(df = CO2)
 
-wait(app)
-app$stop()
+    session$setInputs(active_tab = "DataWrangling")
+
+    session$setInputs(`OP-get_cols` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_df_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_conc_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_conc_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_uptake_0` = 1); sync_code(session)
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "df_new1"); sync_code(session)
+    session$setInputs(`OP-run_op_intermediate` = 1)
+
+    ex[[1]] <<- session$userData$export_iv[[2]]
+
+    session$userData$export_code_string <- ""; sync_code(session)
+    session$setInputs(`OP-get_rows` = 1); sync_code(session)
+    session$setInputs(`OP-colnames_df_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    current_string <- session$userData$export_code_string
+    session$setInputs(`OP-editable_code` = paste0(current_string, "conc > 700"))
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    current_string <- session$userData$export_code_string
+
+    session$setInputs(`OP-iv` = "df_new2"); sync_code(session)
+    session$setInputs(`OP-run_op_intermediate` = 2)
+
+    ex[[2]] <<- session$userData$export_iv[[3]]
+  })
+  tinytest::expect_equal(ex, expected)
+}
+test_indexing(app, srv)
+
+# string functions
+# =================================================================
+test_string_ops <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- list()
+  expected <- list("a b", "ab", "A", "a")
+  shiny::testServer(srv, {
+    DataModelState$df <- CO2
+    ResultsState$all_data <- list(df = CO2)
+    DataModelState$active_df_name <- "df"
+    DataWranglingState$df_name <- "df"
+    DataWranglingState$df <- CO2
+    DataWranglingState$intermediate_vars <- list(df = CO2)
+
+    session$setInputs(active_tab = "DataWrangling")
+
+    session$flushReact()
+    session$setInputs(`OP-c` = 1)
+    current_string <- session$userData$export_code_string
+    session$setInputs(`OP-editable_code` = paste(current_string, "'a'"));
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "a");
+    session$setInputs(`OP-run_op_intermediate` = 1);
+    session$userData$export_code_string <- ""; sync_code(session)
+
+    session$setInputs(`OP-c` = 1)
+    current_string <- session$userData$export_code_string
+    session$setInputs(`OP-editable_code` = paste(current_string, "'b'"));
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "b");
+    session$setInputs(`OP-run_op_intermediate` = 1);
+    session$userData$export_code_string <- ""; sync_code(session)
+
+    session$setInputs(`OP-paste` = 1); sync_code(session)
+    session$setInputs(`OP-intermediate_vars_a_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    session$setInputs(`OP-intermediate_vars_b_0` = 1); sync_code(session)
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "res1");
+    session$setInputs(`OP-run_op_intermediate` = 1);
+    session$userData$export_code_string <- ""; sync_code(session)
+    ex[[1]] <<- session$userData$export_iv[[4]]
+
+    session$setInputs(`OP-paste0` = 1); sync_code(session)
+    session$setInputs(`OP-intermediate_vars_a_0` = 1); sync_code(session)
+    session$setInputs(`OP-comma` = 1); sync_code(session)
+    session$setInputs(`OP-intermediate_vars_b_0` = 1); sync_code(session)
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "res2");
+    session$setInputs(`OP-run_op_intermediate` = 1);
+    session$userData$export_code_string <- ""; sync_code(session)
+    ex[[2]] <<- session$userData$export_iv[[5]]
+
+    session$setInputs(`OP-toupper` = 1); sync_code(session)
+    session$setInputs(`OP-intermediate_vars_a_0` = 1); sync_code(session)
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "res3");
+    session$setInputs(`OP-run_op_intermediate` = 1);
+    session$userData$export_code_string <- ""; sync_code(session)
+    ex[[3]] <<- session$userData$export_iv[[6]]
+
+    session$setInputs(`OP-tolower` = 1); sync_code(session)
+    session$setInputs(`OP-intermediate_vars_res3_0` = 1); sync_code(session)
+    session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+    session$setInputs(`OP-iv` = "res4");
+    session$setInputs(`OP-run_op_intermediate` = 1);
+    session$userData$export_code_string <- ""; sync_code(session)
+    ex[[4]] <<- session$userData$export_iv[[7]]
+
+  })
+  tinytest::expect_equal(ex, expected)
+}
+test_string_ops(app, srv)
+
+# casts
+# =================================================================
+test_casts <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  ex <- list()
+  a <- c("10.5", "1.4", "1.3", 3.14)
+  expected <- list(
+    as.integer(a), as.numeric(a), as.factor(a), as.character(a)
+  )
+  functions <- c(
+    "OP-as_int", "OP-as_real", "OP-as_fact", "OP-as_char"
+  )
+  for (i in seq_len(length(functions))) {
+    f <- functions[[i]]
+    shiny::testServer(srv, {
+      DataModelState$df <- CO2
+      ResultsState$all_data <- list(df = CO2)
+      DataModelState$active_df_name <- "df"
+      DataWranglingState$df_name <- "df"
+      DataWranglingState$df <- CO2
+      DataWranglingState$intermediate_vars <- list(df = CO2)
+
+      session$setInputs(active_tab = "DataWrangling")
+
+      session$flushReact()
+      session$setInputs(`OP-c` = 1)
+      current_string <- session$userData$export_code_string
+      session$setInputs(`OP-editable_code` = paste0(current_string, "'10.5', '1.4', '1.3', 3.14"))
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+      session$setInputs(`OP-iv` = "a");
+      session$setInputs(`OP-run_op_intermediate` = 1);
+      session$userData$export_code_string <- ""; sync_code(session)
+
+      do.call(session$setInputs, setNames(list(1), f))
+      session$setInputs(f = 1); sync_code(session)
+      session$setInputs(`OP-intermediate_vars_a_0` = 1); sync_code(session)
+      session$setInputs(`OP-bracket_close` = 1); sync_code(session)
+
+      session$setInputs(`OP-iv` = "temp"); sync_code(session)
+      session$setInputs(`OP-run_op_intermediate` = 1)
+      ex[[i]] <<- session$userData$export_iv[[3]]
+    })
+  }
+  tinytest::expect_equal(ex, expected)
+}
+test_casts(app, srv)

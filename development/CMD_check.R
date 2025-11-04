@@ -6,7 +6,7 @@ cov <- covr::package_coverage(
   type = "none", code = 'tinytest::test_package("OpenStats")')
 
 
-cov <- covr::package_coverage(
+cov <- covr::packge_coverage(
   path         = ".",
   type         = "none",
   code         = 'tinytest::run_test_file("./inst/tinytest/test_Assumptions2.R")',
@@ -30,13 +30,13 @@ Sys.unsetenv("R_COVR")
 # R/MainApp.R
 # R/FormulaModule.R
 
-# OpenStats Coverage: 74.95%
+# OpenStats Coverage: 75.56%
 # R/ReplayHistory.R: 27.27%
 # R/statisticalTests.R: 42.51%
-# R/MainApp.R: 43.50%
 # R/FormulaModule.R: 46.17%
+# R/MainApp.R: 47.32%
 # R/SplitByGroup.R: 57.75%
-# R/utils.R: 64.27%
+# R/utils.R: 61.54%
 # R/SummarisingModel.R: 65.56%
 # R/CheckFunctions.R: 74.51%
 # R/visualisation.R: 74.81%

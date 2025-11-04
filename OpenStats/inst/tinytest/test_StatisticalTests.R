@@ -1,195 +1,134 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
-library(shinytest2)
-library(tinytest)
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+run_test <- function(f) {
+  if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
+
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
+library(tinytest)
+
 app <- OpenStats:::app()
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/CO2.csv", package = "OpenStats")
-)
-wait(app)
-app$set_inputs(conditionedPanels = "Tests")
-wait(app)
+srv <- app$server
 
-# Define formula
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "uptake")
-wait(app)
-app$set_inputs(`FO-editable_code` = "conc * Treatment + Type")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
+run_stats_test <- function(method, CO2) {
+  if (method == "TESTS-aovTest") {
+    expected <- broom::tidy(aov(uptake ~ conc * Treatment + Type, data = CO2))
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc * Treatment + Type", collapse = ".")
+    expected
+  } else if (method == "TESTS-kruskalTest") {
+    expected <- broom::tidy(kruskal.test(uptake ~ conc, data = CO2))
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc")
+    expected
+  } else if (method == "HSD") {
+    aov_res <- aov(uptake ~ conc, data = CO2)
+    expected <- agricolae::HSD.test(aov_res,
+      trt = "conc",
+      alpha = 0.05, group = TRUE, unbalanced = FALSE
+    )$groups
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc")
+    expected
+  } else if (method == "kruskalTest") {
+    expected <- with(CO2, agricolae::kruskal(CO2[, "uptake"], CO2[, "conc"]),
+      alpha = 0.05, p.adj = "holm", group = TRUE
+    )$groups
+    names(expected)[1] <- "uptake"
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc")
+    expected
+  } else if (method == "LSD") {
+    aov_res <- aov(uptake ~ conc, data = CO2)
+    expected <- agricolae::LSD.test(aov_res,
+      trt = "conc",
+      alpha = 0.05, p.adj = "holm", group = TRUE
+    )$groups
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc")
+    expected
+  } else if (method == "scheffe") {
+    aov_res <- aov(uptake ~ conc, data = CO2)
+    expected <- agricolae::scheffe.test(
+      aov_res,
+      trt = "conc", alpha = 0.05, group = TRUE
+    )$groups
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc")
+    expected
+  } else if (method == "REGW") {
+    aov_res <- aov(uptake ~ conc, data = CO2)
+    expected <- agricolae::REGW.test(
+      aov_res,
+      trt = "conc", alpha = 0.05, group = TRUE
+    )$groups
+    expected <- cbind(expected, row.names(expected))
+    names(expected)[ncol(expected)] <- paste0("conc")
+    expected
+  }
+}
 
-# ANOVA
-app$set_inputs(`TESTS-TestsConditionedPanels` = "More than two groups")
-wait(app)
-app$click("TESTS-aovTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-CO2$Treatment <- as.character(CO2$Treatment)
-CO2$Type <- as.character(CO2$Type)
-expected <- broom::tidy(aov(uptake ~ conc * Treatment + Type, data = CO2))
-expected <- cbind(expected, row.names(expected))
-names(expected)[ncol(expected)] <- paste0("conc * Treatment + Type", collapse = ".")
-expect_equal(res[[3]], expected)
+choices <- c("TESTS-aovTest", "TESTS-kruskalTest", "HSD", "kruskalTest", "LSD", "scheffe", "REGW")
+for (choice in choices) {
+  test_stats_tests <- function(app, srv, in_background) {
+    options(OpenStats.background = in_background)
 
-# Kruskal-Wallis
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "uptake")
-wait(app)
-app$set_inputs(`FO-editable_code` = "conc")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
+    CO2$Treatment <- as.factor(CO2$Treatment)
+    CO2$Type <- as.factor(CO2$Type)
+    CO2$conc <- as.factor(CO2$conc)
+    expected <- try(run_stats_test(choice, CO2))
 
-app$set_inputs(`TESTS-TestsConditionedPanels` = "More than two groups")
-app$click("TESTS-kruskalTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-CO2$Treatment <- as.character(CO2$Treatment)
-expected <- broom::tidy(kruskal.test(uptake ~ conc, data = CO2))
-expected <- cbind(expected, row.names(expected))
-names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-expect_equal(res[[5]], expected)
+    ib <- getOption("OpenStats.background", TRUE)
+    got <- NULL
+    shiny::testServer(srv, {
+      DataModelState$df      <- CO2
+      if (choice == "TESTS-aovTest") {
+        DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc * Treatment + Type)
+      } else {
+        DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+      }
 
-# PostHoc tests
-# TukeyHSD
-app$set_inputs(`TESTS-TestsConditionedPanels` = "Posthoc tests")
-wait(app)
-app$set_inputs(`TESTS-PostHocTests` = "HSD")
-wait(app)
-app$click("TESTS-PostHocTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-fit <- aov(uptake ~ conc, data = CO2)
-fit <- agricolae::HSD.test(fit,
-  trt = "conc",
-  alpha = 0.05, group = TRUE, unbalanced = TRUE
-)$groups
-expected <- cbind(fit, row.names(fit))
-names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-expect_equal(res[[6]], expected)
+      session$flushReact()
 
-app$set_inputs(`TESTS-PostHocTests` = "HSD")
-wait(app)
-app$set_inputs(`TESTS-design` = "ub")
-wait(app)
-app$click("TESTS-PostHocTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-fit <- aov(uptake ~ conc, data = CO2)
-fit <- agricolae::HSD.test(fit,
-  trt = "conc",
-  alpha = 0.05, group = TRUE, unbalanced = FALSE
-)$groups
-expected <- cbind(fit, row.names(fit))
-names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-expect_equal(res[[7]], expected)
+      counter <- ResultsState$counter
 
-# Kruskal-Wallis test
-app$set_inputs(`TESTS-PostHocTests` = "kruskalTest")
-wait(app)
-app$set_inputs(`TESTS-padj` = "BH")
-wait(app)
-app$click("TESTS-PostHocTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-df <- CO2
-dep <- "uptake"
-fit <- with(df, agricolae::kruskal(df[, dep], df[, "conc"]),
-  alpha = 0.05, p.adj = "BH", group = TRUE
-)$groups
-expected <- cbind(fit, row.names(fit))
-names(expected) <- c("uptake", "groups", "conc")
-expect_equal(res[[8]], expected)
+      session$setInputs(`TESTS-pval` = 0.05)
+      session$setInputs(`TESTS-design` = "ba")
+      session$setInputs(`TESTS-padj` = "holm")
+      if (choice %in% c("TESTS-aovTest", "TESTS-kruskalTest")) {
+        do.call(session$setInputs, setNames(list(2), choice))
+        session$setInputs(choice = 1)
+      } else {
+        session$setInputs(`TESTS-PostHocTests` = choice)
+        session$setInputs(`TESTS-PostHocTest` = 1)
+      }
 
-# LSD
-app$set_inputs(`TESTS-PostHocTests` = "LSD")
-wait(app)
-app$set_inputs(`TESTS-padj` = "BY")
-wait(app)
-app$click("TESTS-PostHocTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-df <- CO2
-dep <- "uptake"
-fit <- aov(uptake ~ conc, data = CO2)
-fit <- agricolae::LSD.test(
-  fit,
-  trt = "conc",
-  alpha = 0.05, p.adj = "BY", group = TRUE
-)$groups
-expected <- cbind(fit, row.names(fit))
-names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-expect_equal(res[[9]], expected)
+      t0 <- Sys.time()
+      l0 <- length(ResultsState$all_data)
+      repeat {
+        ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+        session$flushReact()
 
-# scheffe
-# aov_res <- aov(formula, data = df)
-# fit <- agricolae::scheffe.test(aov_res, trt = indep, alpha = input$pval, group = TRUE)$groups
-app$set_inputs(`TESTS-PostHocTests` = "scheffe")
-wait(app)
-app$click("TESTS-PostHocTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-fit <- aov(uptake ~ conc, data = CO2)
-fit <- agricolae::scheffe.test(
-  fit,
-  trt = "conc",
-  alpha = 0.05, group = TRUE
-)$groups
-expected <- cbind(fit, row.names(fit))
-names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-expect_equal(res[[10]], expected)
+        if (nzchar(ResultsState$bgp$running_status) &&
+          grepl("Error|Canceled", ResultsState$bgp$running_status, ignore.case = TRUE)) {
+          stop(paste("bgp:", ResultsState$bgp$running_status))
 
-# REGW
-app$set_inputs(`TESTS-PostHocTests` = "REGW")
-wait(app)
-app$click("TESTS-PostHocTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["result_list"]]
-wait(app)
-fit <- aov(uptake ~ conc, data = CO2)
-fit <- agricolae::REGW.test(
-  fit,
-  trt = "conc",
-  alpha = 0.05, group = TRUE
-)$groups
-expected <- cbind(fit, row.names(fit))
-names(expected)[ncol(expected)] <- paste0("conc", collapse = ".")
-expect_equal(res[[11]], expected)
+        }
 
-app$stop()
+        ex <- session$userData$export
+        if (!is.null(ex) && (counter < ResultsState$counter)) break
+
+        if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 20)
+        stop(paste("timeout; have keys:", paste(names(ex %||% list()), collapse = ",")))
+
+        Sys.sleep(0.05)
+      }
+
+      got <<- session$userData$export[[ResultsState$counter]]
+      attr(got, "rendered") <<- NULL
+    })
+    print(tinytest::expect_equal(expected, got))
+  }
+  run_test(test_stats_tests)
+}

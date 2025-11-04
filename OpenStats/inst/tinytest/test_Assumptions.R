@@ -1,72 +1,116 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
-library(shinytest2)
-library(tinytest)
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+run_test <- function(f) {
+  if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
+
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
+library(tinytest)
+
 app <- OpenStats:::app()
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/CO2.csv", package = "OpenStats")
-)
-wait(app)
-app$set_inputs(conditionedPanels = "Assumption")
-wait(app)
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "uptake")
-wait(app)
-app$click("FO-colnames_Treatment_")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
-app$click("ASS-shapiro")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-expected <- rbind(
-  broom::tidy(shapiro.test(CO2[CO2$Treatment == "nonchilled", "uptake"])),
-  broom::tidy(shapiro.test(CO2[CO2$Treatment == "chilled", "uptake"]))
-)
-expected$variable <- c("nonchilled", "chilled")
-expected$`Normal distributed` <- expected$p.value > 0.05
-expect_equal(res[["ASS-result_list"]][[3]], expected)
+srv <- app$server
 
-# Update output value
-app$click("ASS-shapiroResiduals")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-fit <- lm(uptake ~ Treatment, data = CO2)
-r <- resid(fit)
-expected <- broom::tidy(shapiro.test(r))
-expected$`Residuals normal distributed` <- expected$p.value > 0.05
-expect_equal(res[["ASS-result_list"]][[4]], expected)
+test_shapiro_on_data <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  expected <- rbind(
+    broom::tidy(shapiro.test(CO2[CO2$Treatment == "nonchilled","uptake"])),
+    broom::tidy(shapiro.test(CO2[CO2$Treatment == "chilled","uptake"]))
+  )
+  expected$variable <- c("nonchilled","chilled")
+  expected$`Normal distributed` <- expected$p.value > 0.05
+  ex <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df      <- CO2
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
 
-# Update output value
-app$click("ASS-levene")
-wait(app)
-res <- app$get_values()$export
-wait(app)
-expected <- broom::tidy(car::leveneTest(uptake ~ Treatment,
-  data = CO2, center = "mean"
-))
-expected$`Variance homogenity` <- expected$p.value > 0.05
-expect_equal(res[["FO-result_list"]][[5]], expected)
+    session$flushReact()
+    session$setInputs(`ASS-shapiro` = 1)
 
-# Update output value
-app$click("ASS-DiagnosticPlot")
-Sys.sleep(20)
-wait(app)
-res <- app$get_values()$export
-wait(app)
-expect_equal(inherits(res[["FO-result_list"]][[6]], "plot"), TRUE)
+    ex <<- session$userData$export[[1]]
+    attr(ex, "rendered") <<- NULL
+  })
+  tinytest::expect_equal(ex, expected)
+}
+test_shapiro_on_data(app, srv)
 
-wait(app)
-app$stop()
+test_shapiro_residuals <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  fit <- lm(uptake ~ Treatment, data = CO2)
+  r <- resid(fit)
+  expected <- broom::tidy(shapiro.test(r))
+  expected$`Residuals normal distributed` <- expected$p.value > 0.05
+  ex <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df      <- CO2
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+
+    session$flushReact()
+    session$setInputs(`ASS-shapiroResiduals` = 1)
+
+    ex <<- session$userData$export[[1]]
+    attr(ex, "rendered") <<- NULL
+  })
+  tinytest::expect_equal(ex, expected)
+}
+test_shapiro_residuals(app, srv)
+
+test_levene <- function(app, srv) {
+  options(OpenStats.background = FALSE)
+  expected <- broom::tidy(car::leveneTest(uptake ~ Treatment,
+    data = CO2, center = "mean"
+  ))
+  expected$`Variance homogenity` <- expected$p.value > 0.05
+  ex <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df      <- CO2
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+
+    session$flushReact()
+    session$setInputs(`ASS-center` = "mean")
+    session$setInputs(`ASS-levene` = 1)
+
+    ex <<- session$userData$export[[1]]
+    attr(ex, "rendered") <<- NULL
+  })
+  tinytest::expect_equal(ex, expected)
+}
+test_levene(app, srv)
+
+test_diagnose_plot <- function(app, srv, in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  got <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df      <- CO2
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+    session$flushReact()
+
+    res_name <- sprintf("%d Diagnostic plot", ResultsState$counter + 1)
+
+    session$setInputs(`ASS-DiagnosticPlot` = 1)
+
+    t0 <- Sys.time()
+    l0 <- length(ResultsState$all_data)
+    repeat {
+      ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+      session$flushReact()
+
+      if (nzchar(ResultsState$bgp$running_status) &&
+          grepl("Error|Canceled", ResultsState$bgp$running_status, ignore.case = TRUE)) {
+        stop(paste("bgp:", ResultsState$bgp$running_status))
+      }
+
+      ex <- session$userData$export
+      if (!is.null(ex) && res_name %in% names(ex)) break
+
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 20)
+        stop(paste("timeout; have keys:", paste(names(ex %||% list()), collapse = ",")))
+
+      Sys.sleep(0.05)
+    }
+
+    got <<- session$userData$export[[res_name]]
+    attr(got, "rendered") <<- NULL
+  })
+  tinytest::expect_true(inherits(got, "plot"))
+}
+run_test(test_diagnose_plot)

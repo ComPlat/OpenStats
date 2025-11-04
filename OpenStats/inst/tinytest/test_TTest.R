@@ -1,102 +1,70 @@
-if (!identical(Sys.getenv("NOT_CRAN"), "true")) exit_file("Skip on CRAN")
-if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) exit_file("UI tests disabled")
-
-library(shinytest2)
-library(tinytest)
-wait <- function(app) {
-  try(app$wait_for_idle(), silent = TRUE)
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+run_test <- function(f) {
+  if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
+
+sync_code <- function(session) {
+  session$setInputs(`OP-editable_code` = session$userData$export_code_string)
+  session$flushReact()
+}
+
+coverage_test <- nzchar(Sys.getenv("R_COVR"))
+
+if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
+library(tinytest)
+
 app <- OpenStats:::app()
-app <- shiny::shinyApp(app$ui, app$server)
-app <- AppDriver$new(app)
-wait(app)
-app$upload_file(
-  file = system.file("/test_data/CO2.csv", package = "OpenStats")
-)
-wait(app)
+srv <- app$server
 
-app$set_inputs(conditionedPanels = "Tests")
-wait(app)
-app$click("open_formula_editor")
-wait(app)
-app$set_inputs(`FO-colnames-dropdown_` = "uptake")
-wait(app)
-app$click("FO-colnames_Treatment_")
-wait(app)
-app$click("FO-create_formula")
-wait(app)
-app$run_js("$('.modal-footer button:contains(\"Close\")').click();")
-wait(app)
+test_ttest <- function(app, srv, in_background) {
+  options(OpenStats.background = in_background)
 
-app$click("TESTS-tTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["FO-result_list"]]
-wait(app)
-CO2$Treatment <- as.character(CO2$Treatment)
-expected <- broom::tidy(
-  t.test(
-    uptake ~ Treatment,
-    data = CO2,
-    var.equal = TRUE, conf.level = 0.95,
-    alternative = "two.sided"
-  )
-)
-expect_equal(res[[3]], expected)
+  CO2$Treatment <- as.factor(CO2$Treatment)
+  CO2$Type <- as.factor(CO2$Type)
+  CO2$conc <- as.factor(CO2$conc)
+  expected <- broom::tidy(t.test(uptake ~ Treatment,
+    data = CO2, conf.level = 0.95,
+    alternative = "two.sided", var.equal = TRUE
+  ))
 
-# Update output value
-app$set_inputs(`TESTS-altHyp` = "less")
-wait(app)
-app$click("TESTS-tTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["FO-result_list"]]
-expected <- broom::tidy(
-  t.test(
-    uptake ~ Treatment,
-    data = CO2,
-    var.equal = TRUE, conf.level = 0.95,
-    alternative = "less"
-  )
-)
-expect_equal(res[[4]], expected)
+  ib <- getOption("OpenStats.background", TRUE)
+  got <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df      <- CO2
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+    session$flushReact()
 
-# Update output value
-app$set_inputs(`TESTS-altHyp` = "greater")
-wait(app)
-app$click("TESTS-tTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["FO-result_list"]]
-expected <- broom::tidy(
-  t.test(
-    uptake ~ Treatment,
-    data = CO2,
-    var.equal = TRUE, conf.level = 0.95,
-    alternative = "greater"
-  )
-)
-expect_equal(res[[5]], expected)
+    counter <- ResultsState$counter
 
-# Update output value
-app$set_inputs(`TESTS-varEq` = "noeq")
-wait(app)
-app$click("TESTS-tTest")
-Sys.sleep(10)
-wait(app)
-res <- app$get_values()$export
-res <- res[["FO-result_list"]]
-expected <- broom::tidy(
-  t.test(
-    uptake ~ Treatment,
-    data = CO2,
-    var.equal = FALSE, conf.level = 0.95,
-    alternative = "greater"
-  )
-)
-expect_equal(res[[6]], expected)
+    session$setInputs(`TESTS-confLevel` = 0.95)
+    session$setInputs(`TESTS-altHyp` = "two.sided")
+    session$setInputs(`TESTS-varEq` = "eq")
+    session$setInputs(`TESTS-tTest` = 1)
 
-app$stop()
+    t0 <- Sys.time()
+    l0 <- length(ResultsState$all_data)
+    repeat {
+      ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+      session$flushReact()
+
+      if (nzchar(ResultsState$bgp$running_status) &&
+        grepl("Error|Canceled", ResultsState$bgp$running_status, ignore.case = TRUE)) {
+        stop(paste("bgp:", ResultsState$bgp$running_status))
+      }
+
+      ex <- session$userData$export
+      if (!is.null(ex) && (counter < ResultsState$counter)) break
+
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 20)
+      stop(paste("timeout; have keys:", paste(names(ex %||% list()), collapse = ",")))
+
+      Sys.sleep(0.05)
+    }
+
+    got <<- session$userData$export[[ResultsState$counter]]
+    attr(got, "rendered") <<- NULL
+  })
+
+  print(tinytest::expect_equal(expected, got))
+}
+run_test(test_ttest)

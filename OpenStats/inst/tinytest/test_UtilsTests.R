@@ -3,6 +3,164 @@ library(ggplot2)
 library(tinytest)
 library(readxl)
 
+# correct names
+# =======================================================================================
+test_correctName_true_when_column_exists <- function() {
+  df <- data.frame(a = 1:3, b = 4:6)
+  expect_true(OpenStats:::correctName("a", df))
+  expect_true(OpenStats:::correctName("b", df))
+}
+test_correctName_true_when_column_exists()
+
+test_correctName_false_when_column_missing <- function() {
+  df <- data.frame(a = 1:3, b = 4:6)
+  expect_false(OpenStats:::correctName("c", df))
+  expect_false(OpenStats:::correctName("", df))
+}
+test_correctName_false_when_column_missing()
+
+test_correctName_empty_df <- function() {
+  df <- data.frame()
+  expect_false(OpenStats:::correctName("a", df))
+}
+test_correctName_empty_df()
+
+# change char input
+# =======================================================================================
+test_changeCharInput_strips_spaces_and_splits <- function() {
+  x <- "a, b ,  c"
+  out <- OpenStats:::changeCharInput(x)
+  expect_equal(out, c("a", "b", "c"))
+}
+test_changeCharInput_strips_spaces_and_splits()
+
+test_changeCharInput_single_value <- function() {
+  x <- "column1"
+  out <- OpenStats:::changeCharInput(x)
+  expect_equal(out, "column1")
+}
+test_changeCharInput_single_value()
+
+# test combine
+# =======================================================================================
+test_combine_single_existing_column <- function() {
+  df <- data.frame(a = c("x", "y"), b = c("u", "v"), stringsAsFactors = TRUE)
+  res <- OpenStats:::combine(new = NULL, vec = c("a"), df = df, first = TRUE)
+  expect_true(is.factor(res) || is.character(res))
+  expect_equal(as.character(res), as.character(df$a))
+}
+test_combine_single_existing_column()
+
+test_combine_two_columns_order_from_end <- function() {
+  df <- data.frame(
+    a = c("x", "y"),
+    b = c("u", "v"),
+    stringsAsFactors = TRUE
+  )
+  res <- OpenStats:::combine(new = NULL, vec = c("a", "b"), df = df, first = TRUE)
+
+  expect_true(is.factor(res))
+  expect_equal(length(res), nrow(df))
+
+  expect_equal(as.character(res)[1], "u.x")
+  expect_equal(as.character(res)[2], "v.y")
+}
+test_combine_two_columns_order_from_end()
+
+test_combine_skips_missing_columns <- function() {
+  df <- data.frame(
+    a = c("x", "y"),
+    b = c("u", "v"),
+    stringsAsFactors = TRUE
+  )
+  res <- OpenStats:::combine(new = NULL, vec = c("a", "c"), df = df, first = TRUE)
+
+  expect_equal(as.character(res), as.character(df$a))
+}
+test_combine_skips_missing_columns()
+
+test_combine_empty_vec_returns_new <- function() {
+  df <- data.frame(a = 1:3)
+  res <- OpenStats:::combine(new = "start", vec = character(), df = df, first = TRUE)
+  expect_equal(res, "start")
+}
+test_combine_empty_vec_returns_new()
+
+# conversions
+# =======================================================================================
+test_num_to_factor_converts_only_numeric <- function() {
+  df <- data.frame(
+    a = 1:3,
+    b = c("x", "y", "z"),
+    c = c(TRUE, FALSE, TRUE)
+  )
+
+  out <- OpenStats:::num_to_factor(df, cols = c("a", "b", "c"))
+
+  expect_true(is.factor(out$a))
+  expect_equal(as.numeric(as.character(out$a)), df$a)
+
+  expect_true(is.character(out$b))
+  expect_identical(out$b, df$b)
+
+  expect_true(is.logical(out$c))
+  expect_identical(out$c, df$c)
+}
+test_num_to_factor_converts_only_numeric()
+
+test_num_to_factor_noop_when_no_numeric <- function() {
+  df <- data.frame(x = c("1","2"), y = c("a","b"))
+  out <- OpenStats:::num_to_factor(df, cols = c("x","y"))
+  expect_identical(out, df)
+}
+test_num_to_factor_noop_when_no_numeric()
+
+test_char_to_orig_type_numeric_strings_to_numeric <- function() {
+  x <- c("1", "2", "3")
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
+  expect_true(is.numeric(out))
+  expect_equal(out, c(1, 2, 3))
+}
+test_char_to_orig_type_numeric_strings_to_numeric()
+
+test_char_to_orig_type_mixed_strings_remain_character <- function() {
+  x <- c("1", "two", "3")
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
+  expect_true(is.character(out))
+  expect_identical(out, x)
+}
+test_char_to_orig_type_mixed_strings_remain_character()
+
+test_char_to_orig_type_handles_list_input <- function() {
+  x <- list("4", "5", "6")
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
+  expect_true(is.numeric(out))
+  expect_equal(out, c(4, 5, 6))
+}
+test_char_to_orig_type_handles_list_input()
+
+test_char_to_orig_type_list_with_non_numeric_stays_char <- function() {
+  x <- list("7", "x")
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
+  expect_true(is.character(out))
+  expect_identical(out, c("7", "x"))
+}
+test_char_to_orig_type_list_with_non_numeric_stays_char()
+
+test_firstup_basic <- function() {
+  x <- c("alpha", "bETA")
+  out <- OpenStats:::firstup(x)
+  expect_equal(out, c("Alpha", "BETA"))  # only first letter changes
+}
+test_firstup_basic()
+
+test_firstup_empty_and_single_char <- function() {
+  x <- c("", "q")
+  out <- OpenStats:::firstup(x)
+  expect_equal(out, c("", "Q"))
+}
+test_firstup_empty_and_single_char()
+
 # Test rng stuff
 # =======================================================================================
 test_Rnorm <- function() {
