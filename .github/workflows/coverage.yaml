@@ -17,17 +17,17 @@ jobs:
           use-public-rspm: true
 
       - name: Install system deps
-        run: |
-          sudo apt-get update
+        run: sudo apt-get update
 
+      # install deps INSIDE the package dir
       - name: Install R deps
+        working-directory: OpenStats
         run: |
           Rscript -e 'install.packages(c("remotes", "covr"))'
           Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
-
       - name: Run coverage
-        working-directory: OpenStats/OpenStats
+        working-directory: OpenStats
         run: |
           Rscript -e 'cov <- covr::package_coverage(); print(cov); covr::codecov(cov)'
         env:
