@@ -6,10 +6,10 @@ cov <- covr::package_coverage(
   type = "none", code = 'tinytest::test_package("OpenStats")')
 
 
-cov <- covr::packge_coverage(
+cov <- covr::package_coverage(
   path         = ".",
   type         = "none",
-  code         = 'tinytest::run_test_file("./inst/tinytest/test_Assumptions2.R")',
+  code         = 'tinytest::run_test_file("./inst/tinytest/test_Assumptions.R")',
   quiet        = TRUE,
   clean        = FALSE,
   pre_clean    = FALSE,
@@ -18,6 +18,7 @@ cov <- covr::packge_coverage(
 
 cov
 Sys.unsetenv("R_COVR")
+
 
 # Requires slightly more tests:
 # R/Engine_V1_2.R
