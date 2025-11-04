@@ -2,6 +2,8 @@
 
 ![OpenStats Logo](Logo/LogoOpenStats.png)
 
+[![codecov](https://codecov.io/gh/ComPlat/OpenStats/branch/master/graph/badge.svg)](https://codecov.io/gh/ComPlat/OpenStats)
+
 # OpenStats
 
 This application provides a user-friendly interface for conducting basic data wrangling, correlation tests, assumption tests (Shapiro-Wilk, Levene's test, QQ plots, etc.), various statistical tests (t-test, ANOVA, Kruskal-Wallis test, Tukey HSD, etc.), and visualizing data using ggplot2.
