@@ -48,7 +48,7 @@ test_linear_formula <- function(app, srv) {
     session$userData$export_formula_rhs<- ""; sync_code(session)
 
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected)
 }
 test_linear_formula(app, srv)
 
@@ -84,6 +84,6 @@ test_glm_formula <- function(app, srv) {
     ex[[2]] <<- session$userData$export[[2]]@summary
     session$userData$export_formula_rhs<- ""; sync_code(session)
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected)
 }
 test_glm_formula(app, srv)

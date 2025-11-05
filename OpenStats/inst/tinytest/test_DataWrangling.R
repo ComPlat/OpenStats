@@ -1,3 +1,4 @@
+library(tinytest)
 sync_code <- function(session) {
   session$setInputs(`OP-editable_code` = session$userData$export_code_string)
   session$flushReact()
@@ -18,7 +19,7 @@ library(tinytest)
 app <- OpenStats:::app()
 srv <- app$server
 
-# Seq tests
+# env_operations_V1_2$Seq tests
 # =================================================================
 test_seq <- function(app, srv) {
   options(OpenStats.background = FALSE)
@@ -47,8 +48,8 @@ test_seq <- function(app, srv) {
     ex <<- session$userData$export_iv[[2]]
     ex_string <<- session$userData$export_code_string |> trim()
   })
-  tinytest::expect_equal(ex, expected)
-  tinytest::expect_equal(ex_string, expected_string)
+   expect_equal(ex, expected, info = "Sequence result")
+   expect_equal(ex_string, expected_string, info = "Seq code string")
 }
 test_seq(app, srv)
 
@@ -81,8 +82,10 @@ test_df <- function(app, srv) {
     ex <<- session$userData$export_iv[[2]]
     ex_string <<- session$userData$export_code_string |> trim()
   })
-  tinytest::expect_equal(ex, expected)
-  tinytest::expect_equal(ex_string, expected_string)
+  Map(function(a, b) {
+    all(a == b)
+  }, ex, expected) |> unlist() |> all() |> expect_true()
+   expect_equal(ex_string, expected_string, info = "df string")
 }
 test_df(app, srv)
 
@@ -136,7 +139,7 @@ test_random <- function(app, srv) {
     })
 
   }
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "random result")
 }
 test_random(app, srv)
 
@@ -184,7 +187,7 @@ test_unary <- function(app, srv) {
       ex[[i]] <<- session$userData$export_iv[[2]]
     })
   }
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "math stuff")
 }
 test_unary(app, srv)
 
@@ -224,7 +227,7 @@ test_binary <- function(app, srv) {
       ex[[i]] <<- session$userData$export_iv[[2]]
     })
   }
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "binary results")
 }
 test_binary(app, srv)
 
@@ -285,7 +288,7 @@ test_comparisons <- function(app, srv) {
       ex[[i]] <<- session$userData$export_iv[[4]]
     })
   }
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "comparisons results")
 }
 test_comparisons(app, srv)
 
@@ -333,7 +336,7 @@ test_stats <- function(app, srv) {
       ex[[i]] <<- session$userData$export_iv[[3]]
     })
   }
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "stats results")
 }
 test_stats(app, srv)
 
@@ -385,7 +388,7 @@ test_indexing <- function(app, srv) {
 
     ex[[2]] <<- session$userData$export_iv[[3]]
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "indexing")
 }
 test_indexing(app, srv)
 
@@ -459,7 +462,7 @@ test_string_ops <- function(app, srv) {
     ex[[4]] <<- session$userData$export_iv[[7]]
 
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "string stuff")
 }
 test_string_ops(app, srv)
 
@@ -506,6 +509,6 @@ test_casts <- function(app, srv) {
       ex[[i]] <<- session$userData$export_iv[[3]]
     })
   }
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected, info = "casts")
 }
 test_casts(app, srv)

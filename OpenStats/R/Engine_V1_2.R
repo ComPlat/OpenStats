@@ -38,7 +38,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           if (ResultsState$bgp$warnings != "") {
             ResultsState$bgp$com$print_warn(ResultsState$bgp$warnings)
           }
-          e <- try(check_rls(ResultsState$all_data, res))
+          e <- try(env_utils_V1_2$check_rls(ResultsState$all_data, res))
           if (inherits(e, "try-error")) {
             self$com$print_err(conditionMessage(e))
             return()
@@ -171,7 +171,7 @@ backend_get_result_V1_2 <- function(ResultsState) {
   # If everything was fine store the result
   if (ResultsState$bgp$running_status == "Completed") {
     res <- ResultsState$bgp$get_result()
-    check_rls(ResultsState$all_data, res)
+    env_utils_V1_2$check_rls(ResultsState$all_data, res)
     ResultsState$all_data[[ResultsState$bgp$promise_result_name]] <- res
     ResultsState$counter <- ResultsState$counter + 1
     ResultsState$bgp$running_status <- "Idle"
@@ -222,7 +222,7 @@ backend_data_wrangling_state_V1_2 <- R6::R6Class(
     intermediate_vars = list(),
     code_string = NULL,
     initialize = function(DataModelState) {
-      self$df_name <- create_df_name(self$df_name, names(DataModelState$df))
+      self$df_name <- env_utils_V1_2$create_df_name(self$df_name, names(DataModelState$df))
       self$df <- DataModelState$df
     }
   )
@@ -283,14 +283,14 @@ correlation_V1_2 <- R6::R6Class(
       formula <- as.character(self$formula@formula)
       self$dep <- formula[2]
       self$indep <- formula[3]
-      check_ast(str2lang(self$indep), colnames(self$df))
-      check_ast(str2lang(self$dep), colnames(self$df))
+      env_check_ast_V1_2$check_ast(str2lang(self$indep), colnames(self$df))
+      env_check_ast_V1_2$check_ast(str2lang(self$dep), colnames(self$df))
     },
     eval = function(ResultsState) {
       withCallingHandlers(
         expr = {
           new_name <- paste0(
-            ResultsState$counter + 1, " Correlation ", firstup(self$method)
+            ResultsState$counter + 1, " Correlation ", env_utils_V1_2$firstup(self$method)
           )
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
@@ -435,7 +435,7 @@ visualisation_V1_2 <- R6::R6Class(
           withCallingHandlers(
             {
               if (method == "box") {
-                p <- OpenStats:::BoxplotFct(
+                p <- OpenStats:::env_plotting_V1_2$boxplot_fct(
                   df, x, y, xlabel, ylabel,
                   fill_var, fill_legend_title, fill_theme,
                   colour_var, colour_legend_title, colour_theme,
@@ -443,14 +443,14 @@ visualisation_V1_2 <- R6::R6Class(
                   xrange_min, xrange_max, yrange_min, yrange_max
                 )
               } else if (method == "dot") {
-                p <- OpenStats:::DotplotFct(
+                p <- OpenStats:::env_plotting_V1_2$dotplot_fct(
                   df, x, y, xlabel, ylabel,
                   colour_var, colour_legend_title, colour_theme,
                   facet_mode, facet_var, facet_y_scaling,
                   xrange_min, xrange_max, yrange_min, yrange_max
                 )
               } else if (method == "line") {
-                p <- OpenStats:::LineplotFct(
+                p <- OpenStats:::env_plotting_V1_2$lineplot_fct( # TODO: define an environment for all internal code analog to the internal plotting
                   df, x, y, xlabel, ylabel,
                   colour_var, colour_legend_title, colour_theme,
                   facet_mode, facet_var, facet_y_scaling,
@@ -531,7 +531,7 @@ visualisation_model_V1_2 <- R6::R6Class(
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
             fun = function(df, formula, layer) {
-              p <- OpenStats:::plot_model(df, formula, layer)
+              p <- OpenStats:::env_summarising_model_V1_2$plot_model(df, formula, layer)
               ggplot2::ggplot_build(p) # NOTE: invokes errors and warnings by building but not rendering plot
               return(
                 new("plot", p = p, width = 10, height = 10, resolution = 600)
@@ -578,7 +578,7 @@ apply_filter_V1_2 <- R6::R6Class(
     },
     eval = function(DataModelState, ResultsState) {
       DataModelState$backup_df <- DataModelState$df
-      DataModelState$df <- split_groups(DataModelState$df, self$selected_cols, self$selected_groups)
+      DataModelState$df <- env_utils_V1_2$split_groups(DataModelState$df, self$selected_cols, self$selected_groups)
       DataModelState$filter_col <- self$selected_cols
       DataModelState$filter_group <- self$selected_groups
       self$create_history(ResultsState)
@@ -669,7 +669,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
         if (length(self$intermediate_vars) >= 1) {
           vars <- c(vars, names(self$intermediate_vars))
         }
-        check_ast(op, vars)
+        env_check_ast_V1_2$check_ast(op, vars)
       })
       if (inherits(e, "try-error")) {
         self$com$print_err(e)
@@ -685,7 +685,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
         eval_env[[DataWranglingState$df_name]] <- self$df
         new <- eval(parse(text = self$operation), envir = eval_env)
         check_type_res(new)
-        check_rls(ResultsState$all_data, new)
+        env_utils_V1_2$check_rls(ResultsState$all_data, new)
       })
       if (inherits(e, "try-error")) {
         err <- conditionMessage(attr(e, "condition"))
@@ -789,7 +789,7 @@ create_new_col_V1_2 <- R6::R6Class(
         if (length(self$intermediate_vars) >= 1) {
           vars <- c(vars, names(self$intermediate_vars))
         }
-        check_ast(op, vars)
+        env_check_ast_V1_2$check_ast(op, vars)
       })
       if (inherits(e, "try-error")) {
         self$com$print_err(e)
@@ -806,7 +806,7 @@ create_new_col_V1_2 <- R6::R6Class(
         eval_env[[DataWranglingState$df_name]] <- self$df
         new <- eval(parse(text = self$operation), envir = eval_env)
         check_type_res(new)
-        check_rls(ResultsState$all_data, new)
+        env_utils_V1_2$check_rls(ResultsState$all_data, new)
         self$df[, self$name] <- new
         DataWranglingState$df <- self$df
         if (!is.null(DataModelState$backup_df)) {
@@ -860,12 +860,12 @@ summarise_model_V1_2 <- R6::R6Class(
           expr = {
             ResultsState$bgp$start(
               fun = function(df, formula) {
-                p <- OpenStats:::plot_pred_lm(df, formula)
+                p <- OpenStats:::env_summarising_model_V1_2$plot_pred_lm(df, formula)
                 ggplot2::ggplot_build(p)
                 p <- new("plot", p = p, width = 15, height = 15, resolution = 600)
                 model <- lm(formula@formula, data = df)
                 summary <- broom::tidy(model)
-                ic <- OpenStats:::create_information_criterions(model)
+                ic <- OpenStats:::env_summarising_model_V1_2$create_information_criterions(model)
                 new("summaryModel", p = p, summary = summary, information_criterions = ic)
               },
               args = list(df = self$df, formula = self$formula),
@@ -888,7 +888,7 @@ summarise_model_V1_2 <- R6::R6Class(
           expr = {
             ResultsState$bgp$start(
               fun = function(df, formula) {
-                p <- OpenStats:::plot_pred_glm(df, formula)
+                p <- OpenStats:::env_summarising_model_V1_2$plot_pred_glm(df, formula)
                 ggplot2::ggplot_build(p)
                 p <- new("plot", p = p, width = 15, height = 15, resolution = 600)
                 family <- self$formula@family
@@ -896,7 +896,7 @@ summarise_model_V1_2 <- R6::R6Class(
                 family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
                 model <- glm(self$formula@formula, data = self$df, family = eval(family))
                 summary <- broom::tidy(model)
-                ic <- OpenStats:::create_information_criterions(model)
+                ic <- OpenStats:::env_summarising_model_V1_2$create_information_criterions(model)
                 new("summaryModel", p = p, summary = summary, information_criterions = ic)
               },
               args = list(df = self$df, formula = self$formula),
@@ -919,10 +919,10 @@ summarise_model_V1_2 <- R6::R6Class(
           expr = {
             ResultsState$bgp$start(
               fun = function(df, formula) {
-                res <- OpenStats:::optimize(formula, df)
-                p <- OpenStats:::plot_model_optim(formula, res)
-                summary <- OpenStats:::summary_model_optim(formula, res)
-                ic <- OpenStats:::information_criterion_optim(res)
+                res <- OpenStats:::env_optim_V1_2$optimize(formula, df)
+                p <- OpenStats:::env_optim_V1_2$plot_model_optim(formula, res)
+                summary <- OpenStats:::env_optim_V1_2$summary_model_optim(formula, res)
+                ic <- OpenStats:::env_optim_V1_2$information_criterion_optim(res)
                 new("summaryModel", p = p, summary = summary, information_criterions = ic)
               },
               args = list(df = self$df, formula = self$formula),
@@ -985,7 +985,7 @@ create_formula_V1_2 <- R6::R6Class(
       if (model_type == "Linear") {
         formula <- paste(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
-        check_ast(formula, colnames(self$df))
+        env_check_ast_V1_2$check_ast(formula, colnames(self$df))
         DataModelState$formula <- new("LinearFormula", formula = formula)
         model <- lm(formula, data = self$df)
         eq <- extract_eq(model, wrap = TRUE)
@@ -1001,7 +1001,7 @@ create_formula_V1_2 <- R6::R6Class(
         link_fct <- details[[2]]
         formula <- paste(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
-        check_ast(formula, colnames(self$df))
+        env_check_ast_V1_2$check_ast(formula, colnames(self$df))
         DataModelState$formula <- new("GeneralisedLinearFormula",
           formula = formula, family = family, link_fct = link_fct
         )
@@ -1022,7 +1022,7 @@ create_formula_V1_2 <- R6::R6Class(
         seed <- details[[3]]
         formula <- paste0(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
-        DataModelState$formula <- create_formula_optim(formula, self$df, lower, upper, seed)
+        DataModelState$formula <- env_optim_V1_2$create_formula_optim(formula, self$df, lower, upper, seed)
         eq <- paste0(self$response_var, " = ", self$right_site)
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(
           type = "CreateFormula",
@@ -1076,7 +1076,7 @@ shapiro_on_data_V1_2 <- R6::R6Class(
           ResultsState$bgp$start(
             fun = function(df, formula) {
               res <- list()
-              dat <- OpenStats:::splitData(df, formula)
+              dat <- OpenStats:::env_utils_V1_2$split_data(df, formula)
               for (i in unique(dat[, 2])) {
                 tempDat <- dat[dat[, 2] == i, ]
                 temp <- broom::tidy(shapiro.test(tempDat[, 1]))
@@ -1240,7 +1240,7 @@ diagnostic_plots_V1_2 <- R6::R6Class(
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
             fun = function(df, formula) {
-              p <- OpenStats:::diagnosticPlots(df, formula)
+              p <- OpenStats:::env_diagnostic_plots_V1_2$diagnostic_plots(df, formula)
               new("plot", p = p, width = 15, height = 15, resolution = 600)
             },
             args = list(df = self$df, formula = self$formula),
@@ -1306,10 +1306,10 @@ dose_response_V1_2 <- R6::R6Class(
               res_df <- NULL
               err <- try({
                 OpenStats:::check_formula(formula)
-                OpenStats:::check_ast(str2lang(indep), colnames(df))
-                OpenStats:::check_ast(str2lang(dep), colnames(df))
+                OpenStats:::env_check_ast_V1_2$check_ast(str2lang(indep), colnames(df))
+                OpenStats:::env_check_ast_V1_2$check_ast(str2lang(dep), colnames(df))
 
-                res <- OpenStats:::ic50(
+                res <- OpenStats:::env_lc_V1_2$ic50(
                   df, dep,
                   indep, substance_names,
                   is_xlog, is_ylog
@@ -1575,9 +1575,9 @@ statistical_tests_V1_2 <- R6::R6Class(
                 link_fct <- formula@link_fct
                 family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
 
-                f_split <- OpenStats:::split_formula(formula@formula)
-                rhs_vars <- OpenStats:::vars_rhs(f_split$right_site)
-                df_temp <- OpenStats:::num_to_factor(df, rhs_vars)
+                f_split <- OpenStats:::env_utils_V1_2$split_formula(formula@formula)
+                rhs_vars <- OpenStats:::env_utils_V1_2$vars_rhs(f_split$right_site)
+                df_temp <- OpenStats:::env_utils_V1_2$num_to_factor(df, rhs_vars)
                 if (any(apply(df, 2, is.numeric))) {
                   warning(paste0("Found numeric predictors and converted them to factors"))
                 }

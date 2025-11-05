@@ -28,7 +28,7 @@ test_shapiro_on_data <- function(app, srv) {
     ex <<- session$userData$export[[1]]
     attr(ex, "rendered") <<- NULL
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected)
 }
 test_shapiro_on_data(app, srv)
 
@@ -49,7 +49,7 @@ test_shapiro_residuals <- function(app, srv) {
     ex <<- session$userData$export[[1]]
     attr(ex, "rendered") <<- NULL
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected)
 }
 test_shapiro_residuals(app, srv)
 
@@ -71,7 +71,7 @@ test_levene <- function(app, srv) {
     ex <<- session$userData$export[[1]]
     attr(ex, "rendered") <<- NULL
   })
-  tinytest::expect_equal(ex, expected)
+   expect_equal(ex, expected)
 }
 test_levene(app, srv)
 
@@ -111,6 +111,6 @@ test_diagnose_plot <- function(app, srv, in_background) {
     got <<- session$userData$export[[res_name]]
     attr(got, "rendered") <<- NULL
   })
-  tinytest::expect_true(inherits(got, "plot"))
+   expect_true(inherits(got, "plot"))
 }
 run_test(test_diagnose_plot)

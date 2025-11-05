@@ -35,7 +35,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         colour_var = entry[["Colour variable"]], colour_legend_title = entry[["Legend title for colour"]], colour_theme = entry[["Colour theme"]],
         fill_var = entry[["Fill variable"]], fill_legend_title = entry[["Legend title for fill"]], fill_theme = entry[["Fill theme"]],
         facet_var = entry[["Split by"]], facet_y_scaling = entry[["How to scale y in subplots"]],
-        xrange = char_to_orig_type(entry[["X-Range"]]), yrange = char_to_orig_type(entry[["Y-Range"]]),
+        xrange = env_utils_V1_2$char_to_orig_type(entry[["X-Range"]]), yrange = env_utils_V1_2$char_to_orig_type(entry[["Y-Range"]]),
         width = as.numeric(entry["Width"]), height = as.numeric(entry[["Height"]]), resolution = as.numeric(entry[["Resolution"]]),
         com = backend_communicator_V1_2
       )

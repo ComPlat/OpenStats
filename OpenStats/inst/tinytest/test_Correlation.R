@@ -32,8 +32,8 @@ test_correlation <- function(app, srv) {
     ex_kendall <<- session$userData$export[[3]]
     attr(ex_kendall, "rendered") <<- NULL
   })
-  tinytest::expect_equal(ex_pear, expected_pear)
-  tinytest::expect_equal(ex_spear, expected_spear)
-  tinytest::expect_equal(ex_kendall, expected_kendall)
+   expect_equal(ex_pear, expected_pear)
+   expect_equal(ex_spear, expected_spear)
+   expect_equal(ex_kendall, expected_kendall)
 }
 test_correlation(app, srv)

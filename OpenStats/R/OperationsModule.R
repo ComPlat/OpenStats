@@ -184,7 +184,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       req(is.data.frame(df))
       DataWranglingState$df <- df
 
-      DataWranglingState$df_name <- create_df_name(DataWranglingState$df_name, names(df))
+      DataWranglingState$df_name <- env_utils_V1_2$create_df_name(DataWranglingState$df_name, names(df))
       DataWranglingState$intermediate_vars[[DataWranglingState$df_name]] <- df
       output$head <- renderUI({
         col_info <- sapply(df, function(col) class(col)[1]) |>
@@ -237,7 +237,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
           info_div(message)
         )
       }
-      DataWranglingState$df_name <- create_df_name(DataWranglingState$df_name, names(DataModelState$df))
+      DataWranglingState$df_name <- env_utils_V1_2$create_df_name(DataWranglingState$df_name, names(DataModelState$df))
       colnames <- c(DataWranglingState$df_name, names(DataWranglingState$df))
       button_list <- lapply(colnames[1:length(colnames)], function(i) {
         if (i == DataWranglingState$df_name) {
@@ -262,7 +262,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     # React to colnames buttons
     observe({
       req(DataWranglingState$df)
-      DataWranglingState$df_name <- create_df_name(DataWranglingState$df_name, names(DataModelState$df))
+      DataWranglingState$df_name <- env_utils_V1_2$create_df_name(DataWranglingState$df_name, names(DataModelState$df))
       colnames <- c(DataWranglingState$df_name, names(DataWranglingState$df))
       lapply(colnames, function(col) {
         observeEvent(input[[paste0("colnames_", col, "_", DataWranglingState$counter_id)]], {

@@ -677,14 +677,14 @@ app <- function() {
     # Download
     # ----------------------------------------------------------
     observeEvent(input$download, {
-      if (!is_valid_filename(input$user_filename)) {
+      if (!env_utils_V1_2$is_valid_filename(input$user_filename)) {
         runjs("document.getElementById('user_filename').focus();")
         print_noti(
-          why_filename_invalid(input$user_filename)
+          env_utils_V1_2$why_filename_invalid(input$user_filename)
         )
       }
       print_req(
-        is_valid_filename(input$user_filename),
+        env_utils_V1_2$is_valid_filename(input$user_filename),
         "Defined filename is not valid"
       )
       print_req(length(ResultsState$all_data) > 0, "No results to save")
@@ -696,10 +696,10 @@ app <- function() {
       l <- c(l, "HistoryJSON" = history_json)
       if (Sys.getenv("RUN_MODE") == "SERVER") {
         print_req(
-          check_filename_for_server(input$user_filename),
+          env_utils_V1_2$check_filename_for_server(input$user_filename),
           "Defined filename does not have xlsx as extension"
         )
-        excelFile <- createExcelFile(l)
+        excelFile <- env_utils_V1_2$create_excel_file(l)
         if (!requireNamespace("COMELN", quietly = TRUE)) {
           shiny::validate(shiny::need(FALSE,
             paste(
@@ -714,12 +714,12 @@ app <- function() {
         uploader(session, excelFile, new_name = input$user_filename)
       } else if (Sys.getenv("RUN_MODE") == "LOCAL") {
         print_req(
-          check_filename_for_server(input$user_filename) || check_filename_for_serverless(input$user_filename),
+          env_utils_V1_2$check_filename_for_server(input$user_filename) || env_utils_V1_2$check_filename_for_serverless(input$user_filename),
           "Defined filename does not have xlsx or zip as extension"
         )
-        ex <- extract_extension(input$user_filename)
+        ex <- env_utils_V1_2$extract_extension(input$user_filename)
         if (ex == "xlsx") {
-          excelFile <- createExcelFile(l)
+          excelFile <- env_utils_V1_2$create_excel_file(l)
           file_content <- readBin(excelFile, "raw", file.info(excelFile)$size)
           file_content_base64 <- jsonlite::base64_enc(file_content)
           session$sendCustomMessage(
@@ -731,7 +731,7 @@ app <- function() {
           )
           unlink(excelFile)
         } else {
-          string_and_names <- createJSString(l)
+          string_and_names <- env_utils_V1_2$create_js_string(l)
           session$sendCustomMessage(
             type = "downloadZip",
             list(
@@ -744,10 +744,10 @@ app <- function() {
         }
       } else {
         print_req(
-          check_filename_for_serverless(input$user_filename),
+          env_utils_V1_2$check_filename_for_serverless(input$user_filename),
           "Defined filename does not have zip as extension"
         )
-        string_and_names <- createJSString(l)
+        string_and_names <- env_utils_V1_2$create_js_string(l)
         session$sendCustomMessage(
           type = "downloadZip",
           list(

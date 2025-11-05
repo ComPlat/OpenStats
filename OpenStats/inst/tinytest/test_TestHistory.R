@@ -46,9 +46,9 @@ run_posthoc_glm <- function(method) {
   link_fct <- "identity"
   family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
   formula <- uptake ~ Treatment
-  f_split <- OpenStats:::split_formula(formula)
-  rhs_vars <- OpenStats:::vars_rhs(f_split$right_site)
-  df_temp <- OpenStats:::num_to_factor(CO2, rhs_vars)
+  f_split <- OpenStats:::env_utils_V1_2$split_formula(formula)
+  rhs_vars <- OpenStats:::env_utils_V1_2$vars_rhs(f_split$right_site)
+  df_temp <- OpenStats:::env_utils_V1_2$num_to_factor(CO2, rhs_vars)
   if (any(apply(CO2, 2, is.numeric))) {
     warning(paste0("Found numeric predictors and converted them to factors"))
   }

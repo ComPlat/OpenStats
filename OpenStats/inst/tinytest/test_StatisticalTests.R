@@ -128,7 +128,7 @@ for (choice in choices) {
       got <<- session$userData$export[[ResultsState$counter]]
       attr(got, "rendered") <<- NULL
     })
-    print(tinytest::expect_equal(expected, got))
+    expect_equal(expected, got)
   }
   run_test(test_stats_tests)
 }

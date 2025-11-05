@@ -265,7 +265,7 @@ iv_list <- app$get_values()$export[["OP-iv_list"]]
 expect_equal(iv_list$ARITHMETIC, CO2$conc + (CO2$conc * CO2$conc))
 
 reset(app)
-app$click("OP-get_elem")
+app$click("OP-env_operations_V1_2$get_elem")
 wait(app)
 app$click("OP-colnames_conc_0")
 wait(app)
@@ -278,7 +278,7 @@ wait(app)
 app$click("OP-run_op_intermediate")
 wait(app)
 content <- app$get_values()$input[["OP-editable_code"]] |> trim()
-expect_equal(content, "get_elem(conc,1)")
+expect_equal(content, "env_operations_V1_2$get_elem(conc,1)")
 iv_list <- app$get_values()$export[["OP-iv_list"]]
 expect_equal(iv_list$GET_ELEM_AND_COMMA, CO2$conc[1])
 
@@ -538,12 +538,12 @@ operations <- c(
   "OP-mean", "OP-median", "OP-min",
   "OP-max", "OP-sum", "OP-sd"
 )
-Mean <- OpenStats:::Mean
-Median <- OpenStats:::Median
-Min <- OpenStats:::Min
-Max <- OpenStats:::Max
-Sum <- OpenStats:::Sum
-SD <- OpenStats:::SD
+Mean <- OpenStats:::env_operations_V1_2$Mean
+Median <- OpenStats:::env_operations_V1_2$Median
+env_operations_V1_2$Min <- OpenStats:::env_operations_V1_2$Min
+env_operations_V1_2$Max <- OpenStats:::env_operations_V1_2$Max
+Sum <- OpenStats:::env_operations_V1_2$Sum
+SD <- OpenStats:::env_operations_V1_2$SD
 conc <- CO2$conc
 checks <- c()
 for (i in operations) {
@@ -584,9 +584,9 @@ iv_list <- app$get_values()$export[["OP-iv_list"]]
 expect_equal(iv_list[["get_rows"]]$uptake, CO2[conc == 95, "uptake"])
 
 reset(app)
-app$click("OP-get_cols")
+app$click("OP-env_operations_V1_2$get_cols")
 wait(app)
-app$set_inputs(`OP-iv` = "get_cols")
+app$set_inputs(`OP-iv` = "env_operations_V1_2$get_cols")
 wait(app)
 app$click("OP-colnames_df_0")
 wait(app)
@@ -608,7 +608,7 @@ app$click("OP-run_op_intermediate")
 wait(app)
 iv_list <- app$get_values()$export[["OP-iv_list"]]
 wait(app)
-expect_true(all(iv_list[["get_cols"]] == CO2[, c("conc", "conc", "uptake")]))
+expect_true(all(iv_list[["env_operations_V1_2$get_cols"]] == CO2[, c("conc", "conc", "uptake")]))
 
 # Test string functions
 # =================================================================

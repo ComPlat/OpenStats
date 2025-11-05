@@ -1,4 +1,4 @@
-errorClass <- R6::R6Class("errorClass",
+errorClass <- R6::R6Class("errorClass", # not exported via env_lc_V1_2 as engine tests whether the result inherits from errorClass
   public = list(
     error_message = NULL,
     object = NULL,
@@ -14,7 +14,8 @@ errorClass <- R6::R6Class("errorClass",
   )
 )
 
-shapenumber <- function(num) {
+env_lc_V1_2 <- new.env(parent = getNamespace("OpenStats"))
+env_lc_V1_2$shapenumber <- function(num) {
   if (is.finite(num)) {
     res <- signif(num)
   } else {
@@ -25,7 +26,7 @@ shapenumber <- function(num) {
 
 # calculates the robust 68th percentile of the residuals
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
-robust_68_percentile <- function(residuals) {
+env_lc_V1_2$robust_68_percentile <- function(residuals) {
   res <- abs(residuals)
   res_sorted <- sort(res)
   res_percentiles <- (seq_len(length(res_sorted)) / length(res_sorted))
@@ -41,25 +42,25 @@ robust_68_percentile <- function(residuals) {
 # calculates the robust standard deviation of the residuals (RSDR)
 # with correction for degrees of freedom
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
-# robust_standard_deviation_residuals = rsdr
-rsdr <- function(residuals, number_of_coefficients_fitted) {
+# robust_standard_deviation_residuals = env_lc_V1_2$rsdr
+env_lc_V1_2$rsdr <- function(residuals, number_of_coefficients_fitted) {
   resids <- as.numeric(residuals)
   resids <- na.omit(residuals)
   N <- length(resids)
-  robust_68_percentile(residuals) *
+  env_lc_V1_2$robust_68_percentile(residuals) *
     N / (N - number_of_coefficients_fitted)
 }
 
 # false discovery rate (FDR) approach,
 # returns a T/F vector for selection of valid data points
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
-false_discovery_rate <- function(res) {
+env_lc_V1_2$false_discovery_rate <- function(res) {
   N <- length(res)
   # Q=1%
   Q <- 0.01
   # number of coefficients in the fitted LL.4 model
   K <- 4
-  R <- rsdr(res, K)
+  R <- env_lc_V1_2$rsdr(res, K)
   id <- seq_len(length(res))
   df <- data.frame(id, res)
   df$res_abs <- abs(df$res)
@@ -74,7 +75,7 @@ false_discovery_rate <- function(res) {
   return(df2$include)
 }
 
-check_fit <- function(model, min_conc, max_conc,
+env_lc_V1_2$check_fit <- function(model, min_conc, max_conc,
                       min_abs, max_abs, substance_name) {
   if (model$fit$convergence != TRUE) {
     return(errorClass$new(paste(
@@ -121,14 +122,14 @@ check_fit <- function(model, min_conc, max_conc,
   IC50_relative_lower <- confidence_interval[1]
   IC50_relative_higher <- confidence_interval[2]
   p_value <- noEffect(model)[3]
-  Response_lowestdose_predicted <- shapenumber(Response_lowestdose_predicted)
-  Response_highestdose_predicted <- shapenumber(Response_highestdose_predicted)
-  HillCoefficient <- shapenumber(HillCoefficient)
-  IC50_relative <- shapenumber(IC50_relative)
-  IC50_relative_lower <- shapenumber(IC50_relative_lower)
-  IC50_relative_higher <- shapenumber(IC50_relative_higher)
-  pIC50 <- shapenumber(-log10(IC50_relative))
-  p_value <- shapenumber(p_value)
+  Response_lowestdose_predicted <- env_lc_V1_2$shapenumber(Response_lowestdose_predicted)
+  Response_highestdose_predicted <- env_lc_V1_2$shapenumber(Response_highestdose_predicted)
+  HillCoefficient <- env_lc_V1_2$shapenumber(HillCoefficient)
+  IC50_relative <- env_lc_V1_2$shapenumber(IC50_relative)
+  IC50_relative_lower <- env_lc_V1_2$shapenumber(IC50_relative_lower)
+  IC50_relative_higher <- env_lc_V1_2$shapenumber(IC50_relative_higher)
+  pIC50 <- env_lc_V1_2$shapenumber(-log10(IC50_relative))
+  p_value <- env_lc_V1_2$shapenumber(p_value)
   outvar <- data.frame(
     name = substance_name,
     Response_lowestdose_predicted = Response_lowestdose_predicted,
@@ -142,7 +143,7 @@ check_fit <- function(model, min_conc, max_conc,
   return(outvar)
 }
 
-drawplotOnlyRawData <- function(df, abs_col, conc_col, title) {
+env_lc_V1_2$drawplot_only_raw_data <- function(df, abs_col, conc_col, title) {
   conc <- function() stop("Should never be called") # Please R CMD check
 
   data_measured <- data.frame(conc = df[, conc_col], abs = df[, abs_col])
@@ -161,7 +162,7 @@ drawplotOnlyRawData <- function(df, abs_col, conc_col, title) {
   return(p)
 }
 
-drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
+env_lc_V1_2$drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
                      IC50_relative, IC50_relative_lower, IC50_relative_higher,
                      islog_x, islog_y) {
 
@@ -176,7 +177,7 @@ drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
     abs = res,
     conc = grid
   )
-  p <- drawplotOnlyRawData(df, abs_col, conc_col, title) +
+  p <- env_lc_V1_2$drawplot_only_raw_data(df, abs_col, conc_col, title) +
     geom_line(data = data, aes(x = conc, y = abs))
   max_conc <- max(df[, conc_col]) +
     0.1 * (max(df[, conc_col]) - min(df[, conc_col]))
@@ -220,24 +221,24 @@ drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
   return(p)
 }
 
-ic50_internal <- function(df, abs, conc,
+env_lc_V1_2$ic50_internal <- function(df, abs, conc,
                           title, islog_x, islog_y) {
   model <- drm(abs ~ conc,
     data = df, fct = LL.4(),
     robust = "median"
   )
-  valid_points <- false_discovery_rate(residuals(model))
+  valid_points <- env_lc_V1_2$false_discovery_rate(residuals(model))
   model <- drm(abs ~ conc,
     data = df,
     subset = valid_points,
     start = model$coefficients,
     fct = LL.4(), robust = "mean",
   )
-  res <- check_fit(
+  res <- env_lc_V1_2$check_fit(
     model, min(df[, conc]),
     max(df[, conc]), min(df[, abs]), max(df[, abs]), title
   )
-  p <- drawplot(
+  p <- env_lc_V1_2$drawplot(
     df, abs, conc, model, valid_points, title, res$IC50_relative,
     res$IC50_relative_lower, res$IC50_relative_higher,
     islog_x, islog_y
@@ -245,7 +246,7 @@ ic50_internal <- function(df, abs, conc,
   return(list(res, p))
 }
 
-check_dr_df <- function(df, abs_col,
+env_lc_V1_2$check_dr_df <- function(df, abs_col,
                         conc_col, substance_name_col) {
   if (!is.character(df[, substance_name_col]) &&
     !is.factor(df[, substance_name_col])) {
@@ -261,7 +262,7 @@ check_dr_df <- function(df, abs_col,
   return(NULL)
 }
 
-transform_conc_dr <- function(conc_col) {
+env_lc_V1_2$transform_conc_dr <- function(conc_col) {
   temp_conc <- as.numeric(conc_col)
   if (all(is.na(temp_conc))) {
     return(errorClass$new(
@@ -278,17 +279,17 @@ transform_conc_dr <- function(conc_col) {
 #' path <- system.file("data", package = "MTT")
 #' df <- read.csv(paste0(path, "/ExampleData.txt"))
 #' ic50(df, "abs", "conc", "names", NULL, FALSE, FALSE)
-ic50 <- function(df, abs_col, conc_col,
+env_lc_V1_2$ic50 <- function(df, abs_col, conc_col,
                  substance_name_col,
                  islog_x, islog_y) {
   # Checks
-  err <- check_dr_df(df, abs_col, conc_col, substance_name_col)
+  err <- env_lc_V1_2$check_dr_df(df, abs_col, conc_col, substance_name_col)
   if (inherits(err, "errorClass")) {
     return(err)
   }
   substances <- unique(df[, substance_name_col])
   # Data preparation
-  temp_conc <- transform_conc_dr(df[, conc_col])
+  temp_conc <- env_lc_V1_2$transform_conc_dr(df[, conc_col])
   if (inherits(temp_conc, "errorClass")) {
     return(temp_conc)
   }
@@ -305,7 +306,7 @@ ic50 <- function(df, abs_col, conc_col,
 
     m <- tryCatch(
       {
-        m <- ic50_internal(
+        m <- env_lc_V1_2$ic50_internal(
           df_temp,
           "abs", "conc",
           substances[i],
@@ -316,7 +317,7 @@ ic50 <- function(df, abs_col, conc_col,
         retval <- errorClass$new(
           paste("A warning occurred: ", conditionMessage(err))
         )
-        retval$object <- drawplotOnlyRawData(
+        retval$object <- env_lc_V1_2$drawplot_only_raw_data(
           df_temp, "abs", "conc", substances[i]
         )
         return(retval)

@@ -1,12 +1,18 @@
-# divs
-info_div <- function(message) {
-  div(
-    class = "info-box",
-    h3(strong(message))
+env_utils_V1_2 <- new.env(parent = getNamespace("OpenStats"))
+
+env_utils_V1_2$split_formula <- function(formula) {
+  f <- as.character(formula)
+  list(
+    response = str2lang(f[2]),
+    right_site = str2lang(f[3])
   )
 }
 
-num_to_factor <- function(df, cols) {
+env_utils_V1_2$vars_rhs <- function(rhs) {
+ all.vars(rhs)
+}
+
+env_utils_V1_2$num_to_factor <- function(df, cols) {
   for (i in seq_along(cols)) {
     if (is.numeric(df[, cols[i]])) {
       df[, cols[i]] <- as.factor(df[, cols[i]])
@@ -15,7 +21,7 @@ num_to_factor <- function(df, cols) {
   return(df)
 }
 
-char_to_orig_type <- function(vec) {
+env_utils_V1_2$char_to_orig_type <- function(vec) {
   if (is.list(vec)) vec <- unlist(vec)
   if (any(is.na(as.numeric(vec)))) {
     return(vec)
@@ -24,14 +30,14 @@ char_to_orig_type <- function(vec) {
   vec
 }
 
-firstup <- function(x) {
+env_utils_V1_2$firstup <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
 }
 
-DF2String <- function(df) {
+env_utils_V1_2$df_2_string <- function(df) {
   stopifnot(
-    "Input to DF2String is not of type DataFrame" = is.data.frame(df)
+    "Input to env_utils_V1_2$df_2_string is not of type DataFrame" = is.data.frame(df)
   )
   resNames <- names(df)
   resNames <- paste(resNames, collapse = "\t")
@@ -46,7 +52,7 @@ DF2String <- function(df) {
   return(res)
 }
 
-createExcelFile <- function(l) {
+env_utils_V1_2$create_excel_file <- function(l) {
   if (length(l) == 0) {
     print_warn("Nothing to upload")
     return(NULL)
@@ -186,7 +192,7 @@ createExcelFile <- function(l) {
   return(fn)
 }
 
-createJSString <- function(l) {
+env_utils_V1_2$create_js_string <- function(l) {
   names_l <- names(l)
   jsString <- c()
   js_names <- c()
@@ -219,7 +225,7 @@ createJSString <- function(l) {
         js_names <- c(js_names, paste0(names_l[i], "_PlotNr", idx))
       }
       unlink(fn)
-      jsString <- c(jsString, DF2String(l[[i]]@df))
+      jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]@df))
       js_names <- c(js_names, names_l[i])
     } else if (inherits(l[[i]], "summaryModel")) {
       p <- l[[i]]@p@p
@@ -229,13 +235,13 @@ createJSString <- function(l) {
       unlink(fn)
       js_names <- c(js_names, paste0(names_l[i], " plot"))
 
-      jsString <- c(jsString, DF2String(l[[i]]@summary))
+      jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]@summary))
       js_names <- c(js_names, names_l[i])
 
-      jsString <- c(jsString, DF2String(l[[i]]@information_criterions))
+      jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]@information_criterions))
       js_names <- c(js_names, paste0(names_l[i], " Information criterions"))
     } else if (inherits(l[[i]], "data.frame")) {
-      jsString <- c(jsString, DF2String(l[[i]]))
+      jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]))
       js_names <- c(js_names, names_l[i])
     } else if (is.character(l[[i]])) {
       jsString <- c(jsString, l[[i]])
@@ -245,25 +251,25 @@ createJSString <- function(l) {
   return(list(jsString, js_names))
 }
 
-stackDF <- function(df, keepCol) {
+env_utils_V1_2$stack_df <- function(df, keepCol) {
   as.data.frame(pivot_longer(df,
     cols = -keepCol,
     names_to = "name", values_to = "value"
   ))
 }
 
-unstackDF <- function(df, name, value) {
+env_utils_V1_2$unstack_df <- function(df, name, value) {
   df <- pivot_wider(df, names_from = name, values_from = value)
   df <- map(df, simplify) %>%
     as.data.frame()
   as.data.frame(df)
 }
 
-correctName <- function(name, df) {
+env_utils_V1_2$correct_name <- function(name, df) {
   name %in% names(df)
 }
 
-changeCharInput <- function(chars) {
+env_utils_V1_2$change_char_input <- function(chars) {
   nams <- unlist(strsplit(chars, split = ","))
   for (i in 1:length(nams)) {
     nams[i] <- gsub(" ", "", nams[i])
@@ -271,11 +277,11 @@ changeCharInput <- function(chars) {
   nams
 }
 
-combine <- function(new, vec, df, first) {
+env_utils_V1_2$combine <- function(new, vec, df, first) {
   if (length(vec) == 0) {
     return(new)
   }
-  if (correctName(vec[length(vec)], df)) {
+  if (env_utils_V1_2$correct_name(vec[length(vec)], df)) {
     if (isTRUE(first)) {
       new <- df[, vec[length(vec)]]
       first <- FALSE
@@ -284,10 +290,10 @@ combine <- function(new, vec, df, first) {
     }
   }
   vec <- vec[-length(vec)]
-  combine(new, vec, df, first)
+  env_utils_V1_2$combine(new, vec, df, first)
 }
 
-splitData <- function(df, formula) {
+env_utils_V1_2$split_data <- function(df, formula) {
   df <- model.frame(formula, data = df)
   stopifnot(ncol(df) >= 2)
   res <- data.frame(
@@ -296,57 +302,7 @@ splitData <- function(df, formula) {
   res
 }
 
-get_elem <- function(df, ...) {
-  stopifnot("Expected dataframe or vector" = is.data.frame(df) || is.vector(df))
-  s <- substitute(list(...))
-  args <- as.list(s[-1])
-  l <- length(args)
-  if (l <= 0 || l > 2) {
-    stop("Wrong number of arguments")
-  }
-  if (is.data.frame(df) && l == 1) {
-    stop("To get one element from a dataframe two index arguments are required")
-  }
-  if (is.vector(df) && l != 1) {
-    stop("To get one element from a list one indec argument is required")
-  }
-  if (is.data.frame(df)) {
-    if (!is.numeric(args[[1]]) || !is.numeric(args[[2]])) {
-      stop("The index arguments have to be of type numeric")
-    }
-    res <- df[args[[1]], args[[2]]]
-    if (is.null(res)) stop("Cannot access the element")
-    return(res)
-  }
-  if (is.vector(df)) {
-    if (!is.numeric(args[[1]])) {
-      stop("The index arguments have to be of type numeric")
-    }
-    res <- df[args[[1]]]
-    if (is.na(res)) stop("Cannot access the element")
-    return(res)
-  }
-}
-
-get_cols <- function(df, ...) {
-  stopifnot("Expected dataframe" = is.data.frame(df))
-  s <- substitute(list(...))
-  args <- as.list(s[-1])
-  stopifnot("No columns are specified" = length(args) >= 1)
-  lapply(args, function(x) {
-    name <- deparse(x)
-    stopifnot("Column not found" = name %in% names(df))
-  })
-  args <- as.character(args)
-  df[, args]
-}
-
-get_rows <- function(df, expr) {
-  stopifnot("Expected dataframe" = is.data.frame(df))
-  subset(df, expr)
-}
-
-create_df_name <- function(current_df_name, column_names) {
+env_utils_V1_2$create_df_name <- function(current_df_name, column_names) {
   if (!(current_df_name %in% column_names)) {
     return(current_df_name)
   }
@@ -360,30 +316,14 @@ create_df_name <- function(current_df_name, column_names) {
   }
 }
 
-create_r_names <- function(df) {
+env_utils_V1_2$create_r_names <- function(df) {
   names <- sapply(names(df), make.names)
   names(df) <- names
   return(df)
 }
 
-as.char <- function(v) {
-  return(as.character(v))
-}
-
-as.int <- function(v) {
-  return(as.integer(v))
-}
-
-as.real <- function(v) {
-  return(as.numeric(v))
-}
-
-as.fact <- function(v) {
-  return(as.factor(v))
-}
-
 # Split groups
-split_groups <- function(df, cols, levels) {
+env_utils_V1_2$split_groups <- function(df, cols, levels) {
   df_res <- df
   for (i in seq_along(cols)) {
     levels_temp <- levels[levels %in% unique(df_res[, cols[i]])]
@@ -393,57 +333,8 @@ split_groups <- function(df, cols, levels) {
   return(df_res)
 }
 
-# check and print warnings
-print_warn <- function(message) {
-  showNotification(message, type = "warning")
-}
-
-# check and print error
-print_err <- function(message) {
-  showNotification(message, type = "error")
-}
-
-# check and print notifications
-print_req <- function(expr, message) {
-  if (!expr) {
-    showNotification(message, type = "message")
-  }
-  req(expr)
-}
-
-# print notification without check
-print_noti <- function(message) {
-  showNotification(message, type = "message")
-}
-
-# print success
-print_success <- function(message) {
-  showNotification(message)
-}
-
-# check formula and open modal window if no formula is set
-print_form <- function(formula) {
-  if (is.null(formula)) {
-    showNotification("You have to set a formula",
-      action = tags$div(
-        showModal(modalDialog(
-          title = "FormulaEditor",
-          FormulaEditorUI("FO"),
-          easyClose = TRUE,
-          size = "l",
-          footer = tagList(
-            modalButton("Close")
-          )
-        ))
-      ),
-      type = "message"
-    )
-  }
-  req(!is.null(formula))
-}
-
 # Check axis limits
-check_axis_limits <- function(col, min, max) {
+env_utils_V1_2$check_axis_limits <- function(col, min, max) { # TODO: is this still required?
   if (is.numeric(col)) {
     if (!is.numeric(min) || !is.numeric(max)) {
       stop("Found invalid axis limits")
@@ -470,86 +361,14 @@ check_axis_limits <- function(col, min, max) {
   }
 }
 
-# check that result is only of allowed type
-check_type_res <- function(res) {
-  allowed <- c("numeric", "factor", "integer", "logical", "character", "data.frame")
-  if (!(class(res) %in% allowed)) {
-    stop(paste0("Found result with unallowed type: ", class(res)))
-  }
-}
-
-# Check length of input code
-check_length_code <- function(code) {
-  if (nchar(code) > 4000) {
-    stop("The code is too long to be evaluated")
-  }
-}
-
-# Check that formula is of type response ~ predictor
-check_formula <- function(formula) {
-  if (!inherits(formula, "formula")) {
-    stop("Input must be a formula of the type response ~ predictor")
-  }
-  terms <- all.vars(formula)
-  if (length(terms) != 2) {
-    stop("Formula must have exactly two terms: response ~ predictor")
-  }
-  return(TRUE)
-}
-
-# Own stats functions handling NA
-# nocov start own stats handling NA
-Mean <- function(x) {
-  if (!is.numeric(x)) {
-    x <- as.numeric(x)
-  }
-  mean(x, na.rm = TRUE)
-}
-
-Median <- function(x) {
-  if (!is.numeric(x)) {
-    x <- as.numeric(x)
-  }
-  median(x, na.rm = TRUE)
-}
-
-SD <- function(x) {
-  if (!is.numeric(x)) {
-    x <- as.numeric(x)
-  }
-  sd(x, na.rm = TRUE)
-}
-
-Sum <- function(x) {
-  if (!is.numeric(x)) {
-    x <- as.numeric(x)
-  }
-  sum(x, na.rm = TRUE)
-}
-
-Min <- function(x) {
-  if (!is.numeric(x)) {
-    x <- as.numeric(x)
-  }
-  min(x, na.rm = TRUE)
-}
-
-Max <- function(x) {
-  if (!is.numeric(x)) {
-    x <- as.numeric(x)
-  }
-  max(x, na.rm = TRUE)
-}
-# nocov end own stats handling NA
-
 # Check filename
-extract_extension <- function(filename) {
+env_utils_V1_2$extract_extension <- function(filename) {
   ex <- strsplit(basename(filename), split = "\\.")[[1]]
   ex <- ex[[length(ex)]]
   return(ex)
 }
 
-is_valid_filename <- function(filename) {
+env_utils_V1_2$is_valid_filename <- function(filename) {
   try({
     if (!is.character(filename)) {
       return(FALSE)
@@ -575,7 +394,7 @@ is_valid_filename <- function(filename) {
   })
 }
 
-why_filename_invalid <- function(filename) {
+env_utils_V1_2$why_filename_invalid <- function(filename) {
   try({
     if (!is.character(filename)) {
       return("Filename has to consist of characters")
@@ -601,20 +420,20 @@ why_filename_invalid <- function(filename) {
   })
 }
 
-check_filename_for_server <- function(filename) {
+env_utils_V1_2$check_filename_for_server <- function(filename) {
   ex <- strsplit(basename(filename), split = "\\.")[[1]]
   ex <- ex[[length(ex)]]
   ex == "xlsx"
 }
 
-check_filename_for_serverless <- function(filename) {
-  ex <- extract_extension(filename)
+env_utils_V1_2$check_filename_for_serverless <- function(filename) {
+  ex <- env_utils_V1_2$extract_extension(filename)
   ex <- ex[[length(ex)]]
   ex == "zip"
 }
 
 # Split list of plots into panels of 9 plots
-create_plot_pages <- function(plotList) {
+env_utils_V1_2$create_plot_pages <- function(plotList) { # TODO: probably not needed anymore. Remove!
   if (length(plotList) == 0) {
     plotList <- list(ggplot2::ggplot() +
       ggplot2::geom_point())
@@ -642,7 +461,7 @@ create_plot_pages <- function(plotList) {
 
 # check result list size (rls)
 # Here also the length is checked
-check_rls <- function(ResultsState, newObj) {
+env_utils_V1_2$check_rls <- function(ResultsState, newObj) {
   if (length(ResultsState) > 1000) {
     stop("You can only store 1000 results. Consider removing some results")
   }
@@ -654,7 +473,7 @@ check_rls <- function(ResultsState, newObj) {
 }
 
 # internal dataframe function
-elongate_col <- function(col, l) {
+env_utils_V1_2$elongate_col <- function(col, l) {
   times <- l / length(col)
   if (floor(times) == times) {
     return(rep(col, times))
@@ -665,219 +484,3 @@ elongate_col <- function(col, l) {
     return(res)
   }
 }
-
-# TODO: for a later update keep the type of the original cols
-DataFrame <- function(...) {
-  columns <- list(...)
-  s <- substitute(list(...))
-  args <- as.list(s[-1])
-  args <- lapply(args, function(x) {
-    make.names(deparse(x))
-  })
-  sapply(columns, function(x) {
-    if (length(x) == 0) stop("Found empty column")
-  })
-  rows <- max(sapply(columns, length))
-  total_bytes <- sum(sapply(columns, function(col) {
-    type <- typeof(col)
-    element_size <- if (type %in% c("double", "integer", "numeric")) 8 else nchar(type) # Approximate for other types
-    rows * element_size
-  }))
-  if (total_bytes > 10^8) {
-    stop("The total size of the data frame is too large")
-  }
-  columns <- lapply(columns, function(col) {
-    elongate_col(col, rows)
-  })
-  df <- do.call(cbind, columns) |> as.data.frame()
-  names(df) <- args
-  return(df)
-}
-
-Seq <- function(...) {
-  args <- list(...)
-  start <- args[[1]]
-  end <- args[[2]]
-  by <- args[[3]]
-  number_of_elems <- floor(abs(end - start) / by) + 1
-  n_bytes <- number_of_elems * 8 # Assume that each element is a double
-  if (n_bytes > 10^8) {
-    stop("The size of the sequence is too large")
-  }
-  return(seq(start, end, by))
-}
-
-# nocov start own helper
-C <- function(...) {
-  c(...)
-}
-Dnorm <- function(...) {
-  dnorm(...)
-}
-Pnorm <- function(...) {
-  pnorm(...)
-}
-Qnorm <- function(...) {
-  qnorm(...)
-}
-# nocov end own helper
-
-Rnorm <- function(...) {
-  args <- list(...)
-  n <- args[[1]]
-  if (length(n) > 1) stop("Length of size input to Rnorm > 1")
-  if (!is.numeric(n) && !is.integer(n)) {
-    n <- length(n)
-  }
-  if (is.numeric(n) && floor(n) != n) {
-    n <- floor(n)
-  }
-  n_bytes <- n * 8
-  if (n_bytes > 10^8) {
-    stop("The size of the sequence is too large")
-  }
-  rnorm(...)
-}
-
-# nocov start own helper
-Dbinom <- function(...) {
-  dbinom(...)
-}
-Pbinom <- function(...) {
-  pbinom(...)
-}
-Qbinom <- function(...) {
-  qbinom(...)
-}
-# nocov end own helper
-
-Rbinom <- function(...) {
-  args <- list(...)
-  n <- args[[1]]
-  if (length(n) > 1) stop("Length of size input to Rbinom > 1")
-  if (!is.numeric(n) && !is.integer(n)) {
-    n <- length(n)
-  }
-  if (is.numeric(n) && floor(n) != n) {
-    n <- floor(n)
-  }
-  n_bytes <- n * 8
-  if (n_bytes > 10^8) {
-    stop("The size of the sequence is too large")
-  }
-  rbinom(...)
-}
-
-# nocov start own helper
-Dpois <- function(...) {
-  dpois(...)
-}
-Ppois <- function(...) {
-  ppois(...)
-}
-# nocov end own helper
-
-Rpois <- function(...) {
-  args <- list(...)
-  n <- args[[1]]
-  if (length(n) > 1) stop("Length of size input to Rpois > 1")
-  if (!is.numeric(n) && !is.integer(n)) {
-    n <- length(n)
-  }
-  if (is.numeric(n) && floor(n) != n) {
-    n <- floor(n)
-  }
-  n_bytes <- n * 8
-  if (n_bytes > 10^8) {
-    stop("The size of the sequence is too large")
-  }
-  rpois(...)
-}
-
-# nocov start own helper
-Dunif <- function(...) {
-  dunif(...)
-}
-Punif <- function(...) {
-  punif(...)
-}
-Qunif <- function(...) {
-  qunif(...)
-}
-# nocov end own helper
-
-Runif <- function(...) {
-  args <- list(...)
-  n <- args[[1]]
-  if (length(n) > 1) stop("Length of size input to Runif > 1")
-  if (!is.numeric(n) && !is.integer(n)) {
-    n <- length(n)
-  }
-  if (is.numeric(n) && floor(n) != n) {
-    n <- floor(n)
-  }
-  n_bytes <- n * 8
-  if (n_bytes > 10^8) {
-    stop("The size of the sequence is too large")
-  }
-  runif(...)
-}
-
-# nocov start own helper
-create_run_env <- function() {
-  env <- new.env(parent = baseenv())
-  env$get_elem <- get_elem
-  env$get_rows <- get_rows
-  env$get_cols <- get_cols
-  env$Mean <- Mean
-  env$SD <- SD
-  env$Median <- Median
-  env$Sum <- Sum
-  env$Min <- Min
-  env$Max <- Max
-  env$C <- C
-  env$Seq <- Seq
-  env$DataFrame <- DataFrame
-  env$as.char <- as.char
-  env$as.int <- as.int
-  env$as.real <- as.numeric
-  env$as.fact <- as.fact
-  env$Dnorm <- Dnorm
-  env$Pnorm <- Pnorm
-  env$Qnorm <- Qnorm
-  env$Rnorm <- Rnorm
-  env$Dbinom <- Dbinom
-  env$Pbinom <- Pbinom
-  env$Qbinom <- Qbinom
-  env$Rbinom <- Rbinom
-  env$Dpois <- Dpois
-  env$Ppois <- Ppois
-  env$Rpois <- Rpois
-  env$Dunif <- Dunif
-  env$Punif <- Punif
-  env$Qunif <- Qunif
-  env$Runif <- Runif
-  env
-}
-
-render_df <- function(df, n_fixed_cols = 1) {
-  small <- nrow(df) <= 20 && ncol(df) <= 8
-  if (small) {
-    renderDT(df)
-  } else {
-    renderDT(
-      df,
-      extensions = c("Buttons", "FixedColumns", "Scroller"),
-      options = list(
-        dom = "Bfrtip",
-        scrollX = TRUE,
-        # scroller = TRUE,
-        paging = TRUE,
-        fixedColumns = list(leftColumns = n_fixed_cols)
-      ),
-      class = "compact stripe nowrap"
-    )
-  }
-
-}
-# nocov end own helper

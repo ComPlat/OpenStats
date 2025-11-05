@@ -30,5 +30,5 @@ test_rendering_formula_editor <- function(app, srv) {
     checks <<- c(checks, grepl('id="FO-colnames_conc_"', html))
     checks <<- c(checks, grepl('id="FO-colnames_uptake_"', html))
   })
-  tinytest::expect_true(all(checks))
+   expect_true(all(checks))
 }

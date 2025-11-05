@@ -12,13 +12,13 @@ response <- true_a * conc / (true_b + conc) + rnorm(length(conc), sd = 0.2)
 df <- data.frame(conc = conc, response = response)
 write.csv(df, "./test_data/calibration.csv", quote = FALSE, row.names = FALSE)
 formula <- response ~ a * conc / (b + conc)
-formula_optim <- create_formula_optim(formula, df, 0, 100, 1234)
-res <- optimize(formula_optim, df)
+formula_optim <- env_optim_V1_2$create_formula_optim(formula, df, 0, 100, 1234)
+res <- env_optim_V1_2$optimize(formula_optim, df)
 res@parameter
-p <- plot_model_optim(formula_optim, res)
+p <- env_optim_V1_2$plot_model_optim(formula_optim, res)
 p
-assumptions_optim(res)
+env_optim_V1_2$assumptions_optim(res)
 
 
-summary_model_optim(formula_optim, res)
-information_criterion_optim(res)
+env_optim_V1_2$summary_model_optim(formula_optim, res)
+env_optim_V1_2$information_criterion_optim(res)

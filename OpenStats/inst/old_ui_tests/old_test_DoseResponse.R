@@ -40,7 +40,7 @@ res <- res[["FO-result_list"]]
 res_df <- res[[length(res)]]@df
 
 data <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats"))
-expected <- OpenStats:::ic50(
+expected <- OpenStats:::env_lc_V1_2$ic50(
   data, "abs", "conc",
   "names",
   FALSE, FALSE

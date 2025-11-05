@@ -21,9 +21,9 @@ run_posthoc_glm <- function(method) {
   link_fct <- "inverse"
   family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
   formula <- uptake ~ conc * Treatment + Type
-  f_split <- OpenStats:::split_formula(formula)
-  rhs_vars <- OpenStats:::vars_rhs(f_split$right_site)
-  df_temp <- OpenStats:::num_to_factor(CO2, rhs_vars)
+  f_split <- OpenStats:::env_utils_V1_2$split_formula(formula)
+  rhs_vars <- OpenStats:::env_utils_V1_2$vars_rhs(f_split$right_site)
+  df_temp <- OpenStats:::env_utils_V1_2$num_to_factor(CO2, rhs_vars)
   if (any(apply(CO2, 2, is.numeric))) {
     warning(paste0("Found numeric predictors and converted them to factors"))
   }
@@ -94,7 +94,7 @@ for (choice in choices) {
       got <<- session$userData$export[[ResultsState$counter]]
       attr(got, "rendered") <<- NULL
     })
-    print(tinytest::expect_equal(expected, got))
+    expect_equal(expected, got)
   }
   run_test(test_glm_stats_tests)
 }

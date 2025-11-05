@@ -1,4 +1,6 @@
-allowed_fcts <- function() {
+env_check_ast_V1_2 <- new.env(parent = getNamespace("OpenStats"))
+
+env_check_ast_V1_2$allowed_fcts <- function() {
   c(
     "-", "+", "*", "/", "(",
     "log", "log10", "sqrt", "exp", "^",
@@ -18,7 +20,7 @@ allowed_fcts <- function() {
   )
 }
 
-check_ast <- function(inp, allowed_variables) {
+env_check_ast_V1_2$check_ast <- function(inp, allowed_variables) {
   if (!is.call(inp)) {
     return(inp)
   }
@@ -26,18 +28,18 @@ check_ast <- function(inp, allowed_variables) {
   # check fct
   fct <- inp[[1]]
   check <- deparse(fct)
-  if ((check %in% allowed_fcts()) == FALSE) {
+  if ((check %in% env_check_ast_V1_2$allowed_fcts()) == FALSE) {
     stop(paste("Found unallowed function: ", check))
   }
   # check variables
   lapply(inp, function(x) {
-    if (!is.list(x) && is.symbol(x) && !(deparse(x) %in% allowed_fcts())) {
+    if (!is.list(x) && is.symbol(x) && !(deparse(x) %in% env_check_ast_V1_2$allowed_fcts())) {
       if (!(deparse(x) %in% allowed_variables)) {
         stop(paste0("Found unknown variable:", deparse(x)))
       }
     }
   })
   lapply(inp, function(x) {
-    check_ast(x, allowed_variables)
+    env_check_ast_V1_2$check_ast(x, allowed_variables)
   })
 }

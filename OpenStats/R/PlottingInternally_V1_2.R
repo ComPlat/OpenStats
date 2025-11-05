@@ -1,4 +1,6 @@
-addFacet <- function(p, facetVar, facetMode, facetScales) {
+env_plotting_V1_2 <- new.env(parent = getNamespace("OpenStats"))
+
+env_plotting_V1_2$add_facet <- function(p, facetVar, facetMode, facetScales) {
   if (facetMode == "facet_wrap") {
     return(p + facet_wrap(. ~ .data[[facetVar]], scales = facetScales))
   } else if (facetMode == "facet_grid") {
@@ -6,7 +8,7 @@ addFacet <- function(p, facetVar, facetMode, facetScales) {
   }
 }
 
-addInterval <- function(p, df, xCol, yCol, xMin, xMax, yMin, yMax) {
+env_plotting_V1_2$add_interval <- function(p, df, xCol, yCol, xMin, xMax, yMin, yMax) {
   x <- df[ , xCol]
   y <- df[ , yCol]
   if (is.numeric(x)) {
@@ -28,7 +30,7 @@ addInterval <- function(p, df, xCol, yCol, xMin, xMax, yMin, yMax) {
   return(p)
 }
 
-BoxplotFct <- function(df, x, y, xLabel, yLabel,
+env_plotting_V1_2$boxplot_fct <- function(df, x, y, xLabel, yLabel,
                        fillVar, legendTitleFill, fillTheme,
                        colourVar, legendTitleColour,
                        colourTheme, facetMode, facetVar, facetScales,
@@ -72,14 +74,14 @@ BoxplotFct <- function(df, x, y, xLabel, yLabel,
   p <- p + scale_fill_brewer(palette = fillTheme)
   p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
-    p <- addFacet(p, facetVar, facetMode, facetScales)
+    p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   } else {
-    p <- addInterval(p, df, x, y, xMin, xMax, yMin, yMax)
+    p <- env_plotting_V1_2$add_interval(p, df, x, y, xMin, xMax, yMin, yMax)
   }
   return(p + theme(text = element_text(size = 20)))
 }
 
-DotplotFct <- function(df, x, y, xLabel, yLabel,
+env_plotting_V1_2$dotplot_fct <- function(df, x, y, xLabel, yLabel,
                         colourVar, legendTitleColour,
                         colourTheme, facetMode, facetVar, facetScales,
                         xMin, xMax, yMin, yMax) {
@@ -110,14 +112,14 @@ DotplotFct <- function(df, x, y, xLabel, yLabel,
   p <- p + guides(colour = guide_legend(title = legendTitleColour))
   p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
-    p <- addFacet(p, facetVar, facetMode, facetScales)
+    p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   } else {
-    p <- addInterval(p, df, x, y, xMin, xMax, yMin, yMax)
+    p <- env_plotting_V1_2$add_interval(p, df, x, y, xMin, xMax, yMin, yMax)
   }
   return(p + theme(text = element_text(size = 20)))
 }
 
-LineplotFct <- function(df, x, y, xLabel, yLabel,
+env_plotting_V1_2$lineplot_fct <- function(df, x, y, xLabel, yLabel,
                         colourVar, legendTitleColour,
                         colourTheme, facetMode, facetVar, facetScales,
                         xMin, xMax, yMin, yMax) {
@@ -148,9 +150,9 @@ LineplotFct <- function(df, x, y, xLabel, yLabel,
   p <- p + guides(colour = guide_legend(title = legendTitleColour))
   p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
-    p <- addFacet(p, facetVar, facetMode, facetScales)
+    p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   } else {
-    p <- addInterval(p, df, x, y, xMin, xMax, yMin, yMax)
+    p <- env_plotting_V1_2$add_interval(p, df, x, y, xMin, xMax, yMin, yMax)
   }
   return(p + theme(text = element_text(size = 20)))
 }
