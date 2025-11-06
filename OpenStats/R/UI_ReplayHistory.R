@@ -1,3 +1,4 @@
+#
 # nocov start ui-scaffold
 HistorySidebarUI <- function(id) {
   ui <-tabPanel(
