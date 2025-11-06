@@ -1,4 +1,3 @@
-# nocov start ui-scaffold
 testsSidebarUI <- function(id) {
   tabPanel(
     "Tests",
@@ -8,6 +7,7 @@ testsSidebarUI <- function(id) {
   )
 }
 
+# nocov start ui-scaffold
 testsUI <- function(id) {
   fluidRow(
     uiOutput(NS(id, "tabs"))

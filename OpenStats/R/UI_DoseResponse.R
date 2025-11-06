@@ -1,4 +1,3 @@
-# nocov start ui-scaffold
 DoseResponseSidebarUI <- function(id) {
   tabPanel(
     "Dose Response analysis",
@@ -7,6 +6,7 @@ DoseResponseSidebarUI <- function(id) {
   )
 }
 
+# nocov start ui-scaffold
 DoseResponseUI <- function(id) {
   fluidRow()
 }

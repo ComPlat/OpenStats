@@ -1,5 +1,3 @@
-#
-# nocov start ui-scaffold
 HistorySidebarUI <- function(id) {
   ui <-tabPanel(
     "History",
@@ -11,6 +9,7 @@ HistorySidebarUI <- function(id) {
   )
 }
 
+# nocov start ui-scaffold
 HistoryEditorUI <- function(id) {
   ui <- fluidPage(
     div(

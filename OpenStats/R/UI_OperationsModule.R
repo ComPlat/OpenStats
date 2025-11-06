@@ -1,4 +1,3 @@
-# nocov start ui-scaffold
 OperatorEditorSidebar <- function(id) {
   ui <- fluidPage(
     div(
@@ -173,4 +172,3 @@ OperatorEditorUI <- function(id) {
     uiOutput(NS(id, "intermediate_results"))
   )
 }
-# nocov end ui-scaffold

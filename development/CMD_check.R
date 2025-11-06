@@ -9,23 +9,36 @@ tinytest::run_test_file("OpenStats/inst/tinytest/test_Operations.R")
 cov <- covr::package_coverage(
   type = "none", code = 'tinytest::test_package("OpenStats")')
 
+# cov <- covr::package_coverage(
+#   path         = ".",
+#   type         = "none",
+#   code         = 'tinytest::run_test_file("./inst/tinytest/test_TestHistory.R")',
+#   quiet        = TRUE,
+#   clean        = FALSE,
+#   pre_clean    = FALSE,
+#   use_load_all = TRUE
+# )
+
 cov
 Sys.unsetenv("R_COVR")
 
-# OpenStats Coverage: 76.73%
-# R/ReplayHistory.R: 27.27%
-# R/StatisticalTests.R: 42.51%
-# R/FormulaModule.R: 46.17%
-# R/MainApp.R: 47.32%
-# R/SplitByGroup.R: 57.75%
-# R/CheckFunctions.R: 74.51%
-# R/Visualisation.R: 74.81%
-# R/Engine_V1_2.R: 82.28%
-# R/LC50_V1_2.r: 90.34%
-# R/History_V1_2.R: 92.79%
-# R/OperationsModule.R: 94.40%
-# R/Assumption.R: 94.63%
-# R/Correlation.R: 97.01%
-# R/Optimizing_V1_2.R: 97.90%
-# R/Import.R: 98.78%
-# R/DoseResponse.R: 100.00%
+# OpenStats Coverage: 76.43%
+# R/Server_MainApp.R: 47.32%
+# R/Server_FormulaModule.R: 49.89%
+# R/Server_SplitByGroup.R: 57.75%
+# R/Server_Visualization.R: 65.49%
+# R/Server_CheckFunctions.R: 74.51%
+# R/Server_ReplayHistory.R: 81.82%
+# R/Backend_V1_2_Engine.R: 82.28%
+# R/Server_StatisticalTests.R: 84.81%
+# R/Server_OperationsModule.R: 92.64%
+# R/Backend_V1_2_History.R: 92.79%
+# R/Server_Assumption.R: 94.16%
+# R/Server_Correlation.R: 96.77%
+# R/Backend_V1_2_LC50.R: 100.00%
+# R/Server_DoseResponse.R: 100.00%
+# R/UI_Assumption.R: 100.00%
+# R/UI_DoseResponse.R: 100.00%
+# R/UI_OperationsModule.R: 100.00%
+# R/UI_ReplayHistory.R: 100.00%
+# R/UI_StatisticalTests.R: 100.00%

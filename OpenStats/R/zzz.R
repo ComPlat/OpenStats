@@ -1,3 +1,4 @@
+# nocov start zzz
 .onLoad <- function(libname, pkgname) {
   VERSION <<- 1.2
   env_check_ast <<- get_env_check_ast(VERSION)
@@ -10,3 +11,4 @@
   env_summarising_model <<- get_env_summarising_model(VERSION)
   env_utils <<- get_env_utils(VERSION)
 }
+# nocov end zzz

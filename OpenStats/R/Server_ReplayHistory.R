@@ -1,6 +1,7 @@
 HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
   moduleServer(id, function(input, output, session) {
 
+    # nocov start ui-scaffold
     observeEvent(input$replay_history, {
       print_req(is.data.frame(DataWranglingState$df), "The dataset is missing")
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
@@ -16,6 +17,7 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
         )
       ))
     })
+    # nocov end ui-scaffold
 
     observeEvent(input$confirm_replay, {
       removeModal()

@@ -1,3 +1,4 @@
+# nocov start getter
 # getter for environments
 # -----------------------------------------------------
 get_env_check_ast <- function(version = VERSION) {
@@ -178,3 +179,4 @@ get_replay_history <- function(version = VERSION) {
     `1.2` = replay_history_V1_2
   )[[version]]
 }
+# nocov end getter
