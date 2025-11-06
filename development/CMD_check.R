@@ -22,6 +22,7 @@ cov <- covr::package_coverage(
 cov
 Sys.unsetenv("R_COVR")
 
+#
 # OpenStats Coverage: 76.43%
 # R/Server_MainApp.R: 47.32%
 # R/Server_FormulaModule.R: 49.89%
