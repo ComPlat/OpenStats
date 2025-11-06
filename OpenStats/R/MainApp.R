@@ -135,7 +135,7 @@ app <- function() {
     # States
     # ----------------------------------------------------------
     # Create background process instance
-    bgp <- bg_process_V1_2$new()
+    bgp <- get_bg_process()$new()
 
     # States
     DataModelState <- reactiveValues(
@@ -308,7 +308,7 @@ app <- function() {
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
       req(input[["tables-dropdown"]])
-      sat <- set_active_table_V1_2$new(input[["tables-dropdown"]])
+      sat <- get_set_active_table()$new(input[["tables-dropdown"]])
       sat$eval(ResultsState, DataModelState)
     })
 
@@ -463,7 +463,7 @@ app <- function() {
         observeEvent(input[[paste0("remove_res_", name)]],
           {
             e <- try({
-              rr <- remove_result_V1_2$new(name)
+              rr <- get_remove_results()$new(name)
               rr$eval(ResultsState)
             })
             if (inherits(e, "try-error")) {
@@ -629,7 +629,7 @@ app <- function() {
         )
       } else {
         return(
-          actionButton("remove_filter_V1_2",
+          actionButton("remove_filter",
             "Remove the filter from the dataset",
             title = "remove the filter of the dataset",
             disabled = is.null(DataModelState$backup_df) || !is.data.frame(DataModelState$backup_df)
@@ -662,9 +662,9 @@ app <- function() {
       })
     })
     # Remove filter
-    observeEvent(input[["remove_filter_V1_2"]], {
+    observeEvent(input[["remove_filter"]], {
       e <- try({
-        rf <- remove_filter_V1_2$new()
+        rf <- get_remove_filter()$new()
         rf$validate()
         rf$eval(ResultsState, DataModelState)
       })
@@ -677,14 +677,14 @@ app <- function() {
     # Download
     # ----------------------------------------------------------
     observeEvent(input$download, {
-      if (!env_utils_V1_2$is_valid_filename(input$user_filename)) {
+      if (!env_utils$is_valid_filename(input$user_filename)) {
         runjs("document.getElementById('user_filename').focus();")
         print_noti(
-          env_utils_V1_2$why_filename_invalid(input$user_filename)
+          env_utils$why_filename_invalid(input$user_filename)
         )
       }
       print_req(
-        env_utils_V1_2$is_valid_filename(input$user_filename),
+        env_utils$is_valid_filename(input$user_filename),
         "Defined filename is not valid"
       )
       print_req(length(ResultsState$all_data) > 0, "No results to save")
@@ -696,10 +696,10 @@ app <- function() {
       l <- c(l, "HistoryJSON" = history_json)
       if (Sys.getenv("RUN_MODE") == "SERVER") {
         print_req(
-          env_utils_V1_2$check_filename_for_server(input$user_filename),
+          env_utils$check_filename_for_server(input$user_filename),
           "Defined filename does not have xlsx as extension"
         )
-        excelFile <- env_utils_V1_2$create_excel_file(l)
+        excelFile <- env_utils$create_excel_file(l)
         if (!requireNamespace("COMELN", quietly = TRUE)) {
           shiny::validate(shiny::need(FALSE,
             paste(
@@ -714,12 +714,12 @@ app <- function() {
         uploader(session, excelFile, new_name = input$user_filename)
       } else if (Sys.getenv("RUN_MODE") == "LOCAL") {
         print_req(
-          env_utils_V1_2$check_filename_for_server(input$user_filename) || env_utils_V1_2$check_filename_for_serverless(input$user_filename),
+          env_utils$check_filename_for_server(input$user_filename) || env_utils$check_filename_for_serverless(input$user_filename),
           "Defined filename does not have xlsx or zip as extension"
         )
-        ex <- env_utils_V1_2$extract_extension(input$user_filename)
+        ex <- env_utils$extract_extension(input$user_filename)
         if (ex == "xlsx") {
-          excelFile <- env_utils_V1_2$create_excel_file(l)
+          excelFile <- env_utils$create_excel_file(l)
           file_content <- readBin(excelFile, "raw", file.info(excelFile)$size)
           file_content_base64 <- jsonlite::base64_enc(file_content)
           session$sendCustomMessage(
@@ -731,7 +731,7 @@ app <- function() {
           )
           unlink(excelFile)
         } else {
-          string_and_names <- env_utils_V1_2$create_js_string(l)
+          string_and_names <- env_utils$create_js_string(l)
           session$sendCustomMessage(
             type = "downloadZip",
             list(
@@ -744,10 +744,10 @@ app <- function() {
         }
       } else {
         print_req(
-          env_utils_V1_2$check_filename_for_serverless(input$user_filename),
+          env_utils$check_filename_for_serverless(input$user_filename),
           "Defined filename does not have zip as extension"
         )
-        string_and_names <- env_utils_V1_2$create_js_string(l)
+        string_and_names <- env_utils$create_js_string(l)
         session$sendCustomMessage(
           type = "downloadZip",
           list(
