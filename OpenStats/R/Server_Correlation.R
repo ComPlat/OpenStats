@@ -1,14 +1,3 @@
-corrSidebarUI <- function(id) {
-  tabPanel(
-    "Correlation",
-    uiOutput(NS(id, "CorrelationUI"))
-  )
-}
-
-corrUI <- function(id) {
-  fluidRow()
-}
-
 corrServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
@@ -50,7 +39,7 @@ corrServer <- function(id, DataModelState, ResultsState) {
     corr_fct <- function(method) {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       print_form(DataModelState$formula)
-      corr <- correlation_V1_2$new(DataModelState$df, DataModelState$formula,
+      corr <- get_correlation()$new(DataModelState$df, DataModelState$formula,
         method, input$alt, input$conflevel)
       tryCatch(
         {

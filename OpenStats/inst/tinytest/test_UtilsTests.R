@@ -1016,7 +1016,7 @@ test_df_2_string <- function() {
 }
 test_df_2_string()
 
-# Test readData
+# Test env_import_V1_2$read_data
 # =======================================================================================
 # TODO: update test
 test_readData <- function() {
@@ -1028,7 +1028,7 @@ test_readData <- function() {
   test_file <- tempfile(fileext = ".xlsx")
   write.csv(data.frame(a = 1:5, b = letters[1:5]), test_file, row.names = FALSE)
   writexl::write_xlsx(read.csv(test_file), test_file)
-  OpenStats:::readData(test_file, DataModelState, ResultsState)
+  OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
   expect_equal(class(DataModelState$df), "data.frame")
   expect_equal(nrow(DataModelState$df), 5)
   expect_equal(ncol(DataModelState$df), 2)
@@ -1039,7 +1039,7 @@ test_readData <- function() {
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
   test_file <- tempfile(fileext = ".csv")
   write.csv(data.frame(a = 1:5, b = letters[1:5]), test_file, row.names = FALSE)
-  OpenStats:::readData(test_file, DataModelState, ResultsState)
+  OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
   expect_equal(class(DataModelState$df), "data.frame")
   expect_equal(nrow(DataModelState$df), 5)
   expect_equal(ncol(DataModelState$df), 2)
@@ -1047,13 +1047,13 @@ test_readData <- function() {
   # Test 3: File exceeds size limit
   test_file <- tempfile()
   write.csv(data.frame(a = 1:(50 * 1024^2 / 2)), test_file, row.names = FALSE)
-  expect_error(OpenStats:::readData(test_file), "File size exceeds the 50 MB limit.")
+  expect_error(OpenStats:::env_import_V1_2$read_data(test_file), "File size exceeds the 50 MB limit.")
 
   # Test 4: File with unknown separator
   test_file <- tempfile()
   writeLines("a|b|c\n1|2|3", test_file)
   expect_error(
-    OpenStats:::readData(test_file),
+    OpenStats:::env_import_V1_2$read_data(test_file),
     "Could not identify the separator. Please upload a file with a known separator."
   )
 
@@ -1063,7 +1063,7 @@ test_readData <- function() {
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
   test_file <- tempfile()
   writeLines("a;b;c\n1;2;3", test_file)
-  result <- OpenStats:::readData(test_file, DataModelState, ResultsState)
+  result <- OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
   expect_equal(class(DataModelState$df), "data.frame")
   expect_equal(nrow(DataModelState$df), 2)
   expect_equal(ncol(DataModelState$df), 3)
@@ -1074,31 +1074,31 @@ test_readData <- function() {
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
   test_file <- tempfile()
   writeLines("a\tb\tc\n1\t2\t3", test_file)
-  result <- OpenStats:::readData(test_file, DataModelState, ResultsState)
+  result <- OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
   expect_equal(class(DataModelState$df), "data.frame")
   expect_equal(nrow(DataModelState$df), 2)
   expect_equal(ncol(DataModelState$df), 3)
 
   # Test 7: File with invalid path
-  expect_error(OpenStats:::readData("nonexistent_file.csv"), "File does not exists")
+  expect_error(OpenStats:::env_import_V1_2$read_data("nonexistent_file.csv"), "File does not exists")
 
   # Test 8: Data exceeds row or column limits
   test_file <- tempfile(fileext = ".csv")
   write.csv(data.frame(matrix(1, nrow = 1e6 + 1, ncol = 2)), test_file, row.names = FALSE)
-  expect_error(OpenStats:::readData(test_file, DataModelState, ResultsState), "Data exceeds the limit of")
+  expect_error(OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState), "Data exceeds the limit of")
 
   write.csv(data.frame(matrix(1, nrow = 10, ncol = 1001)), test_file, row.names = FALSE)
-  expect_error(OpenStats:::readData(test_file, DataModelState, ResultsState), "Data exceeds the limit of")
+  expect_error(OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState), "Data exceeds the limit of")
 
   # Test 9: Empty file
   test_file <- tempfile(fileext = ".csv")
   write.csv(data.frame(), test_file, row.names = FALSE)
   expect_error(
-    OpenStats:::readData(test_file, DataModelState, ResultsState),
+    OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState),
     "Could not identify the separator. Please upload a file with a known separator."
   )
 
   # Test 10: Non-character input for path
-  expect_error(OpenStats:::readData(123), "is.character")
+  expect_error(OpenStats:::env_import_V1_2$read_data(123), "is.character")
 }
 test_readData()

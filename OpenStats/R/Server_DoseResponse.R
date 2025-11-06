@@ -1,15 +1,3 @@
-DoseResponseSidebarUI <- function(id) {
-  tabPanel(
-    "Dose Response analysis",
-    uiOutput(NS(id, "substanceNamesUI")),
-    uiOutput(NS(id, "DoseResponseUI"))
-  )
-}
-
-DoseResponseUI <- function(id) {
-  fluidRow()
-}
-
 DoseResponseServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
@@ -68,7 +56,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
     }
 
     run_dr <- function(df, new_name) {
-      dr <- dose_response_V1_2$new(
+      dr <- get_dose_response()$new(
         df, input$xTransform, input$yTransform,
         input$substanceNames, DataModelState$formula
       )

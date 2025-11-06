@@ -1,10 +1,10 @@
-trim_outer_quotes <- function(v) {
+env_import_V1_2$trim_outer_quotes <- function(v) {
   sapply(v, function(x) {
     if (x == "") return("")
     sub('^"(.*)"$', '\\1', x)
   })
 }
-cast_types_cols <- function(df, excel = FALSE) {
+env_import_V1_2$cast_types_cols <- function(df, excel = FALSE) {
   f <- function(x) {
     options(warn = -1)
     x <- as.numeric(x)
@@ -17,18 +17,18 @@ cast_types_cols <- function(df, excel = FALSE) {
     if (a) {
       return(as.numeric(b))
     }
-    if (!excel) b <- trim_outer_quotes(b)
+    if (!excel) b <- env_import_V1_2$trim_outer_quotes(b)
     return(as.factor(b))
   }
   df <- Map(conv, check, df)
   data.frame(df)
 }
 
-is_separator <- function(c) {
+env_import_V1_2$is_separator <- function(c) {
   all(is.na(c))
 }
 
-scan_rows_or_cols <- function(df, rows = TRUE) {
+env_import_V1_2$scan_rows_or_cols <- function(df, rows = TRUE) {
   dim_fct <- nrow
   if (!rows) dim_fct <- ncol
 
@@ -42,7 +42,7 @@ scan_rows_or_cols <- function(df, rows = TRUE) {
   find_start <- function(df, offset) {
     indices <- offset:dim_fct(df)
     for (i in seq_along(indices)) {
-      if (!is_separator(getter(df, indices[i]))) return(indices[i])
+      if (!env_import_V1_2$is_separator(getter(df, indices[i]))) return(indices[i])
     }
     stop("Did not found any start col")
   }
@@ -51,7 +51,7 @@ scan_rows_or_cols <- function(df, rows = TRUE) {
     end <- start
     indices <- start:dim_fct(df)
     for (i in seq_along(indices)) {
-      if (!is_separator(getter(df, indices[i]))) {
+      if (!env_import_V1_2$is_separator(getter(df, indices[i]))) {
         end <- end + 1
       } else {
         break
@@ -75,51 +75,51 @@ scan_rows_or_cols <- function(df, rows = TRUE) {
   find_indices(df)
 }
 
-find_sub_tables <- function(rows, cols, df) {
+env_import_V1_2$find_sub_tables <- function(rows, cols, df) {
   if (length(cols) > 1) return(TRUE)
   if (length(rows) > 1) return(TRUE)
   dims <- c(rows[[1]]$end, cols[[1]]$end)
   !all(dims == dim(df))
 }
 
-extract_tables <- function(env_tables, df, excel = FALSE) {
-  cols <- scan_rows_or_cols(df, FALSE)
+env_import_V1_2$extract_tables <- function(env_tables, df, excel = FALSE) {
+  cols <- env_import_V1_2$scan_rows_or_cols(df, FALSE)
   tables <- list()
   for (cs in seq_along(cols)) {
     temp <- df[, cols[[cs]]$start:cols[[cs]]$end]
-    rows <- scan_rows_or_cols(temp, TRUE)
+    rows <- env_import_V1_2$scan_rows_or_cols(temp, TRUE)
     tables <- c(tables, lapply(rows, function(rs) {
       temp[rs$start:rs$end, ]
     }))
   }
-  if (!find_sub_tables(rows, cols, df)) {
+  if (!env_import_V1_2$find_sub_tables(rows, cols, df)) {
     env_tables$tables <- c(env_tables$tables, tables)
     return()
   }
   tables <- lapply(tables, \(x) {
-    extract_tables(env_tables, x, excel)
+    env_import_V1_2$extract_tables(env_tables, x, excel)
   })
 }
 
-convert_to_dfs <- function(tables, excel = FALSE) {
+env_import_V1_2$convert_to_dfs <- function(tables, excel = FALSE) {
   tables <- lapply(tables, function(x) {
     if (nrow(x) > 2) {
       temp <- x[2:nrow(x), ]
       if (excel) {
         names(temp) <- sapply(x[1, ], make.names)
       } else {
-        names(temp) <- sapply(trim_outer_quotes(x[1, ]), make.names)
+        names(temp) <- sapply(env_import_V1_2$trim_outer_quotes(x[1, ]), make.names)
       }
       x <- temp
     }
     x
   })
   lapply(tables, function(x) {
-    cast_types_cols(x, excel)
+    env_import_V1_2$cast_types_cols(x, excel)
   })
 }
 
-read_data_excel <- function(path) {
+env_import_V1_2$read_data_excel <- function(path) {
   sheets <- readxl::excel_sheets(path)
   res <- list()
   for (s in sheets) {
@@ -131,8 +131,8 @@ read_data_excel <- function(path) {
     tables <- as.data.frame(tables)
     env_tables <- new.env(parent = emptyenv())
     env_tables$tables <- list()
-    extract_tables(env_tables, tables, TRUE)
-    tables <- convert_to_dfs(env_tables$tables, TRUE)
+    env_import_V1_2$extract_tables(env_tables, tables, TRUE)
+    tables <- env_import_V1_2$convert_to_dfs(env_tables$tables, TRUE)
     res <- c(res, tables)
   }
   res
@@ -141,5 +141,5 @@ read_data_excel <- function(path) {
 path <- "./development/TestExcel1.xlsx"
 path <- "./development/TestExcel2.xlsx"
 path <- "./development/TestExcel3.xlsx"
-ts <- read_data_excel(path)
+ts <- env_import_V1_2$read_data_excel(path)
 ts

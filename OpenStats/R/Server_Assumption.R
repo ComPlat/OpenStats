@@ -1,21 +1,3 @@
-assSidebarUI <- function(id) {
-  tabPanel(
-    "Assumption",
-    tags$hr(),
-    uiOutput(NS(id, "shapiroUI")),
-    tags$hr(),
-    uiOutput(NS(id, "shapiroResidualsUI")),
-    tags$hr(),
-    uiOutput(NS(id, "LeveneUI")),
-    tags$hr(),
-    uiOutput(NS(id, "DiagnosticPlotUI"))
-  )
-}
-
-assUI <- function(id) {
-  fluidRow()
-}
-
 assServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
@@ -93,7 +75,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       print_req(is.data.frame(df), "The dataset is missing")
       print_form(DataModelState$formula)
       res <- try({
-        sod <- shapiro_on_data_V1_2$new(DataModelState$df,DataModelState$formula)
+        sod <- get_shapiro_on_data()$new(DataModelState$df,DataModelState$formula)
         sod$validate()
         sod$eval(ResultsState)
       })
@@ -112,7 +94,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       print_req(is.data.frame(df), "The dataset is missing")
       print_form(DataModelState$formula)
       res <- try({
-        sor <- shapiro_on_residuals_V1_2$new(DataModelState$df,DataModelState$formula)
+        sor <- get_shapiro_on_residuals()$new(DataModelState$df,DataModelState$formula)
         sor$validate()
         sor$eval(ResultsState)
       }, silent = TRUE)
@@ -131,7 +113,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       print_req(is.data.frame(df), "The dataset is missing")
       print_form(DataModelState$formula)
       res <- try({
-        l <- levene_V1_2$new(DataModelState$df,DataModelState$formula, input$center)
+        l <- get_levene()$new(DataModelState$df,DataModelState$formula, input$center)
         l$validate()
         l$eval(ResultsState)
       }, silent = TRUE)
@@ -149,7 +131,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       print_req(is.data.frame(df), "The dataset is missing")
       print_form(DataModelState$formula)
       p <- try({
-        dp <- diagnostic_plots_V1_2$new(DataModelState$df, DataModelState$formula)
+        dp <- get_diagnostic_plot()$new(DataModelState$df, DataModelState$formula)
         dp$validate()
         dp$eval(ResultsState)
       }, silent = TRUE)

@@ -1,15 +1,5 @@
 # getter for environments
 # -----------------------------------------------------
-get_env_utils <- function(version = VERSION) {
-  list(
-    `1.2` = env_utils_V1_2
-  )[[version]]
-}
-get_env_operations <- function(version = VERSION) {
-  list(
-    `1.2` = env_operations_V1_2
-  )[[version]]
-}
 get_env_check_ast <- function(version = VERSION) {
   list(
     `1.2` = env_check_ast_V1_2
@@ -18,6 +8,21 @@ get_env_check_ast <- function(version = VERSION) {
 get_env_diagnostic_plots <- function(version = VERSION) {
   list(
     `1.2` = env_diagnostic_plots_V1_2
+  )[[version]]
+}
+get_env_import <- function(version = VERSION) {
+  list(
+    `1.2` = env_import_V1_2
+  )[[version]]
+}
+get_env_lc50 <- function(version = VERSION) {
+  list(
+    `1.2` = env_lc_V1_2
+  )[[version]]
+}
+get_env_operations <- function(version = VERSION) {
+  list(
+    `1.2` = env_operations_V1_2
   )[[version]]
 }
 get_env_optim <- function(version = VERSION) {
@@ -33,6 +38,11 @@ get_env_plotting <- function(version = VERSION) {
 get_env_summarising_model <- function(version = VERSION) {
   list(
     `1.2` = env_summarising_model_V1_2
+  )[[version]]
+}
+get_env_utils <- function(version = VERSION) {
+  list(
+    `1.2` = env_utils_V1_2
   )[[version]]
 }
 

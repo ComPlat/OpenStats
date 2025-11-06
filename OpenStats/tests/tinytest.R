@@ -1,3 +1,3 @@
 if (requireNamespace("tinytest", quietly = TRUE)) {
-   test_package("OpenStats")
+  tinytest::test_package("OpenStats")
 }

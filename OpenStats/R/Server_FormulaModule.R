@@ -1,41 +1,3 @@
-FormulaEditorUI <- function(id) {
-  ui <- fluidPage(
-    fluidRow(
-      uiOutput(NS(id, "model")),
-      uiOutput(NS(id, "predefined_modelsUI")),
-      column(
-        width = 6,
-        uiOutput(NS(id, "colnames_dropdown")),
-        div(
-          selectInput(NS(id, "model_type"), "Change the model type (optional)",
-            c(
-              "Linear" = "Linear",
-              "Generalised Linear Model" = "Generalised Linear Model",
-              "Optimization Model" = "Optimization Model"
-            ),
-            selectize = FALSE
-          ),
-          uiOutput(NS(id, "glm_family_dropdown")),
-          uiOutput(NS(id, "glm_link_fct_dropdown")),
-          uiOutput(NS(id, "optim_predefined_equations")),
-          uiOutput(NS(id, "optim_boundaries")),
-          class = "boxed-output"
-        )
-      ),
-      column(
-        width = 6,
-        div(
-          uiOutput(NS(id, "colnames_list")),
-          uiOutput(NS(id, "buttons")),
-          uiOutput(NS(id, "rhs")),
-          actionButton(NS(id, "create_formula"), "Create statistical model", class = "create_button"),
-          class = "boxed-output"
-        )
-      )
-    )
-  )
-}
-
 FormulaEditorServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
@@ -473,7 +435,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               background <- !getOption("OpenStats.background", TRUE)
               right_site <- if (background) DataModelState$rhs_string else input[["editable_code"]]
             }
-            cf <- create_formula_V1_2$new(response_var, right_site, DataModelState$df)
+            cf <- get_create_formula()$new(response_var, right_site, DataModelState$df)
             cf$validate()
             model_latex <- NULL
             if (input$model_type == "Linear") {
