@@ -358,7 +358,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
   return(res)
 }
 
-get_current_version <- function() {
+get_current_version <- function() { # TODO: use VERSION 
   return("1_2")
 }
 

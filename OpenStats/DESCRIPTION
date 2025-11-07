@@ -43,7 +43,6 @@ Imports:
   jose
 Suggests:
   tinytest,
-  shinytest2,
   COMELN,
   writexl
 Encoding: UTF-8
