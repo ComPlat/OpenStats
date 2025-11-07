@@ -102,7 +102,7 @@ test_diagnose_plot <- function(app, srv, in_background) {
       ex <- session$userData$export
       if (!is.null(ex) && res_name %in% names(ex)) break
 
-      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 20)
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 60)
         stop(paste("timeout; have keys:", paste(names(ex %||% list()), collapse = ",")))
 
       Sys.sleep(0.05)

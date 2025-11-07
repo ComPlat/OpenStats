@@ -301,3 +301,6 @@ test_line <- function(app, srv, in_background) {
 
 }
 run_test(test_line)
+
+# TODO: test plot model
+# TODO: actually test the diagnostic plots in a similar way
