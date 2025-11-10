@@ -113,4 +113,4 @@ test_diagnose_plot <- function(app, srv, in_background) {
   })
    expect_true(inherits(got, "plot"))
 }
-# run_test(test_diagnose_plot)
+run_test(test_diagnose_plot)
