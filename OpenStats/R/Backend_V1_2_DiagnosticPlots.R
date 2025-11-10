@@ -1,6 +1,6 @@
 env_diagnostic_plots_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-env_diagnostic_plots_V1_2$cooks_distance <- function(df, formula) {
+cooks_distance <- function(df, formula) {
   Index <- function() stop("Should never be called") # Please R CMD check
   # https://rpubs.com/DragonflyStats/Cooks-Distance
   model <- NULL
@@ -46,8 +46,9 @@ env_diagnostic_plots_V1_2$cooks_distance <- function(df, formula) {
   }
   p
 }
+env_diagnostic_plots_V1_2$cooks_distance <- cooks_distance
 
-env_diagnostic_plots_V1_2$diagnostic_plots <- function(df, formula) {
+diagnostic_plots <- function(df, formula) {
   x <- function() stop("Should never be called") # Please R CMD check
   y <- function() stop("Should never be called") # Please R CMD check
   index <- function() stop("Should never be called") # Please R CMD check
@@ -257,5 +258,4 @@ env_diagnostic_plots_V1_2$diagnostic_plots <- function(df, formula) {
     env_diagnostic_plots_V1_2$cooks_distance(df, formula)
   )
 }
-
-
+env_diagnostic_plots_V1_2$diagnostic_plots <- diagnostic_plots

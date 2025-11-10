@@ -3,25 +3,34 @@ library(ggplot2)
 library(tinytest)
 library(readxl)
 
+# ---- Test env_utils_V1_2$split_formula ----
+f <- y ~ x1 + x2
+res <- OpenStats:::split_formula(f)
+expect_identical(res$response, quote(y))
+expect_identical(res$right_site, quote(x1 + x2))
+# ---- Test env_utils_V1_2$vars_rhs ----
+rhs_vars <- OpenStats:::vars_rhs(res$right_site)
+expect_identical(rhs_vars, c("x1", "x2"))
+
 # correct names
 # =======================================================================================
 test_correctName_true_when_column_exists <- function() {
   df <- data.frame(a = 1:3, b = 4:6)
-  expect_true(OpenStats:::env_utils_V1_2$correct_name("a", df))
-  expect_true(OpenStats:::env_utils_V1_2$correct_name("b", df))
+  expect_true(OpenStats:::correct_name("a", df))
+  expect_true(OpenStats:::correct_name("b", df))
 }
 test_correctName_true_when_column_exists()
 
 test_correctName_false_when_column_missing <- function() {
   df <- data.frame(a = 1:3, b = 4:6)
-  expect_false(OpenStats:::env_utils_V1_2$correct_name("c", df))
-  expect_false(OpenStats:::env_utils_V1_2$correct_name("", df))
+  expect_false(OpenStats:::correct_name("c", df))
+  expect_false(OpenStats:::correct_name("", df))
 }
 test_correctName_false_when_column_missing()
 
 test_correctName_empty_df <- function() {
   df <- data.frame()
-  expect_false(OpenStats:::env_utils_V1_2$correct_name("a", df))
+  expect_false(OpenStats:::correct_name("a", df))
 }
 test_correctName_empty_df()
 
@@ -29,14 +38,14 @@ test_correctName_empty_df()
 # =======================================================================================
 test_changeCharInput_strips_spaces_and_splits <- function() {
   x <- "a, b ,  c"
-  out <- OpenStats:::env_utils_V1_2$change_char_input(x)
+  out <- OpenStats:::change_char_input(x)
   expect_equal(out, c("a", "b", "c"))
 }
 test_changeCharInput_strips_spaces_and_splits()
 
 test_changeCharInput_single_value <- function() {
   x <- "column1"
-  out <- OpenStats:::env_utils_V1_2$change_char_input(x)
+  out <- OpenStats:::change_char_input(x)
   expect_equal(out, "column1")
 }
 test_changeCharInput_single_value()
@@ -45,7 +54,7 @@ test_changeCharInput_single_value()
 # =======================================================================================
 test_combine_single_existing_column <- function() {
   df <- data.frame(a = c("x", "y"), b = c("u", "v"), stringsAsFactors = TRUE)
-  res <- OpenStats:::env_utils_V1_2$combine(new = NULL, vec = c("a"), df = df, first = TRUE)
+  res <- OpenStats:::combine(new = NULL, vec = c("a"), df = df, first = TRUE)
   expect_true(is.factor(res) || is.character(res))
   expect_equal(as.character(res), as.character(df$a))
 }
@@ -57,7 +66,7 @@ test_combine_two_columns_order_from_end <- function() {
     b = c("u", "v"),
     stringsAsFactors = TRUE
   )
-  res <- OpenStats:::env_utils_V1_2$combine(new = NULL, vec = c("a", "b"), df = df, first = TRUE)
+  res <- OpenStats:::combine(new = NULL, vec = c("a", "b"), df = df, first = TRUE)
 
   expect_true(is.factor(res))
   expect_equal(length(res), nrow(df))
@@ -73,7 +82,7 @@ test_combine_skips_missing_columns <- function() {
     b = c("u", "v"),
     stringsAsFactors = TRUE
   )
-  res <- OpenStats:::env_utils_V1_2$combine(new = NULL, vec = c("a", "c"), df = df, first = TRUE)
+  res <- OpenStats:::combine(new = NULL, vec = c("a", "c"), df = df, first = TRUE)
 
   expect_equal(as.character(res), as.character(df$a))
 }
@@ -81,7 +90,7 @@ test_combine_skips_missing_columns()
 
 test_combine_empty_vec_returns_new <- function() {
   df <- data.frame(a = 1:3)
-  res <- OpenStats:::env_utils_V1_2$combine(new = "start", vec = character(), df = df, first = TRUE)
+  res <- OpenStats:::combine(new = "start", vec = character(), df = df, first = TRUE)
   expect_equal(res, "start")
 }
 test_combine_empty_vec_returns_new()
@@ -95,7 +104,7 @@ test_num_to_factor_converts_only_numeric <- function() {
     c = c(TRUE, FALSE, TRUE)
   )
 
-  out <- OpenStats:::env_utils_V1_2$num_to_factor(df, cols = c("a", "b", "c"))
+  out <- OpenStats:::num_to_factor(df, cols = c("a", "b", "c"))
 
   expect_true(is.factor(out$a))
   expect_equal(as.numeric(as.character(out$a)), df$a)
@@ -110,14 +119,14 @@ test_num_to_factor_converts_only_numeric()
 
 test_num_to_factor_noop_when_no_numeric <- function() {
   df <- data.frame(x = c("1","2"), y = c("a","b"))
-  out <- OpenStats:::env_utils_V1_2$num_to_factor(df, cols = c("x","y"))
+  out <- OpenStats:::num_to_factor(df, cols = c("x","y"))
   expect_identical(out, df)
 }
 test_num_to_factor_noop_when_no_numeric()
 
 test_char_to_orig_type_numeric_strings_to_numeric <- function() {
   x <- c("1", "2", "3")
-  out <- suppressWarnings(OpenStats:::env_utils_V1_2$char_to_orig_type(x))
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
   expect_true(is.numeric(out))
   expect_equal(out, c(1, 2, 3))
 }
@@ -125,7 +134,7 @@ test_char_to_orig_type_numeric_strings_to_numeric()
 
 test_char_to_orig_type_mixed_strings_remain_character <- function() {
   x <- c("1", "two", "3")
-  out <- suppressWarnings(OpenStats:::env_utils_V1_2$char_to_orig_type(x))
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
   expect_true(is.character(out))
   expect_identical(out, x)
 }
@@ -133,7 +142,7 @@ test_char_to_orig_type_mixed_strings_remain_character()
 
 test_char_to_orig_type_handles_list_input <- function() {
   x <- list("4", "5", "6")
-  out <- suppressWarnings(OpenStats:::env_utils_V1_2$char_to_orig_type(x))
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
   expect_true(is.numeric(out))
   expect_equal(out, c(4, 5, 6))
 }
@@ -141,7 +150,7 @@ test_char_to_orig_type_handles_list_input()
 
 test_char_to_orig_type_list_with_non_numeric_stays_char <- function() {
   x <- list("7", "x")
-  out <- suppressWarnings(OpenStats:::env_utils_V1_2$char_to_orig_type(x))
+  out <- suppressWarnings(OpenStats:::char_to_orig_type(x))
   expect_true(is.character(out))
   expect_identical(out, c("7", "x"))
 }
@@ -149,14 +158,14 @@ test_char_to_orig_type_list_with_non_numeric_stays_char()
 
 test_firstup_basic <- function() {
   x <- c("alpha", "bETA")
-  out <- OpenStats:::env_utils_V1_2$firstup(x)
+  out <- OpenStats:::firstup(x)
   expect_equal(out, c("Alpha", "BETA"))  # only first letter changes
 }
 test_firstup_basic()
 
 test_firstup_empty_and_single_char <- function() {
   x <- c("", "q")
-  out <- OpenStats:::env_utils_V1_2$firstup(x)
+  out <- OpenStats:::firstup(x)
   expect_equal(out, c("", "Q"))
 }
 test_firstup_empty_and_single_char()
@@ -168,7 +177,7 @@ test_elongate_col <- function() {
   col <- c(1, 2, 3)
   l <- 6
   expected_result <- c(1, 2, 3, 1, 2, 3)
-  result <- OpenStats:::env_utils_V1_2$elongate_col(col, l)
+  result <- OpenStats:::elongate_col(col, l)
   expect_equal(result, expected_result, 
                info = "Should repeat col exactly 2 times when l = 6"
   )
@@ -176,7 +185,7 @@ test_elongate_col <- function() {
   col <- c(1, 2, 3)
   l <- 8
   expected_result <- c(1, 2, 3, 1, 2, 3, 1, 2)
-  result <- OpenStats:::env_utils_V1_2$elongate_col(col, l)
+  result <- OpenStats:::elongate_col(col, l)
   expect_equal(result, expected_result, 
                info = "Should repeat col 2 times and append first 2 elements when l = 8"
   )
@@ -184,7 +193,7 @@ test_elongate_col <- function() {
   col <- c(1, 2, 3)
   l <- 2
   expected_result <- c(1, 2)
-  result <- OpenStats:::env_utils_V1_2$elongate_col(col, l)
+  result <- OpenStats:::elongate_col(col, l)
   expect_equal(result, expected_result, 
                info = "Should truncate col to fit length l when l = 2"
   )
@@ -192,7 +201,7 @@ test_elongate_col <- function() {
   col <- c(1, 2, 3)
   l <- 3
   expected_result <- c(1, 2, 3)
-  result <- OpenStats:::env_utils_V1_2$elongate_col(col, l)
+  result <- OpenStats:::elongate_col(col, l)
   expect_equal(result, expected_result, 
                info = "Should return col as is when l equals length of col"
   )
@@ -200,7 +209,7 @@ test_elongate_col <- function() {
   col <- c(1, 2)
   l <- 10001
   expected_result <- rep(c(1, 2), length.out = 10001)
-  result <- OpenStats:::env_utils_V1_2$elongate_col(col, l)
+  result <- OpenStats:::elongate_col(col, l)
   expect_equal(
     result, expected_result, 
                info = "Should repeat col enough times to match the requested length (10001)"
@@ -220,7 +229,7 @@ test_check_rls <- function() {
   # Case 1: List of results exceeds 1000 entries
   list_results_1001 <- lapply(1:1001, function(x) {rep(100, x)})
   new_obj <- 1:100
-  expect_error(OpenStats:::env_utils_V1_2$check_rls(list_results_1001, new_obj), 
+  expect_error(OpenStats:::check_rls(list_results_1001, new_obj), 
                "You can only store 1000 results. Consider removing some results",
                info = "Should stop when there are more than 1000 results"
   )
@@ -228,20 +237,20 @@ test_check_rls <- function() {
   list_results_large <- list(create_dummy_object(500), create_dummy_object(250))
   new_obj_large <- create_dummy_object(300)
   object.size(list_results_large)
-  expect_error(OpenStats:::env_utils_V1_2$check_rls(list_results_large, new_obj_large),
+  expect_error(OpenStats:::check_rls(list_results_large, new_obj_large),
                "Memory limit exceeded for user results. Consider removing some results.",
                info = "Should stop when total memory exceeds 500MB"
   )
   # Case 3: The total size does not exceed 500MB and number of results is below 1000
   list_results_valid <- list(create_dummy_object(100), create_dummy_object(100))
   new_obj_valid <- create_dummy_object(100)
-  expect_silent(OpenStats:::env_utils_V1_2$check_rls(list_results_valid, new_obj_valid), 
+  expect_silent(OpenStats:::check_rls(list_results_valid, new_obj_valid), 
                 info = "Should pass when results are below 1000 and total size is within 500MB"
   )
   # Case 4: Exactly 1000 results and total size within limit
   list_results_1000 <- rep(list(1:100), 10)
   new_obj_1000 <- 1:100
-  expect_silent(OpenStats:::env_utils_V1_2$check_rls(list_results_1000, new_obj_1000),
+  expect_silent(OpenStats:::check_rls(list_results_1000, new_obj_1000),
                 info = "Should pass with exactly 1000 results and total size within limit"
   )
 }
@@ -252,43 +261,43 @@ test_create_plot_pages <- function() {
   # Create mock plot list (using a simple empty plot for testing)
   plot_list <- list(ggplot2::ggplot() + ggplot2::geom_point())
   # Test: fewer than 9 plots (e.g., 1 plot)
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list)
+  result <- OpenStats:::create_plot_pages(plot_list)
   expect_equal(
     length(result), 1, info = "Should return 1 page for a single plot"
   )
   # Test: exactly 9 plots
   plot_list_9 <- rep(plot_list, 9)
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list_9)
+  result <- OpenStats:::create_plot_pages(plot_list_9)
   expect_equal(
     length(result), 2, info = "Should return 2 page for exactly 9 plots"
   )
   # Test: exactly 18 plots
   plot_list_18 <- rep(plot_list, 18)
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list_18)
+  result <- OpenStats:::create_plot_pages(plot_list_18)
   expect_equal(
     length(result), 3, info = "Should return 3 pages for exactly 18 plots"
   )
   # Test: more than 9 but not an exact multiple (e.g., 10 plots)
   plot_list_10 <- rep(plot_list, 10)
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list_10)
+  result <- OpenStats:::create_plot_pages(plot_list_10)
   expect_equal(
     length(result), 2, info = "Should return 2 pages for 10 plots (1st with 9, 2nd with 1)"
   )
   # Test: edge case for 17 plots (last page should have 8 plots)
   plot_list_17 <- rep(plot_list, 17)
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list_17)
+  result <- OpenStats:::create_plot_pages(plot_list_17)
   expect_equal(
     length(result), 2, info = "Should return 2 pages for 17 plots (1st with 9, 2nd with 8)"
   )
   # Test: no plots (empty list)
   plot_list_empty <- list()
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list_empty)
+  result <- OpenStats:::create_plot_pages(plot_list_empty)
   expect_equal(
     length(result), 1, info = "Should return 1 page for an empty plot list (empty grid)"
   )
   # Test: number of plots is exactly a multiple of 9 (e.g., 27)
   plot_list_27 <- rep(plot_list, 27)
-  result <- OpenStats:::env_utils_V1_2$create_plot_pages(plot_list_27)
+  result <- OpenStats:::create_plot_pages(plot_list_27)
   expect_equal(
     length(result), 4, info = "Should return 4 pages for 27 plots (9 plots per page)"
   )
@@ -300,27 +309,27 @@ test_create_plot_pages()
 test_is_valid_filename <- function() {
   # Valid filename
   expect_true(
-    OpenStats:::env_utils_V1_2$is_valid_filename("valid_filename.txt"), info = "Should return TRUE for valid filename"
+    OpenStats:::is_valid_filename("valid_filename.txt"), info = "Should return TRUE for valid filename"
   )
   # Filename with spaces
   expect_false(
-    OpenStats:::env_utils_V1_2$is_valid_filename("invalid filename.txt"), info = "Should return FALSE for filename with spaces"
+    OpenStats:::is_valid_filename("invalid filename.txt"), info = "Should return FALSE for filename with spaces"
   )
   # Filename with invalid characters
   expect_false(
-    OpenStats:::env_utils_V1_2$is_valid_filename("invalid|filename.txt"), info = "Should return FALSE for filename with invalid characters"
+    OpenStats:::is_valid_filename("invalid|filename.txt"), info = "Should return FALSE for filename with invalid characters"
   )
   # Empty filename
   expect_false(
-    OpenStats:::env_utils_V1_2$is_valid_filename(""), info = "Should return FALSE for empty filename"
+    OpenStats:::is_valid_filename(""), info = "Should return FALSE for empty filename"
   )
   # Filename too long
   expect_false(
-    OpenStats:::env_utils_V1_2$is_valid_filename(strrep("a", 101)), info = "Should return FALSE for filename longer than 100 characters"
+    OpenStats:::is_valid_filename(strrep("a", 101)), info = "Should return FALSE for filename longer than 100 characters"
   )
   # Filename with no extension
   expect_false(
-    OpenStats:::env_utils_V1_2$is_valid_filename("file_without_extension"), info = "Should return FALSE for filename with no extension"
+    OpenStats:::is_valid_filename("file_without_extension"), info = "Should return FALSE for filename with no extension"
   )
 }
 test_is_valid_filename()
@@ -328,27 +337,27 @@ test_is_valid_filename()
 test_why_filename_invalid <- function() {
   # Valid filename
   expect_equal(
-    OpenStats:::env_utils_V1_2$why_filename_invalid("valid_filename.txt"), "", info = "Should return empty string for valid filename"
+    OpenStats:::why_filename_invalid("valid_filename.txt"), "", info = "Should return empty string for valid filename"
   )
   # Filename with spaces
   expect_equal(
-    OpenStats:::env_utils_V1_2$why_filename_invalid("invalid filename.txt"), "Found spaces in filename", info = "Should return error message for spaces in filename"
+    OpenStats:::why_filename_invalid("invalid filename.txt"), "Found spaces in filename", info = "Should return error message for spaces in filename"
   )
   # Filename with invalid characters
   expect_equal(
-    OpenStats:::env_utils_V1_2$why_filename_invalid("invalid|filename.txt"), "Found invalid chars in filename: [<>:\"\\|?*", info = "Should return error message for invalid characters in filename"
+    OpenStats:::why_filename_invalid("invalid|filename.txt"), "Found invalid chars in filename: [<>:\"\\|?*", info = "Should return error message for invalid characters in filename"
   )
   # Empty filename
   expect_equal(
-    OpenStats:::env_utils_V1_2$why_filename_invalid(""), "Filename is empty", info = "Should return error message for empty filename"
+    OpenStats:::why_filename_invalid(""), "Filename is empty", info = "Should return error message for empty filename"
   )
   # Filename too long
   expect_equal(
-    OpenStats:::env_utils_V1_2$why_filename_invalid(strrep("a", 101)), "Filename is too long (> 100 characters)", info = "Should return error message for filename longer than 100 characters"
+    OpenStats:::why_filename_invalid(strrep("a", 101)), "Filename is too long (> 100 characters)", info = "Should return error message for filename longer than 100 characters"
   )
   # Filename with no extension
   expect_equal(
-    OpenStats:::env_utils_V1_2$why_filename_invalid("file_without_extension"), "Filename extension is missing", info = "Should return error message for filename with no extension"
+    OpenStats:::why_filename_invalid("file_without_extension"), "Filename extension is missing", info = "Should return error message for filename with no extension"
   )
 }
 test_why_filename_invalid()
@@ -356,19 +365,19 @@ test_why_filename_invalid()
 test_check_filename_for_server <- function() {
   # Valid xlsx file
   expect_true(
-    OpenStats:::env_utils_V1_2$check_filename_for_server("data/file.xlsx"), info = "Should return TRUE for filename with .xlsx extension"
+    OpenStats:::check_filename_for_server("data/file.xlsx"), info = "Should return TRUE for filename with .xlsx extension"
   )
   # Invalid file extension
   expect_false(
-    OpenStats:::env_utils_V1_2$check_filename_for_server("data/file.csv"), info = "Should return FALSE for filename with .csv extension"
+    OpenStats:::check_filename_for_server("data/file.csv"), info = "Should return FALSE for filename with .csv extension"
   )
   # No extension
   expect_false(
-    OpenStats:::env_utils_V1_2$check_filename_for_server("data/file"), info = "Should return FALSE for filename with no extension"
+    OpenStats:::check_filename_for_server("data/file"), info = "Should return FALSE for filename with no extension"
   )
   # Invalid extension
   expect_false(
-    OpenStats:::env_utils_V1_2$check_filename_for_server("data/file.txt"), info = "Should return FALSE for filename with .txt extension"
+    OpenStats:::check_filename_for_server("data/file.txt"), info = "Should return FALSE for filename with .txt extension"
   )
 }
 test_check_filename_for_server()
@@ -376,19 +385,19 @@ test_check_filename_for_server()
 test_check_filename_for_serverless <- function() {
   # Valid zip file
   expect_true(
-    OpenStats:::env_utils_V1_2$check_filename_for_serverless("data/file.zip"), info = "Should return TRUE for filename with .zip extension"
+    OpenStats:::check_filename_for_serverless("data/file.zip"), info = "Should return TRUE for filename with .zip extension"
   )
   # Invalid file extension
   expect_false(
-    OpenStats:::env_utils_V1_2$check_filename_for_serverless("data/file.xlsx"), info = "Should return FALSE for filename with .xlsx extension"
+    OpenStats:::check_filename_for_serverless("data/file.xlsx"), info = "Should return FALSE for filename with .xlsx extension"
   )
   # No extension
   expect_false(
-    OpenStats:::env_utils_V1_2$check_filename_for_serverless("data/file"), info = "Should return FALSE for filename with no extension"
+    OpenStats:::check_filename_for_serverless("data/file"), info = "Should return FALSE for filename with no extension"
   )
   # Invalid extension
   expect_false(
-    OpenStats:::env_utils_V1_2$check_filename_for_serverless("data/file.tar"), info = "Should return FALSE for filename with .tar extension"
+    OpenStats:::check_filename_for_serverless("data/file.tar"), info = "Should return FALSE for filename with .tar extension"
   )
 }
 test_check_filename_for_serverless()
@@ -398,19 +407,19 @@ test_check_filename_for_serverless()
 test_extract_extension <- function() {
   # Test with a filename that has a valid extension
   expect_equal(
-    OpenStats:::env_utils_V1_2$extract_extension("data/file.txt"), "txt", info = "Should return 'txt' for 'file.txt'"
+    OpenStats:::extract_extension("data/file.txt"), "txt", info = "Should return 'txt' for 'file.txt'"
   )
   # Test with a filename that has multiple extensions
   expect_equal(
-    OpenStats:::env_utils_V1_2$extract_extension("archive.tar.gz"), "gz", info = "Should return 'gz' for 'archive.tar.gz'"
+    OpenStats:::extract_extension("archive.tar.gz"), "gz", info = "Should return 'gz' for 'archive.tar.gz'"
   )
   # Test with a filename that has no extension
   expect_equal(
-    OpenStats:::env_utils_V1_2$extract_extension("file_without_extension"), "file_without_extension", info = "Should return the full name if there is no extension"
+    OpenStats:::extract_extension("file_without_extension"), "file_without_extension", info = "Should return the full name if there is no extension"
   )
   # Test with a filename that has a hidden file extension (e.g., dot before the file name)
   expect_equal(
-    OpenStats:::env_utils_V1_2$extract_extension(".hiddenfile"), "hiddenfile", info = "Should return 'hiddenfile' for a filename starting with a dot"
+    OpenStats:::extract_extension(".hiddenfile"), "hiddenfile", info = "Should return 'hiddenfile' for a filename starting with a dot"
   )
 }
 test_extract_extension()
@@ -521,42 +530,42 @@ test_check_type_res()
 test_check_axis_limits <- function() {
   # Test with valid numeric axis limits
   col_numeric <- c(1, 2, 3, 4, 5)
-  expect_null(OpenStats:::env_utils_V1_2$check_axis_limits(col_numeric, 1, 4),
-              info = "OpenStats:::env_utils_V1_2$check_axis_limits should return NULL for valid numeric limits")
+  expect_null(OpenStats:::check_axis_limits(col_numeric, 1, 4),
+              info = "OpenStats:::check_axis_limits should return NULL for valid numeric limits")
 
   # Test with invalid numeric axis limits (max <= min)
-  expect_error(OpenStats:::env_utils_V1_2$check_axis_limits(col_numeric, 4, 1),
+  expect_error(OpenStats:::check_axis_limits(col_numeric, 4, 1),
                "Found invalid axis limits: max <= min",
-               info = "OpenStats:::env_utils_V1_2$check_axis_limits should throw error when max <= min")
+               info = "OpenStats:::check_axis_limits should throw error when max <= min")
 
   # Test with invalid numeric axis limits (non-numeric min or max)
-  expect_error(OpenStats:::env_utils_V1_2$check_axis_limits(col_numeric, "a", 4),
+  expect_error(OpenStats:::check_axis_limits(col_numeric, "a", 4),
                "Found invalid axis limits",
-               info = "OpenStats:::env_utils_V1_2$check_axis_limits should throw error for non-numeric min")
+               info = "OpenStats:::check_axis_limits should throw error for non-numeric min")
 
-  expect_error(OpenStats:::env_utils_V1_2$check_axis_limits(col_numeric, 1, "b"),
+  expect_error(OpenStats:::check_axis_limits(col_numeric, 1, "b"),
                "Found invalid axis limits",
-               info = "OpenStats:::env_utils_V1_2$check_axis_limits should throw error for non-numeric max")
+               info = "OpenStats:::check_axis_limits should throw error for non-numeric max")
 
   # Test with valid categorical axis limits
   col_factor <- factor(c("low", "medium", "high"))
-  expect_null(OpenStats:::env_utils_V1_2$check_axis_limits(col_factor, "low", "medium"),
-              info = "OpenStats:::env_utils_V1_2$check_axis_limits should return NULL for valid factor levels")
+  expect_null(OpenStats:::check_axis_limits(col_factor, "low", "medium"),
+              info = "OpenStats:::check_axis_limits should return NULL for valid factor levels")
 
   # Test with invalid categorical axis limits (min or max not in factor levels)
-  expect_error(OpenStats:::env_utils_V1_2$check_axis_limits(col_factor, "low", "very_high"),
+  expect_error(OpenStats:::check_axis_limits(col_factor, "low", "very_high"),
                "Found invalid axis limits",
-               info = "OpenStats:::env_utils_V1_2$check_axis_limits should throw error when min or max not in factor levels")
+               info = "OpenStats:::check_axis_limits should throw error when min or max not in factor levels")
 
   # Test with invalid categorical axis limits (max appears before min)
-  expect_error(OpenStats:::env_utils_V1_2$check_axis_limits(col_factor, "medium", "low"),
+  expect_error(OpenStats:::check_axis_limits(col_factor, "medium", "low"),
                "Found invalid axis limits. The max value is found before the min value",
-               info = "OpenStats:::env_utils_V1_2$check_axis_limits should throw error when max appears before min in factor levels")
+               info = "OpenStats:::check_axis_limits should throw error when max appears before min in factor levels")
  
   # Test with a single value in the column
   col_single <- factor("only_one_value")
-  expect_null(OpenStats:::env_utils_V1_2$check_axis_limits(col_single, "only_one_value", "only_one_value"),
-              info = "OpenStats:::env_utils_V1_2$check_axis_limits should return NULL for a single value column when min = max")
+  expect_null(OpenStats:::check_axis_limits(col_single, "only_one_value", "only_one_value"),
+              info = "OpenStats:::check_axis_limits should return NULL for a single value column when min = max")
 }
 test_check_axis_limits()
 
@@ -571,7 +580,7 @@ test_split <- function() {
   )
  
   # Test case where splitting on one column works correctly
-  result <- OpenStats:::env_utils_V1_2$split_groups(df, cols = c("group"), levels = c("A", "B"))
+  result <- OpenStats:::split_groups(df, cols = c("group"), levels = c("A", "B"))
   expect_equal(
     result$group,
     c("A", "B", "A", "B"),
@@ -579,7 +588,7 @@ test_split <- function() {
   )
 
   # Test case where splitting on two columns works correctly
-  result <- OpenStats:::env_utils_V1_2$split_groups(df, cols = c("group"), levels = c("A", "B"))
+  result <- OpenStats:::split_groups(df, cols = c("group"), levels = c("A", "B"))
   expect_equal(
     result$category,
     c("X", "Y", "X", "Y"),
@@ -588,7 +597,7 @@ test_split <- function() {
 
   # Test when the dataframe has no matching rows
   result <- tryCatch({
-    OpenStats:::env_utils_V1_2$split_groups(df, cols = c("group"), levels = c("D"))
+    OpenStats:::split_groups(df, cols = c("group"), levels = c("D"))
   }, error = function(e) e)
   expect_true(
     inherits(result, "error"),
@@ -596,7 +605,7 @@ test_split <- function() {
   )
 
   # Test case where all rows are included (no subset)
-  result <- OpenStats:::env_utils_V1_2$split_groups(df, cols = c("group", "category"), levels = c("A", "B", "C", "X", "Y", "Z"))
+  result <- OpenStats:::split_groups(df, cols = c("group", "category"), levels = c("A", "B", "C", "X", "Y", "Z"))
   expect_equal(
     nrow(result),
     5,
@@ -606,7 +615,7 @@ test_split <- function() {
   # Edge case with empty dataframe
   df_empty <- data.frame(group = character(0), category = character(0), value = numeric(0))
   result <- tryCatch({
-    OpenStats:::env_utils_V1_2$split_groups(df_empty, cols = c("group"), levels = c("A"))
+    OpenStats:::split_groups(df_empty, cols = c("group"), levels = c("A"))
   }, error = function(e) e)
   expect_true(
     inherits(result, "error"),
@@ -615,7 +624,7 @@ test_split <- function() {
 
   # Edge case where no level is set
   result <- tryCatch({
-    OpenStats:::env_utils_V1_2$split_groups(df, cols = c("group", "category"), levels = c())
+    OpenStats:::split_groups(df, cols = c("group", "category"), levels = c())
   }, error = function(e) e)
   expect_true(
     inherits(result, "error"),
@@ -629,7 +638,7 @@ test_split()
 test_create_r_names <- function() {
   # Test valid input with no invalid names
   df <- data.frame(`valid_name` = 1:5, `another_valid_name` = 6:10)
-  result <- OpenStats:::env_utils_V1_2$create_r_names(df)
+  result <- OpenStats:::create_r_names(df)
   expect_equal(
     names(result),
     c("valid_name", "another_valid_name"),
@@ -638,7 +647,7 @@ test_create_r_names <- function() {
 
   # Test input with spaces in column names
   df <- data.frame(`invalid name` = 1:5, `another name` = 6:10)
-  result <- OpenStats:::env_utils_V1_2$create_r_names(df)
+  result <- OpenStats:::create_r_names(df)
   expect_equal(
     names(result),
     c("invalid.name", "another.name"),
@@ -647,7 +656,7 @@ test_create_r_names <- function() {
 
   # Test input with special characters
   df <- data.frame(`$pecial@name` = 1:5, `123start_with_number` = 6:10)
-  result <- OpenStats:::env_utils_V1_2$create_r_names(df)
+  result <- OpenStats:::create_r_names(df)
   expect_equal(
     names(result),
     c("X.pecial.name", "X123start_with_number"),
@@ -656,7 +665,7 @@ test_create_r_names <- function() {
 
   # Test input with reserved R keywords
   df <- data.frame(`if` = 1:5, `else` = 6:10, `TRUE` = 11:15)
-  result <- OpenStats:::env_utils_V1_2$create_r_names(df)
+  result <- OpenStats:::create_r_names(df)
   expect_equal(
     names(result),
     c("if.", "else.", "TRUE."),
@@ -665,7 +674,7 @@ test_create_r_names <- function() {
 
   # Edge case: empty data frame
   df <- data.frame()
-  result <- OpenStats:::env_utils_V1_2$create_r_names(df)
+  result <- OpenStats:::create_r_names(df)
   expect_equal(
     names(result),
     character(0),
@@ -681,45 +690,45 @@ test_create_df_name <- function() {
   column_names <- c("df1", "df2", "data")
  
   # Test when the name is already unique
-  result_unique <- OpenStats:::env_utils_V1_2$create_df_name("df3", column_names)
+  result_unique <- OpenStats:::create_df_name("df3", column_names)
   expect_equal(
     result_unique,
     "df3",
-    info = "OpenStats:::env_utils_V1_2$create_df_name should return the name as is when it is not in column_names"
+    info = "OpenStats:::create_df_name should return the name as is when it is not in column_names"
   )
 
   # Test when the name conflicts and needs adjustment
-  result_conflict <- OpenStats:::env_utils_V1_2$create_df_name("df1", column_names)
+  result_conflict <- OpenStats:::create_df_name("df1", column_names)
   expect_equal(
     result_conflict,
     "df11",
-    info = "OpenStats:::env_utils_V1_2$create_df_name should return a modified name when the input conflicts"
+    info = "OpenStats:::create_df_name should return a modified name when the input conflicts"
   )
 
-  result_conflict_multiple <- OpenStats:::env_utils_V1_2$create_df_name("df", c("df", "df1", "df12", "df123"))
+  result_conflict_multiple <- OpenStats:::create_df_name("df", c("df", "df1", "df12", "df123"))
   expect_equal(
     result_conflict_multiple,
     "df1234",
-    info = "OpenStats:::env_utils_V1_2$create_df_name should return a name that avoids all conflicts"
+    info = "OpenStats:::create_df_name should return a name that avoids all conflicts"
   )
 
   # Edge cases
-  result_empty <- OpenStats:::env_utils_V1_2$create_df_name("new_df", character(0))
+  result_empty <- OpenStats:::create_df_name("new_df", character(0))
   expect_equal(
     result_empty,
     "new_df",
-    info = "OpenStats:::env_utils_V1_2$create_df_name should return the name as is when column_names is empty"
+    info = "OpenStats:::create_df_name should return the name as is when column_names is empty"
   )
 
   # Test a case with a very large number of conflicts
-  result_large_conflict <- OpenStats:::env_utils_V1_2$create_df_name(
+  result_large_conflict <- OpenStats:::create_df_name(
     "test",
     c("test", paste0("test", 1:1000))
   )
   expect_equal(
     result_large_conflict,
     "test1234",
-    info = "OpenStats:::env_utils_V1_2$create_df_name should correctly handle a large number of conflicts"
+    info = "OpenStats:::create_df_name should correctly handle a large number of conflicts"
   )
 }
 test_create_df_name()
@@ -735,7 +744,7 @@ test_splitData <- function() {
   )
 
   # Basic case
-  result <- OpenStats:::env_utils_V1_2$split_data(df, value ~ group1 + group2)
+  result <- OpenStats:::split_data(df, value ~ group1 + group2)
 
   # Check the structure of the result
   expect_equal(
@@ -771,7 +780,7 @@ test_splitData <- function() {
   )
 
   # Edge case: Single predictor variable
-  result_single <- OpenStats:::env_utils_V1_2$split_data(df, value ~ group1)
+  result_single <- OpenStats:::split_data(df, value ~ group1)
   expected_interaction_single <- interaction(df$group1)
   expect_equal(
     result_single$interaction,
@@ -781,21 +790,21 @@ test_splitData <- function() {
 
   # Edge case: Invalid formula
   expect_error(
-    OpenStats:::env_utils_V1_2$split_data(df, value ~ non_existent_column),
+    OpenStats:::split_data(df, value ~ non_existent_column),
     info = "Function should throw an error for a formula with non-existent variables"
   )
 
   # Edge case: Less than 2 columns after model.frame
   df_min <- data.frame(value = c(1, 2, 3))
   expect_error(
-    OpenStats:::env_utils_V1_2$split_data(df_min, value ~ .),
+    OpenStats:::split_data(df_min, value ~ .),
     info = "Function should throw an error when there are fewer than 2 columns in the formula output"
   )
 
   # Edge case: 
   df_min <- data.frame(value = runif(6), rep(c("A", "B"), each = 3))
   expect_error(
-    OpenStats:::env_utils_V1_2$split_data(df_min, value ~ 1),
+    OpenStats:::split_data(df_min, value ~ 1),
     info = "Function should throw an error when there are fewer than 2 columns in the formula output"
   )
 }
@@ -812,7 +821,7 @@ test_stack_unstackDF <- function() {
   )
 
   # Test env_utils_V1_2$stack_df
-  stacked <- OpenStats:::env_utils_V1_2$stack_df(df, keepCol = "ID")
+  stacked <- OpenStats:::stack_df(df, keepCol = "ID")
 
   # Check structure of stacked data frame
   expect_equal(
@@ -837,7 +846,7 @@ test_stack_unstackDF <- function() {
   )
 
   # Test unenv_utils_V1_2$stack_df
-  unstacked <- OpenStats:::env_utils_V1_2$unstack_df(stacked, name = "name", value = "value")
+  unstacked <- OpenStats:::unstack_df(stacked, name = "name", value = "value")
 
   # Check structure of unstacked data frame
   expect_equal(
@@ -889,7 +898,7 @@ test_create_js_string <- function() {
   l <- list(plot_obj, diag_obj, dose_obj, df, char_obj)
 
   # Call the function
-  result <- OpenStats:::env_utils_V1_2$create_js_string(l)
+  result <- OpenStats:::create_js_string(l)
 
   # Validate the result
   # Check structure and length
@@ -937,7 +946,7 @@ test_create_excel_file <- function() {
     geom_boxplot()
   p <- new("plot", p = p, width = 10, height = 10, resolution = 600)
   l <- list(p, iris)
-  file <- OpenStats:::env_utils_V1_2$create_excel_file(l)
+  file <- OpenStats:::create_excel_file(l)
 
   # File existence
   expect_true(
@@ -975,24 +984,24 @@ test_create_excel_file()
 test_df_2_string <- function() {
   # Normal data frame
   df <- data.frame(Col1 = 1:5, Col2 = letters[1:5])
-  str <- OpenStats:::env_utils_V1_2$df_2_string(df)
+  str <- OpenStats:::df_2_string(df)
   f <- tempfile(fileext = ".txt")
   writeLines(str, f)
   read.csv(f, sep = "\t") |>
     expect_equal(df)
 
   # Not a dataframe
-  e <- try(OpenStats:::env_utils_V1_2$df_2_string("Invalid"), silent = TRUE)
+  e <- try(OpenStats:::df_2_string("Invalid"), silent = TRUE)
   expect_true(inherits(e, "try-error"))
 
   # EMPTY data frame
   df <- data.frame()
-  str <- OpenStats:::env_utils_V1_2$df_2_string(df)
+  str <- OpenStats:::df_2_string(df)
   expect_equal(str, "\n")
 
   # Dataframe with one column
   df <- data.frame(Col1 = 1:5)
-  str <- OpenStats:::env_utils_V1_2$df_2_string(df)
+  str <- OpenStats:::df_2_string(df)
   f <- tempfile(fileext = ".txt")
   writeLines(str, f)
   read.csv(f, sep = "\t") |>
@@ -1000,7 +1009,7 @@ test_df_2_string <- function() {
 
   # Dataframe with one column and one row
   df <- data.frame(Col1 = 1)
-  str <- OpenStats:::env_utils_V1_2$df_2_string(df)
+  str <- OpenStats:::df_2_string(df)
   f <- tempfile(fileext = ".txt")
   writeLines(str, f)
   read.csv(f, sep = "\t") |>
@@ -1008,97 +1017,10 @@ test_df_2_string <- function() {
 
   # Dataframe with multiple column and one row
   df <- data.frame(Col1 = 1, Col2 = "a", Col3 = 1.5)
-  str <- OpenStats:::env_utils_V1_2$df_2_string(df)
+  str <- OpenStats:::df_2_string(df)
   f <- tempfile(fileext = ".txt")
   writeLines(str, f)
   read.csv(f, sep = "\t") |>
     expect_equal(df)
 }
 test_df_2_string()
-
-# Test env_import_V1_2$read_data
-# =======================================================================================
-# TODO: update test
-test_readData <- function() {
-
-  # Test 1: Valid input with an Excel file
-  ResultsState <- OpenStats:::backend_result_state_V1_2$new(NULL)
-  ResultsState$bgp$in_backend <- TRUE
-  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
-  test_file <- tempfile(fileext = ".xlsx")
-  write.csv(data.frame(a = 1:5, b = letters[1:5]), test_file, row.names = FALSE)
-  writexl::write_xlsx(read.csv(test_file), test_file)
-  OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
-  expect_equal(class(DataModelState$df), "data.frame")
-  expect_equal(nrow(DataModelState$df), 5)
-  expect_equal(ncol(DataModelState$df), 2)
-
-  # Test 2: Valid input with a CSV file (comma-separated)
-  ResultsState <- OpenStats:::backend_result_state_V1_2$new(NULL)
-  ResultsState$bgp$in_backend <- TRUE
-  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
-  test_file <- tempfile(fileext = ".csv")
-  write.csv(data.frame(a = 1:5, b = letters[1:5]), test_file, row.names = FALSE)
-  OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
-  expect_equal(class(DataModelState$df), "data.frame")
-  expect_equal(nrow(DataModelState$df), 5)
-  expect_equal(ncol(DataModelState$df), 2)
-
-  # Test 3: File exceeds size limit
-  test_file <- tempfile()
-  write.csv(data.frame(a = 1:(50 * 1024^2 / 2)), test_file, row.names = FALSE)
-  expect_error(OpenStats:::env_import_V1_2$read_data(test_file), "File size exceeds the 50 MB limit.")
-
-  # Test 4: File with unknown separator
-  test_file <- tempfile()
-  writeLines("a|b|c\n1|2|3", test_file)
-  expect_error(
-    OpenStats:::env_import_V1_2$read_data(test_file),
-    "Could not identify the separator. Please upload a file with a known separator."
-  )
-
-  # Test 5: File with semicolon separator
-  ResultsState <- OpenStats:::backend_result_state_V1_2$new(NULL)
-  ResultsState$bgp$in_backend <- TRUE
-  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
-  test_file <- tempfile()
-  writeLines("a;b;c\n1;2;3", test_file)
-  result <- OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
-  expect_equal(class(DataModelState$df), "data.frame")
-  expect_equal(nrow(DataModelState$df), 2)
-  expect_equal(ncol(DataModelState$df), 3)
-
-  # Test 6: File with tab separator
-  ResultsState <- OpenStats:::backend_result_state_V1_2$new(NULL)
-  ResultsState$bgp$in_backend <- TRUE
-  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
-  test_file <- tempfile()
-  writeLines("a\tb\tc\n1\t2\t3", test_file)
-  result <- OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState)
-  expect_equal(class(DataModelState$df), "data.frame")
-  expect_equal(nrow(DataModelState$df), 2)
-  expect_equal(ncol(DataModelState$df), 3)
-
-  # Test 7: File with invalid path
-  expect_error(OpenStats:::env_import_V1_2$read_data("nonexistent_file.csv"), "File does not exists")
-
-  # Test 8: Data exceeds row or column limits
-  test_file <- tempfile(fileext = ".csv")
-  write.csv(data.frame(matrix(1, nrow = 1e6 + 1, ncol = 2)), test_file, row.names = FALSE)
-  expect_error(OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState), "Data exceeds the limit of")
-
-  write.csv(data.frame(matrix(1, nrow = 10, ncol = 1001)), test_file, row.names = FALSE)
-  expect_error(OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState), "Data exceeds the limit of")
-
-  # Test 9: Empty file
-  test_file <- tempfile(fileext = ".csv")
-  write.csv(data.frame(), test_file, row.names = FALSE)
-  expect_error(
-    OpenStats:::env_import_V1_2$read_data(test_file, DataModelState, ResultsState),
-    "Could not identify the separator. Please upload a file with a known separator."
-  )
-
-  # Test 10: Non-character input for path
-  expect_error(OpenStats:::env_import_V1_2$read_data(123), "is.character")
-}
-test_readData()

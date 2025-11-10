@@ -2,7 +2,7 @@ df <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats")
 
 # Expected
 # =================================================================
-expected <- OpenStats:::env_lc_V1_2$ic50(
+expected <- OpenStats:::ic50(
   df, "abs", "conc",
   "names",
   FALSE, FALSE

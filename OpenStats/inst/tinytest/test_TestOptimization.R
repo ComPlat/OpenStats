@@ -12,7 +12,7 @@ test_create_formula <- function() {
   upper <- c(10, 10)
   seed <- 42
 
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, lower, upper, seed)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, lower, upper, seed)
   checks <- c()
   checks[[1]] <- expect_inherits(formula_obj, "OptimFormula")
   checks[[2]] <- expect_equal(formula_obj@parameter, c("a", "b"))
@@ -25,8 +25,8 @@ test_create_formula()
 
 test_loss_fn <- function() {
   f <- y ~ a * x + b
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
-  loss_fn <- OpenStats:::env_optim_V1_2$make_loss_fn_optim(formula_obj, df)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
+  loss_fn <- OpenStats:::make_loss_fn_optim(formula_obj, df)
   params <- c(a = 2, b = 5)
   checks <- c()
   loss <- loss_fn(params)
@@ -40,8 +40,8 @@ test_loss_fn()
 
 test_optimize <- function() {
   f <- y ~ a * x + b
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
-  result <- OpenStats:::env_optim_V1_2$optimize(formula_obj, df)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
+  result <- OpenStats:::optimize(formula_obj, df)
   checks <- c()
   checks[[1]] <- expect_inherits(result, "optimResult")
   checks[[2]] <- expect_true(result@convergence)
@@ -53,9 +53,9 @@ test_optimize()
 
 test_summary <- function() {
   f <- y ~ a * x + b
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
-  result <- OpenStats:::env_optim_V1_2$optimize(formula_obj, df)
-  summary <- OpenStats:::env_optim_V1_2$summary_model_optim(formula_obj, result)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
+  result <- OpenStats:::optimize(formula_obj, df)
+  summary <- OpenStats:::summary_model_optim(formula_obj, result)
   checks <- c()
   checks[[1]] <- expect_inherits(summary, "data.frame")
   checks[[2]] <- expect_equal(names(summary), c("a", "b"))
@@ -66,9 +66,9 @@ test_summary()
 
 test_ic <- function() {
   f <- y ~ a * x + b
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
-  result <- OpenStats:::env_optim_V1_2$optimize(formula_obj, df)
-  ic <- OpenStats:::env_optim_V1_2$information_criterion_optim(result)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
+  result <- OpenStats:::optimize(formula_obj, df)
+  ic <- OpenStats:::information_criterion_optim(result)
   checks <- c()
   checks[[1]] <- expect_inherits(ic, "data.frame")
   checks[[2]] <- expect_equal(names(ic), "Sum of Squared Errors (SSE)")
@@ -79,9 +79,9 @@ test_ic()
 
 test_plot <- function() {
   f <- y ~ a * x + b
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
-  result <- OpenStats:::env_optim_V1_2$optimize(formula_obj, df)
-  p <- OpenStats:::env_optim_V1_2$plot_model_optim(formula_obj, result)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
+  result <- OpenStats:::optimize(formula_obj, df)
+  p <- OpenStats:::plot_model_optim(formula_obj, result)
   checks <- c()
   checks[[1]] <- expect_inherits(p, "plot")
   checks[[2]] <- expect_true(!is.null(p@p))
@@ -91,9 +91,9 @@ test_plot()
 
 test_assumptions <- function() {
   f <- y ~ a * x + b
-  formula_obj <- OpenStats:::env_optim_V1_2$create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
-  result <- OpenStats:::env_optim_V1_2$optimize(formula_obj, df)
-  p <- OpenStats:::env_optim_V1_2$assumptions_optim(result)
+  formula_obj <- OpenStats:::create_formula_optim(f, df, c(0, 0), c(10, 10), 42)
+  result <- OpenStats:::optimize(formula_obj, df)
+  p <- OpenStats:::assumptions_optim(result)
   checks <- c()
   checks[[1]] <- expect_inherits(p, "plot")
   checks[[2]] <- expect_true(!is.null(p@p))

@@ -1,14 +1,15 @@
 env_plotting_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-env_plotting_V1_2$add_facet <- function(p, facetVar, facetMode, facetScales) {
+add_facet <- function(p, facetVar, facetMode, facetScales) {
   if (facetMode == "facet_wrap") {
     return(p + facet_wrap(. ~ .data[[facetVar]], scales = facetScales))
   } else if (facetMode == "facet_grid") {
     return(p + facet_grid(. ~ .data[[facetVar]], scales = facetScales))
   }
 }
+env_plotting_V1_2$add_facet <- add_facet
 
-env_plotting_V1_2$add_interval <- function(p, df, xCol, yCol, xMin, xMax, yMin, yMax) {
+add_interval <- function(p, df, xCol, yCol, xMin, xMax, yMin, yMax) {
   x <- df[ , xCol]
   y <- df[ , yCol]
   if (is.numeric(x)) {
@@ -29,8 +30,9 @@ env_plotting_V1_2$add_interval <- function(p, df, xCol, yCol, xMin, xMax, yMin, 
   }
   return(p)
 }
+env_plotting_V1_2$add_interval <- add_interval
 
-env_plotting_V1_2$boxplot_fct <- function(df, x, y, xLabel, yLabel,
+boxplot_fct <- function(df, x, y, xLabel, yLabel,
                        fillVar, legendTitleFill, fillTheme,
                        colourVar, legendTitleColour,
                        colourTheme, facetMode, facetVar, facetScales,
@@ -80,8 +82,9 @@ env_plotting_V1_2$boxplot_fct <- function(df, x, y, xLabel, yLabel,
   }
   return(p + theme(text = element_text(size = 20)))
 }
+env_plotting_V1_2$boxplot_fct <- boxplot_fct
 
-env_plotting_V1_2$dotplot_fct <- function(df, x, y, xLabel, yLabel,
+dotplot_fct <- function(df, x, y, xLabel, yLabel,
                         colourVar, legendTitleColour,
                         colourTheme, facetMode, facetVar, facetScales,
                         xMin, xMax, yMin, yMax) {
@@ -118,8 +121,9 @@ env_plotting_V1_2$dotplot_fct <- function(df, x, y, xLabel, yLabel,
   }
   return(p + theme(text = element_text(size = 20)))
 }
+env_plotting_V1_2$dotplot_fct <- dotplot_fct
 
-env_plotting_V1_2$lineplot_fct <- function(df, x, y, xLabel, yLabel,
+lineplot_fct <- function(df, x, y, xLabel, yLabel,
                         colourVar, legendTitleColour,
                         colourTheme, facetMode, facetVar, facetScales,
                         xMin, xMax, yMin, yMax) {
@@ -156,3 +160,4 @@ env_plotting_V1_2$lineplot_fct <- function(df, x, y, xLabel, yLabel,
   }
   return(p + theme(text = element_text(size = 20)))
 }
+env_plotting_V1_2$lineplot_fct <- lineplot_fct

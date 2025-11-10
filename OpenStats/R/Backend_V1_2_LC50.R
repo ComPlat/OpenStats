@@ -15,7 +15,7 @@ errorClass <- R6::R6Class("errorClass", # not exported via env_lc_V1_2 as engine
 )
 
 env_lc_V1_2 <- new.env(parent = getNamespace("OpenStats"))
-env_lc_V1_2$shapenumber <- function(num) {
+shapenumber <- function(num) {
   if (is.finite(num)) {
     res <- signif(num)
   } else {
@@ -23,10 +23,11 @@ env_lc_V1_2$shapenumber <- function(num) {
   }
   return(res)
 }
+env_lc_V1_2$shapenumber <- shapenumber
 
 # calculates the robust 68th percentile of the residuals
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
-env_lc_V1_2$robust_68_percentile <- function(residuals) {
+robust_68_percentile <- function(residuals) {
   res <- abs(residuals)
   res_sorted <- sort(res)
   res_percentiles <- (seq_len(length(res_sorted)) / length(res_sorted))
@@ -38,23 +39,25 @@ env_lc_V1_2$robust_68_percentile <- function(residuals) {
   y <- predict(m, as.data.frame(x))
   return(y)
 }
+env_lc_V1_2$robust_68_percentile <- robust_68_percentile
 
 # calculates the robust standard deviation of the residuals (RSDR)
 # with correction for degrees of freedom
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
 # robust_standard_deviation_residuals = env_lc_V1_2$rsdr
-env_lc_V1_2$rsdr <- function(residuals, number_of_coefficients_fitted) {
+rsdr <- function(residuals, number_of_coefficients_fitted) {
   resids <- as.numeric(residuals)
   resids <- na.omit(residuals)
   N <- length(resids)
   env_lc_V1_2$robust_68_percentile(residuals) *
     N / (N - number_of_coefficients_fitted)
 }
+env_lc_V1_2$rsdr <- rsdr
 
 # false discovery rate (FDR) approach,
 # returns a T/F vector for selection of valid data points
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
-env_lc_V1_2$false_discovery_rate <- function(res) {
+false_discovery_rate <- function(res) {
   N <- length(res)
   # Q=1%
   Q <- 0.01
@@ -74,8 +77,9 @@ env_lc_V1_2$false_discovery_rate <- function(res) {
   df2 <- df[order(df$id), ]
   return(df2$include)
 }
+env_lc_V1_2$false_discovery_rate <- false_discovery_rate
 
-env_lc_V1_2$check_fit <- function(model, min_conc, max_conc,
+check_fit <- function(model, min_conc, max_conc,
                       min_abs, max_abs, substance_name) {
   if (model$fit$convergence != TRUE) {
     return(errorClass$new(paste(
@@ -142,8 +146,9 @@ env_lc_V1_2$check_fit <- function(model, min_conc, max_conc,
   )
   return(outvar)
 }
+env_lc_V1_2$check_fit <- check_fit
 
-env_lc_V1_2$drawplot_only_raw_data <- function(df, abs_col, conc_col, title) {
+drawplot_only_raw_data <- function(df, abs_col, conc_col, title) {
   conc <- function() stop("Should never be called") # Please R CMD check
 
   data_measured <- data.frame(conc = df[, conc_col], abs = df[, abs_col])
@@ -161,8 +166,9 @@ env_lc_V1_2$drawplot_only_raw_data <- function(df, abs_col, conc_col, title) {
     ggtitle(title)
   return(p)
 }
+env_lc_V1_2$drawplot_only_raw_data <- drawplot_only_raw_data
 
-env_lc_V1_2$drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
+drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
                      IC50_relative, IC50_relative_lower, IC50_relative_higher,
                      islog_x, islog_y) {
 
@@ -220,8 +226,9 @@ env_lc_V1_2$drawplot <- function(df, abs_col, conc_col, model, valid_points, tit
   }
   return(p)
 }
+env_lc_V1_2$drawplot <- drawplot
 
-env_lc_V1_2$ic50_internal <- function(df, abs, conc,
+ic50_internal <- function(df, abs, conc,
                           title, islog_x, islog_y) {
   model <- drm(abs ~ conc,
     data = df, fct = LL.4(),
@@ -245,8 +252,9 @@ env_lc_V1_2$ic50_internal <- function(df, abs, conc,
   )
   return(list(res, p))
 }
+env_lc_V1_2$ic50_internal <- ic50_internal
 
-env_lc_V1_2$check_dr_df <- function(df, abs_col,
+check_dr_df <- function(df, abs_col,
                         conc_col, substance_name_col) {
   if (!is.character(df[, substance_name_col]) &&
     !is.factor(df[, substance_name_col])) {
@@ -261,8 +269,9 @@ env_lc_V1_2$check_dr_df <- function(df, abs_col,
   }
   return(NULL)
 }
+env_lc_V1_2$check_dr_df <- check_dr_df
 
-env_lc_V1_2$transform_conc_dr <- function(conc_col) {
+transform_conc_dr <- function(conc_col) {
   temp_conc <- as.numeric(conc_col)
   if (all(is.na(temp_conc))) {
     return(errorClass$new(
@@ -274,12 +283,13 @@ env_lc_V1_2$transform_conc_dr <- function(conc_col) {
   }
   return(temp_conc)
 }
+env_lc_V1_2$transform_conc_dr <- transform_conc_dr
 
 #' @examples
 #' path <- system.file("data", package = "MTT")
 #' df <- read.csv(paste0(path, "/ExampleData.txt"))
 #' ic50(df, "abs", "conc", "names", NULL, FALSE, FALSE)
-env_lc_V1_2$ic50 <- function(df, abs_col, conc_col,
+ic50 <- function(df, abs_col, conc_col,
                  substance_name_col,
                  islog_x, islog_y) {
   # Checks
@@ -327,3 +337,4 @@ env_lc_V1_2$ic50 <- function(df, abs_col, conc_col,
   }
   return(res)
 }
+env_lc_V1_2$ic50 <- ic50

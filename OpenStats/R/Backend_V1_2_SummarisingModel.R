@@ -1,13 +1,14 @@
 env_summarising_model_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-env_summarising_model_V1_2$determine_types <- function(vars, df) {
+determine_types <- function(vars, df) {
   vapply(vars, function(var) {
     classes <- class(df[, var])
     paste(classes, collapse = "")
   }, character(1))
 }
+env_summarising_model_V1_2$determine_types <- determine_types
 
-env_summarising_model_V1_2$create_new_numeric <- function(var, df, n = 100L, slicing = FALSE) {
+create_new_numeric <- function(var, df, n = 100L, slicing = FALSE) {
   data <- df[, var]
   data <- data[!is.na(data)]
   if (slicing) {
@@ -16,12 +17,14 @@ env_summarising_model_V1_2$create_new_numeric <- function(var, df, n = 100L, sli
     seq(min(data), max(data), length.out = n)
   }
 }
+env_summarising_model_V1_2$create_new_numeric <- create_new_numeric
 
-env_summarising_model_V1_2$create_new_non_numeric <- function(var, df) {
+create_new_non_numeric <- function(var, df) {
   unique(df[, var])
 }
+env_summarising_model_V1_2$create_new_non_numeric <- create_new_non_numeric
 
-env_summarising_model_V1_2$create_new_data <- function(formula, df, vars, n = 100L) {
+create_new_data <- function(formula, df, vars, n = 100L) {
   types <- env_summarising_model_V1_2$determine_types(vars, df)
   data <- Map(function(var, type, idx) {
     if (type == "numeric" || type == "integer") {
@@ -35,8 +38,9 @@ env_summarising_model_V1_2$create_new_data <- function(formula, df, vars, n = 10
   }, vars, types, seq_along(types))
   expand.grid(data, stringsAsFactors = FALSE)
 }
+env_summarising_model_V1_2$create_new_data <- create_new_data
 
-env_summarising_model_V1_2$get_predictions <- function(model, newdata, level = 0.95) {
+get_predictions <- function(model, newdata, level = 0.95) {
   pred <- predict(model, newdata, se.fit = TRUE)
 
   alpha <- 1 - level
@@ -49,12 +53,14 @@ env_summarising_model_V1_2$get_predictions <- function(model, newdata, level = 0
     conf.high = pred$fit + z * pred$se.fit
   )
 }
+env_summarising_model_V1_2$get_predictions <- get_predictions
 
-env_summarising_model_V1_2$add_y_lab_title <- function(p, ytitle) {
+add_y_lab_title <- function(p, ytitle) {
   p + labs(y = paste0("Predicted ", ytitle))
 }
+env_summarising_model_V1_2$add_y_lab_title <- add_y_lab_title
 
-env_summarising_model_V1_2$plot_one_pred <- function(pred_df, type, pred, response) {
+plot_one_pred <- function(pred_df, type, pred, response) {
   predicted <- function() stop("Should never be called") # Please R CMD check
   conf.low <- function() stop("Should never be called") # Please R CMD check
   conf.high <- function() stop("Should never be called") # Please R CMD check
@@ -76,7 +82,9 @@ env_summarising_model_V1_2$plot_one_pred <- function(pred_df, type, pred, respon
   }
   return(env_summarising_model_V1_2$add_y_lab_title(p, response))
 }
-env_summarising_model_V1_2$plot_two_pred <- function(pred_df, types, preds, response) {
+env_summarising_model_V1_2$plot_one_pred <- plot_one_pred
+
+plot_two_pred <- function(pred_df, types, preds, response) {
   predicted <- function() stop("Should never be called") # Please R CMD check
   conf.low <- function() stop("Should never be called") # Please R CMD check
   conf.high <- function() stop("Should never be called") # Please R CMD check
@@ -117,14 +125,18 @@ env_summarising_model_V1_2$plot_two_pred <- function(pred_df, types, preds, resp
   }
   return(env_summarising_model_V1_2$add_y_lab_title(p, response))
 }
-env_summarising_model_V1_2$plot_three_pred <- function(pred_df, types, preds, response) {
+env_summarising_model_V1_2$plot_two_pred <- plot_two_pred
+
+plot_three_pred <- function(pred_df, types, preds, response) {
   p <- env_summarising_model_V1_2$plot_two_pred(pred_df, types, preds, response)
   custom_labels <- function(value) {
     paste(preds[3], " = ", value)
   }
   p + facet_wrap(~ .data[[preds[3]]], labeller = as_labeller(custom_labels))
 }
-env_summarising_model_V1_2$plot_four_pred <- function(pred_df, types, preds, response) {
+env_summarising_model_V1_2$plot_three_pred <- plot_three_pred
+
+plot_four_pred <- function(pred_df, types, preds, response) {
   p <- env_summarising_model_V1_2$plot_two_pred(pred_df, types, preds, response)
   pred_df[, preds[3]] <- as.factor(pred_df[, preds[3]])
   pred_df[, preds[4]] <- as.factor(pred_df[, preds[4]])
@@ -134,8 +146,9 @@ env_summarising_model_V1_2$plot_four_pred <- function(pred_df, types, preds, res
     labeller = label_both
   )
 }
+env_summarising_model_V1_2$plot_four_pred <- plot_four_pred
 
-env_summarising_model_V1_2$trim_formula_predictors <- function(formula, max_predictors = 4) {
+trim_formula_predictors <- function(formula, max_predictors = 4) {
   f_split <- env_utils_V1_2$split_formula(formula)
   rhs_vars <- env_utils_V1_2$vars_rhs(f_split$right_site)
   if (length(rhs_vars) > max_predictors) {
@@ -146,12 +159,14 @@ env_summarising_model_V1_2$trim_formula_predictors <- function(formula, max_pred
   }
   return(formula)
 }
+env_summarising_model_V1_2$trim_formula_predictors <- trim_formula_predictors
 
-env_summarising_model_V1_2$add_theme_model_plot <- function(p) {
+add_theme_model_plot <- function(p) {
   p + theme(text = element_text(size = 20))
 }
+env_summarising_model_V1_2$add_theme_model_plot <- add_theme_model_plot
 
-env_summarising_model_V1_2$create_model_plot <- function(pred_df, types, predictors, response, r2_label) {
+create_model_plot <- function(pred_df, types, predictors, response, r2_label) {
   if(length(types) == 1) {
     return(
       env_summarising_model_V1_2$plot_one_pred(pred_df, types, predictors, response) + labs(caption = r2_label) |> env_summarising_model_V1_2$add_theme_model_plot()
@@ -175,8 +190,9 @@ env_summarising_model_V1_2$create_model_plot <- function(pred_df, types, predict
     )
   }
 }
+env_summarising_model_V1_2$create_model_plot <- create_model_plot
 
-env_summarising_model_V1_2$plot_pred_lm <- function(data, formula) {
+plot_pred_lm <- function(data, formula) {
   # How different types are handeled:
   # 1. First type defines the x axis:
   #   a. factor --> geom_point
@@ -212,8 +228,9 @@ env_summarising_model_V1_2$plot_pred_lm <- function(data, formula) {
   pred_df <- env_summarising_model_V1_2$get_predictions(model, new_data)
   env_summarising_model_V1_2$create_model_plot(pred_df, types, predictors, response, r2_label)
 }
+env_summarising_model_V1_2$plot_pred_lm <- plot_pred_lm
 
-env_summarising_model_V1_2$plot_pred_glm <- function(data, formula) {
+plot_pred_glm <- function(data, formula) {
   # How different types are handeled:
   # 1. First type defines the x axis:
   #   a. factor --> geom_point
@@ -252,8 +269,9 @@ env_summarising_model_V1_2$plot_pred_glm <- function(data, formula) {
   pred_df <- env_summarising_model_V1_2$get_predictions(model, new_data)
   env_summarising_model_V1_2$create_model_plot(pred_df, types, predictors, response, r2_label)
 }
+env_summarising_model_V1_2$plot_pred_glm <- plot_pred_glm
 
-env_summarising_model_V1_2$create_information_criterions <- function(model) {
+create_information_criterions <- function(model) {
   out <- data.frame(AIC = AIC(model), BIC = BIC(model))
   if (inherits(model, "glm")) {
     dispersion <- summary(model)$dispersion
@@ -261,11 +279,12 @@ env_summarising_model_V1_2$create_information_criterions <- function(model) {
   }
   return(out)
 }
+env_summarising_model_V1_2$create_information_criterions <- create_information_criterions
 
 
 # This offers the user the option to directly visualise the data based on a model
 # =================================================================================================
-env_summarising_model_V1_2$add_desired_layer <- function(p, layer) {
+add_desired_layer <- function(p, layer) {
   if (layer == "box") {
     p + geom_boxplot()
   } else if (layer == "dot") {
@@ -274,8 +293,9 @@ env_summarising_model_V1_2$add_desired_layer <- function(p, layer) {
     p + geom_line()
   }
 }
+env_summarising_model_V1_2$add_desired_layer <- add_desired_layer
 
-env_summarising_model_V1_2$plot_one <- function(df, type, pred, response, layer) {
+plot_one <- function(df, type, pred, response, layer) {
   aes <- NULL
   if (layer == "box") {
     aes <- aes(x = .data[[pred[1]]], y = .data[[response]], group = .data[[pred[1]]])
@@ -285,7 +305,9 @@ env_summarising_model_V1_2$plot_one <- function(df, type, pred, response, layer)
   p <- ggplot(data = df, aes(!!!aes))
   env_summarising_model_V1_2$add_desired_layer(p, layer)
 }
-env_summarising_model_V1_2$plot_two <- function(df, types, preds, response, layer) {
+env_summarising_model_V1_2$plot_one <- plot_one
+
+plot_two <- function(df, types, preds, response, layer) {
   aes <- NULL
   if (layer == "box") {
     aes <- aes(x = .data[[preds[1]]], y = .data[[response]],
@@ -298,14 +320,18 @@ env_summarising_model_V1_2$plot_two <- function(df, types, preds, response, laye
   p <- ggplot(data = df, aes(!!!aes))
   env_summarising_model_V1_2$add_desired_layer(p, layer)
 }
-env_summarising_model_V1_2$plot_three <- function(df, types, preds, response, layer) {
+env_summarising_model_V1_2$plot_two <- plot_two
+
+plot_three <- function(df, types, preds, response, layer) {
   p <- env_summarising_model_V1_2$plot_two(df, types, preds, response, layer)
   custom_labels <- function(value) {
     paste(preds[3], " = ", value)
   }
   p + facet_wrap(~ .data[[preds[3]]], labeller = as_labeller(custom_labels))
 }
-env_summarising_model_V1_2$plot_four <- function(df, types, preds, response, layer) {
+env_summarising_model_V1_2$plot_three <- plot_three
+
+plot_four <- function(df, types, preds, response, layer) {
   p <- env_summarising_model_V1_2$plot_two(df, types, preds, response, layer)
   df[, preds[3]] <- as.factor(df[, preds[3]])
   df[, preds[4]] <- as.factor(df[, preds[4]])
@@ -315,8 +341,9 @@ env_summarising_model_V1_2$plot_four <- function(df, types, preds, response, lay
     labeller = label_both
   )
 }
+env_summarising_model_V1_2$plot_four <- plot_four
 
-env_summarising_model_V1_2$plot_model <- function(data, formula, layer) {
+plot_model <- function(data, formula, layer) {
   formula <- formula@formula
   f_split <- env_utils_V1_2$split_formula(formula)
   predictors <- env_utils_V1_2$vars_rhs(f_split$right_site)
@@ -348,4 +375,4 @@ env_summarising_model_V1_2$plot_model <- function(data, formula, layer) {
     )
   }
 }
-
+env_summarising_model_V1_2$plot_model <- plot_model

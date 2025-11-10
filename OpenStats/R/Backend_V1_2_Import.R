@@ -1,20 +1,23 @@
 env_import_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-env_import_V1_2$identify_seperator <- function(path) {
+identify_seperator <- function(path) {
   line <- readLines(path, n = 1)
   if(grepl(";", line)) return(";")
   if(grepl("\t", line)) return("\t")
   if(grepl(",", line)) return(",")
   stop("Could not identify the separator. Please upload a file with a known separator.")
 }
+env_import_V1_2$identify_seperator <- identify_seperator
 
-env_import_V1_2$trim_outer_quotes <- function(v) {
+trim_outer_quotes <- function(v) {
   sapply(v, function(x) {
     if (x == "") return("")
     sub('^"(.*)"$', '\\1', x)
   })
 }
-env_import_V1_2$cast_types_cols <- function(df, excel = FALSE) {
+env_import_V1_2$trim_outer_quotes <- trim_outer_quotes
+
+cast_types_cols <- function(df, excel = FALSE) {
   f <- function(x) {
     options(warn = -1)
     x <- as.numeric(x)
@@ -33,12 +36,14 @@ env_import_V1_2$cast_types_cols <- function(df, excel = FALSE) {
   df <- Map(conv, check, df)
   data.frame(df)
 }
+env_import_V1_2$cast_types_cols <- cast_types_cols
 
-env_import_V1_2$is_separator <- function(c) {
+is_separator <- function(c) {
   all(is.na(c))
 }
+env_import_V1_2$is_separator <- is_separator
 
-env_import_V1_2$scan_rows_or_cols <- function(df, rows = TRUE) {
+scan_rows_or_cols <- function(df, rows = TRUE) {
   dim_fct <- nrow
   if (!rows) dim_fct <- ncol
 
@@ -84,15 +89,17 @@ env_import_V1_2$scan_rows_or_cols <- function(df, rows = TRUE) {
   }
   find_indices(df)
 }
+env_import_V1_2$scan_rows_or_cols <- scan_rows_or_cols
 
-env_import_V1_2$find_sub_tables <- function(rows, cols, df) {
+find_sub_tables <- function(rows, cols, df) {
   if (length(cols) > 1) return(TRUE)
   if (length(rows) > 1) return(TRUE)
   dims <- c(rows[[1]]$end, cols[[1]]$end)
   !all(dims == dim(df))
 }
+env_import_V1_2$find_sub_tables <- find_sub_tables
 
-env_import_V1_2$extract_tables <- function(env_tables, df, excel = FALSE) {
+extract_tables <- function(env_tables, df, excel = FALSE) {
   cols <- env_import_V1_2$scan_rows_or_cols(df, FALSE)
   tables <- list()
   for (cs in seq_along(cols)) {
@@ -107,11 +114,12 @@ env_import_V1_2$extract_tables <- function(env_tables, df, excel = FALSE) {
     return()
   }
   tables <- lapply(tables, \(x) {
-    env_import_V1_2$extract_tables(env_tables, x, excel)
+    extract_tables(env_tables, x, excel)
   })
 }
+env_import_V1_2$extract_tables <- extract_tables
 
-env_import_V1_2$convert_to_dfs <- function(tables, excel = FALSE) {
+convert_to_dfs <- function(tables, excel = FALSE) {
   tables <- lapply(tables, function(x) {
     if (nrow(x) > 2) {
       temp <- x[2:nrow(x), ]
@@ -128,8 +136,9 @@ env_import_V1_2$convert_to_dfs <- function(tables, excel = FALSE) {
     env_import_V1_2$cast_types_cols(x, excel)
   })
 }
+env_import_V1_2$convert_to_dfs <- convert_to_dfs
 
-env_import_V1_2$read_data_excel <- function(path) {
+read_data_excel <- function(path) {
   sheets <- readxl::excel_sheets(path)
   res <- list()
   for (s in sheets) {
@@ -147,8 +156,9 @@ env_import_V1_2$read_data_excel <- function(path) {
   }
   res
 }
+env_import_V1_2$read_data_excel <- read_data_excel
 
-env_import_V1_2$read_raw <- function(path) {
+read_raw <- function(path) {
   sep <- env_import_V1_2$identify_seperator(path)
   raw_content <- readLines(path)
   raw_content <- lapply(raw_content, function(r){
@@ -164,16 +174,18 @@ env_import_V1_2$read_raw <- function(path) {
   raw_df <- do.call(rbind, raw_content)
   as.data.frame(raw_df, stringsAsFactors = FALSE)
 }
+env_import_V1_2$read_raw <- read_raw
 
-env_import_V1_2$read_data_csv <- function(path) {
+read_data_csv <- function(path) {
   tables <- env_import_V1_2$read_raw(path)
   env_tables <- new.env(parent = emptyenv())
   env_tables$tables <- list()
   env_import_V1_2$extract_tables(env_tables, tables, FALSE)
   env_import_V1_2$convert_to_dfs(env_tables$tables, FALSE)
 }
+env_import_V1_2$read_data_csv <- read_data_csv
 
-env_import_V1_2$read_data <- function(path, DataModelState, ResultsState) {
+read_data <- function(path, DataModelState, ResultsState) {
   stopifnot(is.character(path))
   if (!file.exists(path)) stop("File does not exists")
   max_file_size <- 50 * 1024^2 # 50 MB in bytes
@@ -211,3 +223,4 @@ env_import_V1_2$read_data <- function(path, DataModelState, ResultsState) {
     ))
   }
 }
+env_import_V1_2$read_data <- read_data

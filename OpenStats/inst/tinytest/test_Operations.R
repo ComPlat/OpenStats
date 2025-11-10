@@ -101,101 +101,101 @@ test_Max()
 # =======================================================================================
 test_Rnorm <- function() {
   # Test 1: Basic functionality for env_operations_V1_2$Rnorm
-  result <- OpenStats:::env_operations_V1_2$Rnorm(10)
+  result <- OpenStats:::Rnorm(10)
   expect_equal(
     length(result), 10, info = "OpenStats:::env_operations_V1_2$Rnorm should generate 10 random values"
   )
   # Test 2: Large sequence
-  expect_error(OpenStats:::env_operations_V1_2$Rnorm(10^9), "The size of the sequence is too large", 
+  expect_error(OpenStats:::Rnorm(10^9), "The size of the sequence is too large", 
                info = "OpenStats:::env_operations_V1_2$Rnorm should throw an error if the sequence exceeds the size limit"
   )
   # Test 3: Non-integer `n`
-  result <- OpenStats:::env_operations_V1_2$Rnorm(10.7)
+  result <- OpenStats:::Rnorm(10.7)
   expect_equal(length(result), 10, info = "OpenStats:::env_operations_V1_2$Rnorm should round down non-integer `n` values to integers"
   )
   # Test 4: Edge case: `n` is length of input
   expect_error(
-    OpenStats:::env_operations_V1_2$Rnorm(c(1, 2, 3, 4, 5)),
+    OpenStats:::Rnorm(c(1, 2, 3, 4, 5)),
     info = "OpenStats:::env_operations_V1_2$Rnorm should throw an error if a vector with length > 1 is used for n"
   )
   # Test 5: Edge case: `n` is a dataframe
   expect_error(
-    OpenStats:::env_operations_V1_2$Rnorm(data.frame(x = 1)),
+    OpenStats:::Rnorm(data.frame(x = 1)),
     info = "OpenStats:::env_operations_V1_2$Rnorm should throw an error if a vector with length > 1 is used for n"
   )
 }
 test_Rbinom <- function() {
   # Test 1: Basic functionality for env_operations_V1_2$Rbinom
-  result <- OpenStats:::env_operations_V1_2$Rbinom(10, 1, 0.1)
+  result <- OpenStats:::Rbinom(10, 1, 0.1)
   expect_equal(
     length(result), 10, info = "OpenStats:::env_operations_V1_2$Rbinom should generate 10 random values"
   )
   # Test 2: Large sequence
-  expect_error(OpenStats:::env_operations_V1_2$Rbinom(10^9, 1, 0.1), "The size of the sequence is too large", 
+  expect_error(OpenStats:::Rbinom(10^9, 1, 0.1), "The size of the sequence is too large", 
                info = "OpenStats:::env_operations_V1_2$Rbinom should throw an error if the sequence exceeds the size limit"
   )
   # Test 3: Non-integer `n`
-  result <- OpenStats:::env_operations_V1_2$Rbinom(10.7, 1, 0.1)
+  result <- OpenStats:::Rbinom(10.7, 1, 0.1)
   expect_equal(length(result), 10, info = "OpenStats:::env_operations_V1_2$Rbinom should round down non-integer `n` values to integers"
   )
   # Test 4: Edge case: `n` is length of input
   expect_error(
-    OpenStats:::env_operations_V1_2$Rbinom(c(1, 2, 3, 4, 5), 1, 0.1),
+    OpenStats:::Rbinom(c(1, 2, 3, 4, 5), 1, 0.1),
     info = "OpenStats:::env_operations_V1_2$Rbinom should throw an error if a vector with length > 1 is used for n"
   )
   # Test 5: Edge case: `n` is a dataframe
   expect_error(
-    OpenStats:::env_operations_V1_2$Rbinom(data.frame(x = 1)),
+    OpenStats:::Rbinom(data.frame(x = 1)),
     info = "OpenStats:::env_operations_V1_2$Rbinom should throw an error if a vector with length > 1 is used for n"
   )
 }
 test_Rpois <- function() {
   # Test 1: Basic functionality for Rpois
-  result <- OpenStats:::env_operations_V1_2$Rpois(10, 1)
+  result <- OpenStats:::Rpois(10, 1)
   expect_equal(
     length(result), 10, info = "OpenStats:::env_operations_V1_2$Rpois should generate 10 random values"
   )
   # Test 2: Large sequence
-  expect_error(OpenStats:::env_operations_V1_2$Rpois(10^9, 1), "The size of the sequence is too large", 
+  expect_error(OpenStats:::Rpois(10^9, 1), "The size of the sequence is too large", 
                info = "OpenStats:::env_operations_V1_2$Rpois should throw an error if the sequence exceeds the size limit"
   )
   # Test 3: Non-integer `n`
-  result <- OpenStats:::env_operations_V1_2$Rpois(10.7, 1)
+  result <- OpenStats:::Rpois(10.7, 1)
   expect_equal(length(result), 10, info = "OpenStats:::env_operations_V1_2$Rpois should round down non-integer `n` values to integers"
   )
   # Test 4: Edge case: `n` is length of input
   expect_error(
-    OpenStats:::env_operations_V1_2$Rpois(c(1, 2, 3, 4, 5), 1),
+    OpenStats:::Rpois(c(1, 2, 3, 4, 5), 1),
     info = "OpenStats:::env_operations_V1_2$Rpois should throw an error if a vector with length > 1 is used for n"
   )
   # Test 5: Edge case: `n` is a dataframe
   expect_error(
-    OpenStats:::env_operations_V1_2$Rpois(data.frame(x = 1)),
+    OpenStats:::Rpois(data.frame(x = 1)),
     info = "OpenStats:::env_operations_V1_2$Rpois should throw an error if a vector with length > 1 is used for n"
   )
 }
 test_Runif <- function() {
   # Test 1: Basic functionality for env_operations_V1_2$Runif
-  result <- OpenStats:::env_operations_V1_2$Runif(10)
+  result <- OpenStats:::Runif(10)
   expect_equal(
     length(result), 10, info = "OpenStats:::env_operations_V1_2$Runif should generate 10 random values"
   )
   # Test 2: Large sequence
-  expect_error(OpenStats:::env_operations_V1_2$Runif(10^9), "The size of the sequence is too large", 
+  expect_error(OpenStats:::Runif(10^9), "The size of the sequence is too large", 
                info = "OpenStats:::env_operations_V1_2$Runif should throw an error if the sequence exceeds the size limit"
   )
   # Test 3: Non-integer `n`
-  result <- OpenStats:::env_operations_V1_2$Runif(10.7)
+  result <- OpenStats:::Runif(10.7)
   expect_equal(length(result), 10, info = "OpenStats:::env_operations_V1_2$Runif should round down non-integer `n` values to integers"
   )
   # Test 4: Edge case: `n` is length of input
   expect_error(
-    OpenStats:::env_operations_V1_2$Runif(c(1, 2, 3, 4, 5)),
+    OpenStats:::Runif(c(1, 2, 3, 4, 5)),
     info = "OpenStats:::env_operations_V1_2$Runif should throw an error if a vector with length > 1 is used for n"
   )
   # Test 5: Edge case: `n` is a dataframe
   expect_error(
-    OpenStats:::env_operations_V1_2$Runif(data.frame(x = 1)),
+    OpenStats:::Runif(data.frame(x = 1)),
     info = "OpenStats:::env_operations_V1_2$Runif should throw an error if a vector with length > 1 is used for n"
   )
 }
@@ -214,14 +214,14 @@ test_Seq <- function() {
   end <- 10
   by <- 2
   expected_result <- seq(1, 10, by = 2)
-  result <- OpenStats:::env_operations_V1_2$Seq(start, end, by)
+  result <- OpenStats:::Seq(start, end, by)
   expect_equal(
     result, expected_result, info = "OpenStats:::env_operations_V1_2$Seq should generate a sequence from start to end with the given step size"
   )
   # Test 2: Large sequence
   # Here, we'll make a sequence that exceeds the 100MB limit
   expect_error(
-    OpenStats:::env_operations_V1_2$Seq(1, 10^8, 1), "The size of the sequence is too large", 
+    OpenStats:::Seq(1, 10^8, 1), "The size of the sequence is too large", 
                info = "OpenStats:::env_operations_V1_2$Seq should throw an error if the sequence exceeds the size limit"
   )
   # Test 3: Negative step size
@@ -229,7 +229,7 @@ test_Seq <- function() {
   end <- 1
   by <- -2
   expected_result <- seq(10, 1, by = -2)
-  result <- OpenStats:::env_operations_V1_2$Seq(start, end, by)
+  result <- OpenStats:::Seq(start, end, by)
   expect_equal(
     result, expected_result, info = "OpenStats:::env_operations_V1_2$Seq should handle negative step sizes correctly"
   )
@@ -238,7 +238,7 @@ test_Seq <- function() {
   end <- 10
   by <- 2
   expected_length <- 5  # The sequence should have 5 elements: 1, 3, 5, 7, 9
-  result <- OpenStats:::env_operations_V1_2$Seq(start, end, by)
+  result <- OpenStats:::Seq(start, end, by)
   expect_equal(
     length(result), expected_length, info = "OpenStats:::env_operations_V1_2$Seq should generate the correct number of elements"
   )
@@ -247,7 +247,7 @@ test_Seq <- function() {
   end <- 5
   by <- 1
   expected_result <- seq(5, 5, by = 1)  # The sequence will just be [5]
-  result <- OpenStats:::env_operations_V1_2$Seq(start, end, by)
+  result <- OpenStats:::Seq(start, end, by)
   expect_equal(
     result, expected_result, info = "OpenStats:::env_operations_V1_2$Seq should handle the case where start equals end"
   )
@@ -261,7 +261,7 @@ test_DataFrame <- function() {
   col1 <- c(1, 2, 3)
   col2 <- c("A", "B", "C")
   expected_result <- data.frame(col1 = as.character(c(1, 2, 3)), col2 = c("A", "B", "C"))
-  result <- OpenStats:::env_operations_V1_2$DataFrame(col1, col2)
+  result <- OpenStats:::DataFrame(col1, col2)
   expect_equal(
     result, expected_result, info = "OpenStats:::DataFrame should create a data frame from two vectors"
   )
@@ -269,20 +269,20 @@ test_DataFrame <- function() {
   col1 <- c("1", "2", "3")
   col2 <- c()
   expect_error(
-    OpenStats:::env_operations_V1_2$DataFrame(col1, col2), "Found empty column", 
+    OpenStats:::DataFrame(col1, col2), "Found empty column", 
                info = "OpenStats:::env_operations_V1_2$DataFrame should throw an error if a column is empty"
   )
   # Test 3: OpenStats:::Data frame size limit test
   large_col <- rep(1, 10^8)
   expect_error(
-    OpenStats:::env_operations_V1_2$DataFrame(large_col, large_col), "The total size of the data frame is too large",
+    OpenStats:::DataFrame(large_col, large_col), "The total size of the data frame is too large",
                info = "OpenStats:::env_operations_V1_2$DataFrame should throw an error if the total size exceeds 100MB"
   )
   # Test 4: Column name handling
   col1 <- c(1, 2, 3)
   col2 <- c("A", "B", "C")
   expected_names <- c("col1", "col2")
-  result <- OpenStats:::env_operations_V1_2$DataFrame(col1, col2)
+  result <- OpenStats:::DataFrame(col1, col2)
   expect_equal(
     names(result), expected_names, info = "OpenStats:::env_operations_V1_2$DataFrame should use the variable names as column names"
   )
@@ -290,7 +290,7 @@ test_DataFrame <- function() {
   col1 <- c(1, 2)
   col2 <- c("A", "B", "C")
   expected_result <- data.frame(col1 = c("1", "2", "1"), col2 = c("A", "B", "C"))
-  result <- OpenStats:::env_operations_V1_2$DataFrame(col1, col2)
+  result <- OpenStats:::DataFrame(col1, col2)
   expect_equal(
     result, expected_result, info = "OpenStats:::env_operations_V1_2$DataFrame should elongate shorter columns to match the longest column"
   )
@@ -308,21 +308,21 @@ test_get_rows <- function() {
   )
 
   # Test valid cases
-  result <- OpenStats:::env_operations_V1_2$get_rows(df, df$A > 2)
+  result <- OpenStats:::get_rows(df, df$A > 2)
   expect_equal(
     result,
     subset(df, A > 2),
     info = "OpenStats:::get_rows should correctly filter rows where A > 2"
   )
 
-  result_mult_cond <- OpenStats:::env_operations_V1_2$get_rows(df, df$A > 2 & df$B < 8)
+  result_mult_cond <- OpenStats:::get_rows(df, df$A > 2 & df$B < 8)
   expect_equal(
     result_mult_cond,
     subset(df, A > 2 & B < 8),
     info = "OpenStats:::get_rows should correctly filter rows with multiple conditions"
   )
 
-  result_char <- OpenStats:::env_operations_V1_2$get_rows(df, df$C == "x")
+  result_char <- OpenStats:::get_rows(df, df$C == "x")
   expect_equal(
     result_char,
     subset(df, C == "x"),
@@ -330,7 +330,7 @@ test_get_rows <- function() {
   )
 
   # Test empty result
-  result_empty <- OpenStats:::env_operations_V1_2$get_rows(df, df$A > 10)
+  result_empty <- OpenStats:::get_rows(df, df$A > 10)
   expect_equal(
     result_empty,
     subset(df, A > 10),
@@ -339,7 +339,7 @@ test_get_rows <- function() {
 
   # Edge cases
   empty_df <- data.frame(A = numeric(), B = numeric())
-  result_empty_df <- OpenStats:::env_operations_V1_2$get_rows(empty_df, empty_df$A > 0)
+  result_empty_df <- OpenStats:::get_rows(empty_df, empty_df$A > 0)
   expect_equal(
     result_empty_df,
     subset(empty_df, A > 0),
@@ -348,7 +348,7 @@ test_get_rows <- function() {
 
   # Test error cases
   expect_error(
-    OpenStats:::env_operations_V1_2$get_rows(42, dfA > 2),
+    OpenStats:::get_rows(42, dfA > 2),
     info = "OpenStats:::get_rows should throw an error when input is not a data frame"
   )
 }
@@ -365,14 +365,14 @@ test_get_cols <- function() {
   )
 
   # Test valid cases
-  result <- OpenStats:::env_operations_V1_2$get_cols(df, A, B)
+  result <- OpenStats:::get_cols(df, A, B)
   expect_equal(
     result,
     df[, c("A", "B")],
     info = "get_cols should return the correct subset of columns"
   )
  
-  result_single <- OpenStats:::env_operations_V1_2$get_cols(df, C)
+  result_single <- OpenStats:::get_cols(df, C)
   expect_equal(
     result_single,
     df[, "C", drop = TRUE],
@@ -380,7 +380,7 @@ test_get_cols <- function() {
   )
 
   # Test with all columns
-  result_all <- OpenStats:::env_operations_V1_2$get_cols(df, A, B, C)
+  result_all <- OpenStats:::get_cols(df, A, B, C)
   expect_equal(
     result_all,
     df,
@@ -388,7 +388,7 @@ test_get_cols <- function() {
   )
 
   # Test with reordered columns
-  result_reordered <- OpenStats:::env_operations_V1_2$get_cols(df, C, A)
+  result_reordered <- OpenStats:::get_cols(df, C, A)
   expect_equal(
     result_reordered,
     df[, c("C", "A")],
@@ -397,27 +397,27 @@ test_get_cols <- function() {
 
   # Test error cases
   expect_error(
-    OpenStats:::env_operations_V1_2$get_cols(df, D),
+    OpenStats:::get_cols(df, D),
     info = "get_cols should throw an error when a non-existent column is requested"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_cols(df),
+    OpenStats:::get_cols(df),
     info = "get_cols should throw an error when no columns are specified"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_cols(42, A),
+    OpenStats:::get_cols(42, A),
     info = "get_cols should throw an error when the input is not a data frame"
   )
 
   # Edge cases
   empty_df <- data.frame()
   expect_error(
-    OpenStats:::env_operations_V1_2$get_cols(empty_df, A),
+    OpenStats:::get_cols(empty_df, A),
     info = "get_cols should throw an error when accessing a column in an empty data frame"
   )
 
   single_col_df <- data.frame(A = c(1, 2, 3))
-  result_single_col <- OpenStats:::env_operations_V1_2$get_cols(single_col_df, A)
+  result_single_col <- OpenStats:::get_cols(single_col_df, A)
   expect_equal(
     result_single_col,
     single_col_df[, 1],
@@ -439,64 +439,64 @@ test_get_elem <- function() {
 
   # Test valid cases for data frame
   expect_equal(
-    OpenStats:::env_operations_V1_2$get_elem(df, 2, 1),
+    OpenStats:::get_elem(df, 2, 1),
     df[2, 1],
     info = "get_elem should return the correct element for data frame with row and column indices"
   )
   expect_equal(
-    OpenStats:::env_operations_V1_2$get_elem(df, 3, 2),
+    OpenStats:::get_elem(df, 3, 2),
     df[3, 2],
     info = "get_elem should return the correct element for another valid data frame case"
   )
 
   # Test valid cases for vector
   expect_equal(
-    OpenStats:::env_operations_V1_2$get_elem(vec, 3),
+    OpenStats:::get_elem(vec, 3),
     vec[3],
     info = "get_elem should return the correct element for vector with a single index"
   )
   expect_equal(
-    OpenStats:::env_operations_V1_2$get_elem(vec, 1),
+    OpenStats:::get_elem(vec, 1),
     vec[1],
     info = "get_elem should work with another valid index for vector"
   )
 
   # Test error cases
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(df, 1),
+    OpenStats:::get_elem(df, 1),
     info = "get_elem should throw an error when only one index is provided for a data frame"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(vec, 1, 2),
+    OpenStats:::get_elem(vec, 1, 2),
     info = "get_elem should throw an error when two indices are provided for a vector"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(df, "row", "col"),
+    OpenStats:::get_elem(df, "row", "col"),
     info = "get_elem should throw an error when non-numeric indices are provided for a data frame"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(vec, "index"),
+    OpenStats:::get_elem(vec, "index"),
     info = "get_elem should throw an error when non-numeric index is provided for a vector"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(df, 2, 1, 3),
+    OpenStats:::get_elem(df, 2, 1, 3),
     info = "get_elem should throw an error when more than two indices are provided"
   )
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(vec),
+    OpenStats:::get_elem(vec),
     info = "get_elem should throw an error when no index is provided"
   )
 
   # Test edge cases
   empty_df <- data.frame()
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(empty_df, 1, 1),
+    OpenStats:::get_elem(empty_df, 1, 1),
     info = "get_elem should throw an error when accessing an element in an empty data frame"
   )
 
   empty_vec <- numeric()
   expect_error(
-    OpenStats:::env_operations_V1_2$get_elem(empty_vec, 1),
+    OpenStats:::get_elem(empty_vec, 1),
     info = "get_elem should throw an error when accessing an element in an empty vector"
   )
 }

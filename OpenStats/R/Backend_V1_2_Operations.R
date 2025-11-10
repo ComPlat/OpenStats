@@ -1,6 +1,6 @@
 env_operations_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-env_operations_V1_2$get_elem <- function(df, ...) {
+get_elem <- function(df, ...) {
   stopifnot("Expected dataframe or vector" = is.data.frame(df) || is.vector(df))
   s <- substitute(list(...))
   args <- as.list(s[-1])
@@ -31,8 +31,9 @@ env_operations_V1_2$get_elem <- function(df, ...) {
     return(res)
   }
 }
+env_operations_V1_2$get_elem <- get_elem
 
-env_operations_V1_2$get_cols <- function(df, ...) {
+get_cols <- function(df, ...) {
   stopifnot("Expected dataframe" = is.data.frame(df))
   s <- substitute(list(...))
   args <- as.list(s[-1])
@@ -44,11 +45,13 @@ env_operations_V1_2$get_cols <- function(df, ...) {
   args <- as.character(args)
   df[, args]
 }
+env_operations_V1_2$get_cols <- get_cols
 
-env_operations_V1_2$get_rows <- function(df, expr) {
+get_rows <- function(df, expr) {
   stopifnot("Expected dataframe" = is.data.frame(df))
   subset(df, expr)
 }
+env_operations_V1_2$get_rows <- get_rows
 
 # nocov start own helper
 env_operations_V1_2$Mean <- function(x) {
@@ -95,7 +98,7 @@ env_operations_V1_2$Max <- function(x) {
 # nocov end own helper
 
 # TODO: for a later update keep the type of the original cols
-env_operations_V1_2$DataFrame <- function(...) {
+DataFrame <- function(...) {
   columns <- list(...)
   s <- substitute(list(...))
   args <- as.list(s[-1])
@@ -121,8 +124,9 @@ env_operations_V1_2$DataFrame <- function(...) {
   names(df) <- args
   return(df)
 }
+env_operations_V1_2$DataFrame <- DataFrame
 
-env_operations_V1_2$Seq <- function(...) {
+Seq <- function(...) {
   args <- list(...)
   start <- args[[1]]
   end <- args[[2]]
@@ -134,6 +138,7 @@ env_operations_V1_2$Seq <- function(...) {
   }
   return(seq(start, end, by))
 }
+env_operations_V1_2$Seq <- Seq
 
 # nocov start own helper
 env_operations_V1_2$C <- function(...) {
@@ -150,7 +155,7 @@ env_operations_V1_2$Qnorm <- function(...) {
 }
 # nocov end own helper
 
-env_operations_V1_2$Rnorm <- function(...) {
+Rnorm <- function(...) {
   args <- list(...)
   n <- args[[1]]
   if (length(n) > 1) stop("Length of size input to Rnorm > 1")
@@ -166,6 +171,7 @@ env_operations_V1_2$Rnorm <- function(...) {
   }
   rnorm(...)
 }
+env_operations_V1_2$Rnorm <- Rnorm
 
 # nocov start own helper
 env_operations_V1_2$Dbinom <- function(...) {
@@ -179,7 +185,7 @@ env_operations_V1_2$Qbinom <- function(...) {
 }
 # nocov end own helper
 
-env_operations_V1_2$Rbinom <- function(...) {
+Rbinom <- function(...) {
   args <- list(...)
   n <- args[[1]]
   if (length(n) > 1) stop("Length of size input to Rbinom > 1")
@@ -195,6 +201,7 @@ env_operations_V1_2$Rbinom <- function(...) {
   }
   rbinom(...)
 }
+env_operations_V1_2$Rbinom <- Rbinom
 
 # nocov start own helper
 env_operations_V1_2$Dpois <- function(...) {
@@ -205,7 +212,7 @@ env_operations_V1_2$Ppois <- function(...) {
 }
 # nocov end own helper
 
-env_operations_V1_2$Rpois <- function(...) {
+Rpois <- function(...) {
   args <- list(...)
   n <- args[[1]]
   if (length(n) > 1) stop("Length of size input to Rpois > 1")
@@ -221,6 +228,7 @@ env_operations_V1_2$Rpois <- function(...) {
   }
   rpois(...)
 }
+env_operations_V1_2$Rpois <- Rpois
 
 # nocov start own helper
 env_operations_V1_2$Dunif <- function(...) {
@@ -234,7 +242,7 @@ env_operations_V1_2$Qunif <- function(...) {
 }
 # nocov end own helper
 
-env_operations_V1_2$Runif <- function(...) {
+Runif <- function(...) {
   args <- list(...)
   n <- args[[1]]
   if (length(n) > 1) stop("Length of size input to Runif > 1")
@@ -250,6 +258,7 @@ env_operations_V1_2$Runif <- function(...) {
   }
   runif(...)
 }
+env_operations_V1_2$Runif <- Runif
 
 # nocov start own helper
 create_run_env <- function() {

@@ -3,15 +3,16 @@ env_optim_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
 # Run optimization
 # ====================================================================================
-env_optim_V1_2$add_theme_optim <- function(p) {
+add_theme_optim <- function(p) {
   p + theme(
     plot.caption = element_text(hjust = 0),
     text = element_text(size = 20),
     axis.text.x = element_text(angle = 45, hjust = 1, size = 14)
   )
 }
+env_optim_V1_2$add_theme_optim <- add_theme_optim
 
-env_optim_V1_2$create_formula_optim <- function(formula, df, lower, upper, seed) {
+create_formula_optim <- function(formula, df, lower, upper, seed) {
   rhs <- as.character(formula)[3] |> str2lang()
   lhs <- as.character(formula)[2]
   vars <- all.vars(rhs)
@@ -25,7 +26,9 @@ env_optim_V1_2$create_formula_optim <- function(formula, df, lower, upper, seed)
     lower = lower, upper = upper, seed = seed
   )
 }
-env_optim_V1_2$make_loss_fn_optim <- function(formula, df) {
+env_optim_V1_2$create_formula_optim <- create_formula_optim
+
+make_loss_fn_optim <- function(formula, df) {
   params <- formula@parameter
   lhs <- formula@lhs
   rhs <- formula@rhs
@@ -42,22 +45,25 @@ env_optim_V1_2$make_loss_fn_optim <- function(formula, df) {
     sum((actual - pred)^2)
   }
 }
+env_optim_V1_2$make_loss_fn_optim <- make_loss_fn_optim
 
-env_optim_V1_2$find_start_optim <- function(loss_fn, params_len, lower_boundary, upper_boundary) {
+find_start_optim <- function(loss_fn, params_len, lower_boundary, upper_boundary) {
   space <- matrix(0, ncol = params_len, nrow = 400) # NOTE: adapt if required
   for (i in seq_len(nrow(space))) {
     space[i, ] <- runif(ncol(space), min = lower_boundary, max = upper_boundary)
   }
   space[which.min(apply(space, 1, loss_fn)), ]
 }
+env_optim_V1_2$find_start_optim <- find_start_optim
 
-env_optim_V1_2$determine_pred_variable_optim <- function(formula, df) {
+determine_pred_variable_optim <- function(formula, df) {
   rhs_vars <- all.vars(formula@rhs)
   x_candidates <- intersect(rhs_vars, names(df))
   setdiff(x_candidates, formula@lhs)
 }
+env_optim_V1_2$determine_pred_variable_optim <- determine_pred_variable_optim
 
-env_optim_V1_2$predict_optim <- function(opti_params, loss_fn, df, x_vars, y_var) {
+predict_optim <- function(opti_params, loss_fn, df, x_vars, y_var) {
   pred <- loss_fn(opti_params$par, error_calc = FALSE)
   xdata <- do.call(paste, c(
     lapply(df[x_vars], function(v) {
@@ -70,16 +76,18 @@ env_optim_V1_2$predict_optim <- function(opti_params, loss_fn, df, x_vars, y_var
     group = c(rep("Original", nrow(df)), rep("Predicted", nrow(df)))
   )
 }
+env_optim_V1_2$predict_optim <- predict_optim
 
-env_optim_V1_2$calc_r2_optim <- function(df, lhs) {
+calc_r2_optim <- function(df, lhs) {
   pred <- df[df$group == "Predicted", "y"]
   actual <- df[df$group == "Original", "y"]
   r2 <- 1 - sum((actual - pred)^2) / sum((actual - mean(actual))^2)
   r2_label <- sprintf("R^2 = %.3f", r2)
   r2_label
 }
+env_optim_V1_2$calc_r2_optim <- calc_r2_optim
 
-env_optim_V1_2$calc_formula_optim <- function(params, formula) {
+calc_formula_optim <- function(params, formula) {
   f <- formula@formula
   names <- formula@parameter
   params_list <- as.list(params)
@@ -87,13 +95,15 @@ env_optim_V1_2$calc_formula_optim <- function(params, formula) {
   f <- eval(substitute(substitute(FORM, params_list), list(FORM = f)))
   deparse(f)
 }
+env_optim_V1_2$calc_formula_optim <- calc_formula_optim
 
-env_optim_V1_2$check_seed_optim <- function(seed) {
+check_seed_optim <- function(seed) {
   if (!is.numeric(seed)) stop("Seed has to be numeric")
   if (floor(seed) != seed) stop("Seed has to be an integer")
 }
+env_optim_V1_2$check_seed_optim <- check_seed_optim
 
-env_optim_V1_2$optimize <- function(formula, df) {
+optimize <- function(formula, df) {
   lhs <- formula@lhs
   params <- formula@parameter
   env_optim_V1_2$check_seed_optim(formula@seed)
@@ -113,10 +123,11 @@ env_optim_V1_2$optimize <- function(formula, df) {
     x_vars = x_vars # Needed for latter plotting
   )
 }
+env_optim_V1_2$optimize <- optimize
 
 # Summary of "model"
 # ====================================================================================
-env_optim_V1_2$plot_model_optim <- function(formula_optim, result_optim) {
+plot_model_optim <- function(formula_optim, result_optim) {
   y <- function() stop("Should never be called") # Please R CMD check
   i <- function() stop("Should never be called") # Please R CMD check
 
@@ -134,25 +145,28 @@ env_optim_V1_2$plot_model_optim <- function(formula_optim, result_optim) {
   p <- env_optim_V1_2$add_theme_optim(p)
   new("plot", p = p, width = 10, height = 10, resolution = 600)
 }
+env_optim_V1_2$plot_model_optim <- plot_model_optim
 
-env_optim_V1_2$summary_model_optim <- function(formula_optim, result_optim) {
+summary_model_optim <- function(formula_optim, result_optim) {
   parameter <- result_optim@parameter
   names <- formula_optim@parameter
   l <- setNames(parameter, names)
   as.data.frame(t(l))
 }
+env_optim_V1_2$summary_model_optim <- summary_model_optim
 
-env_optim_V1_2$information_criterion_optim <- function(result_optim) {
+information_criterion_optim <- function(result_optim) {
   df <- data.frame(
     result_optim@error
   )
   names(df) <- "Sum of Squared Errors (SSE)"
   df
 }
+env_optim_V1_2$information_criterion_optim <- information_criterion_optim
 
 # Assumptions for optim (Not used yet)
 # ====================================================================================
-env_optim_V1_2$plot_pred_optim <- function(result) {
+plot_pred_optim <- function(result) {
   df <- result@predicted_df
   pred <- df[df$group == "Predicted", "y"]
   actual <- df[df$group == "Original", "y"]
@@ -163,7 +177,9 @@ env_optim_V1_2$plot_pred_optim <- function(result) {
     labs(x = "Predicted", y = "Residual", title = "Residuals vs Predicted")
   env_optim_V1_2$add_theme_optim(p)
 }
-env_optim_V1_2$hist_pred_optim <- function(result) {
+env_optim_V1_2$plot_pred_optim <- plot_pred_optim
+
+hist_pred_optim <- function(result) {
   df <- result@predicted_df
   pred <- df[df$group == "Predicted", "y"]
   actual <- df[df$group == "Original", "y"]
@@ -177,7 +193,9 @@ env_optim_V1_2$hist_pred_optim <- function(result) {
     )
   env_optim_V1_2$add_theme_optim(p)
 }
-env_optim_V1_2$plot_qq_optim <- function(result) {
+env_optim_V1_2$hist_pred_optim <- hist_pred_optim
+
+plot_qq_optim <- function(result) {
   df <- result@predicted_df
   pred <- df[df$group == "Predicted", "y"]
   actual <- df[df$group == "Original", "y"]
@@ -192,11 +210,13 @@ env_optim_V1_2$plot_qq_optim <- function(result) {
     )
   env_optim_V1_2$add_theme_optim(p)
 }
-env_optim_V1_2$assumptions_optim <- function(result) {
+env_optim_V1_2$plot_qq_optim <- plot_qq_optim
+
+assumptions_optim <- function(result) {
   p <- cowplot::plot_grid(
     env_optim_V1_2$plot_pred_optim(result), env_optim_V1_2$hist_pred_optim(result), env_optim_V1_2$plot_qq_optim(result),
     ncol = 2
   )
   new("plot", p = p, width = 10, height = 10, resolution = 600)
 }
-
+env_optim_V1_2$assumptions_optim <- assumptions_optim

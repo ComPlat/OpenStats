@@ -1,18 +1,20 @@
 env_utils_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-env_utils_V1_2$split_formula <- function(formula) {
+split_formula <- function(formula) {
   f <- as.character(formula)
   list(
     response = str2lang(f[2]),
     right_site = str2lang(f[3])
   )
 }
+env_utils_V1_2$split_formula <- split_formula
 
-env_utils_V1_2$vars_rhs <- function(rhs) {
+vars_rhs <- function(rhs) {
  all.vars(rhs)
 }
+env_utils_V1_2$vars_rhs <- vars_rhs
 
-env_utils_V1_2$num_to_factor <- function(df, cols) {
+num_to_factor <- function(df, cols) {
   for (i in seq_along(cols)) {
     if (is.numeric(df[, cols[i]])) {
       df[, cols[i]] <- as.factor(df[, cols[i]])
@@ -20,8 +22,9 @@ env_utils_V1_2$num_to_factor <- function(df, cols) {
   }
   return(df)
 }
+env_utils_V1_2$num_to_factor <- num_to_factor
 
-env_utils_V1_2$char_to_orig_type <- function(vec) {
+char_to_orig_type <- function(vec) {
   if (is.list(vec)) vec <- unlist(vec)
   if (any(is.na(as.numeric(vec)))) {
     return(vec)
@@ -29,13 +32,15 @@ env_utils_V1_2$char_to_orig_type <- function(vec) {
   vec <- as.numeric(vec)
   vec
 }
+env_utils_V1_2$char_to_orig_type <- char_to_orig_type
 
-env_utils_V1_2$firstup <- function(x) {
+firstup <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
 }
+env_utils_V1_2$firstup <- firstup
 
-env_utils_V1_2$df_2_string <- function(df) {
+df_2_string <- function(df) {
   stopifnot(
     "Input to env_utils_V1_2$df_2_string is not of type DataFrame" = is.data.frame(df)
   )
@@ -51,8 +56,9 @@ env_utils_V1_2$df_2_string <- function(df) {
   res <- Reduce(paste0, res)
   return(res)
 }
+env_utils_V1_2$df_2_string <- df_2_string
 
-env_utils_V1_2$create_excel_file <- function(l) {
+create_excel_file <- function(l) {
   if (length(l) == 0) {
     print_warn("Nothing to upload")
     return(NULL)
@@ -191,8 +197,9 @@ env_utils_V1_2$create_excel_file <- function(l) {
 
   return(fn)
 }
+env_utils_V1_2$create_excel_file <- create_excel_file
 
-env_utils_V1_2$create_js_string <- function(l) {
+create_js_string <- function(l) {
   names_l <- names(l)
   jsString <- c()
   js_names <- c()
@@ -250,34 +257,39 @@ env_utils_V1_2$create_js_string <- function(l) {
   }
   return(list(jsString, js_names))
 }
+env_utils_V1_2$create_js_string <- create_js_string
 
-env_utils_V1_2$stack_df <- function(df, keepCol) {
+stack_df <- function(df, keepCol) {
   as.data.frame(pivot_longer(df,
     cols = -keepCol,
     names_to = "name", values_to = "value"
   ))
 }
+env_utils_V1_2$stack_df <- stack_df
 
-env_utils_V1_2$unstack_df <- function(df, name, value) {
+unstack_df <- function(df, name, value) {
   df <- pivot_wider(df, names_from = name, values_from = value)
-  df <- map(df, simplify) %>%
+  df <- map(df, simplify) %>% # TODO: is this from purrr? Maybe use lapply
     as.data.frame()
   as.data.frame(df)
 }
+env_utils_V1_2$unstack_df <- unstack_df
 
-env_utils_V1_2$correct_name <- function(name, df) {
+correct_name <- function(name, df) {
   name %in% names(df)
 }
+env_utils_V1_2$correct_name <- correct_name
 
-env_utils_V1_2$change_char_input <- function(chars) {
+change_char_input <- function(chars) {
   nams <- unlist(strsplit(chars, split = ","))
   for (i in 1:length(nams)) {
     nams[i] <- gsub(" ", "", nams[i])
   }
   nams
 }
+env_utils_V1_2$change_char_input <- change_char_input
 
-env_utils_V1_2$combine <- function(new, vec, df, first) {
+combine <- function(new, vec, df, first) {
   if (length(vec) == 0) {
     return(new)
   }
@@ -292,8 +304,9 @@ env_utils_V1_2$combine <- function(new, vec, df, first) {
   vec <- vec[-length(vec)]
   env_utils_V1_2$combine(new, vec, df, first)
 }
+env_utils_V1_2$combine <- combine
 
-env_utils_V1_2$split_data <- function(df, formula) {
+split_data <- function(df, formula) {
   df <- model.frame(formula, data = df)
   stopifnot(ncol(df) >= 2)
   res <- data.frame(
@@ -301,8 +314,9 @@ env_utils_V1_2$split_data <- function(df, formula) {
   )
   res
 }
+env_utils_V1_2$split_data <- split_data
 
-env_utils_V1_2$create_df_name <- function(current_df_name, column_names) {
+create_df_name <- function(current_df_name, column_names) {
   if (!(current_df_name %in% column_names)) {
     return(current_df_name)
   }
@@ -315,15 +329,17 @@ env_utils_V1_2$create_df_name <- function(current_df_name, column_names) {
     }
   }
 }
+env_utils_V1_2$create_df_name <- create_df_name
 
-env_utils_V1_2$create_r_names <- function(df) {
+create_r_names <- function(df) {
   names <- sapply(names(df), make.names)
   names(df) <- names
   return(df)
 }
+env_utils_V1_2$create_r_names <- create_r_names
 
 # Split groups
-env_utils_V1_2$split_groups <- function(df, cols, levels) {
+split_groups <- function(df, cols, levels) {
   df_res <- df
   for (i in seq_along(cols)) {
     levels_temp <- levels[levels %in% unique(df_res[, cols[i]])]
@@ -332,9 +348,10 @@ env_utils_V1_2$split_groups <- function(df, cols, levels) {
   if (nrow(df_res) == 0) stop("Subset contains 0 rows")
   return(df_res)
 }
+env_utils_V1_2$split_groups <- split_groups
 
 # Check axis limits
-env_utils_V1_2$check_axis_limits <- function(col, min, max) { # TODO: is this still required?
+check_axis_limits <- function(col, min, max) { # TODO: is this still required?
   if (is.numeric(col)) {
     if (!is.numeric(min) || !is.numeric(max)) {
       stop("Found invalid axis limits")
@@ -360,15 +377,17 @@ env_utils_V1_2$check_axis_limits <- function(col, min, max) { # TODO: is this st
     return()
   }
 }
+env_utils_V1_2$check_axis_limits <- check_axis_limits
 
 # Check filename
-env_utils_V1_2$extract_extension <- function(filename) {
+extract_extension <- function(filename) {
   ex <- strsplit(basename(filename), split = "\\.")[[1]]
   ex <- ex[[length(ex)]]
   return(ex)
 }
+env_utils_V1_2$extract_extension <- extract_extension
 
-env_utils_V1_2$is_valid_filename <- function(filename) {
+is_valid_filename <- function(filename) {
   try({
     if (!is.character(filename)) {
       return(FALSE)
@@ -393,8 +412,9 @@ env_utils_V1_2$is_valid_filename <- function(filename) {
     return(TRUE)
   })
 }
+env_utils_V1_2$is_valid_filename <- is_valid_filename
 
-env_utils_V1_2$why_filename_invalid <- function(filename) {
+why_filename_invalid <- function(filename) {
   try({
     if (!is.character(filename)) {
       return("Filename has to consist of characters")
@@ -419,21 +439,24 @@ env_utils_V1_2$why_filename_invalid <- function(filename) {
     return("")
   })
 }
+env_utils_V1_2$why_filename_invalid <- why_filename_invalid
 
-env_utils_V1_2$check_filename_for_server <- function(filename) {
+check_filename_for_server <- function(filename) {
   ex <- strsplit(basename(filename), split = "\\.")[[1]]
   ex <- ex[[length(ex)]]
   ex == "xlsx"
 }
+env_utils_V1_2$check_filename_for_server <- check_filename_for_server
 
-env_utils_V1_2$check_filename_for_serverless <- function(filename) {
+check_filename_for_serverless <- function(filename) {
   ex <- env_utils_V1_2$extract_extension(filename)
   ex <- ex[[length(ex)]]
   ex == "zip"
 }
+env_utils_V1_2$check_filename_for_serverless <- check_filename_for_serverless
 
 # Split list of plots into panels of 9 plots
-env_utils_V1_2$create_plot_pages <- function(plotList) { # TODO: probably not needed anymore. Remove!
+create_plot_pages <- function(plotList) { # TODO: probably not needed anymore. Remove!
   if (length(plotList) == 0) {
     plotList <- list(ggplot2::ggplot() +
       ggplot2::geom_point())
@@ -458,10 +481,11 @@ env_utils_V1_2$create_plot_pages <- function(plotList) { # TODO: probably not ne
     cowplot::plot_grid(plotlist = x)
   })
 }
+env_utils_V1_2$create_plot_pages <- create_plot_pages
 
 # check result list size (rls)
 # Here also the length is checked
-env_utils_V1_2$check_rls <- function(ResultsState, newObj) {
+check_rls <- function(ResultsState, newObj) {
   if (length(ResultsState) > 1000) {
     stop("You can only store 1000 results. Consider removing some results")
   }
@@ -471,9 +495,10 @@ env_utils_V1_2$check_rls <- function(ResultsState, newObj) {
     stop("Memory limit exceeded for user results. Consider removing some results.")
   }
 }
+env_utils_V1_2$check_rls <- check_rls
 
 # internal dataframe function
-env_utils_V1_2$elongate_col <- function(col, l) {
+elongate_col <- function(col, l) {
   times <- l / length(col)
   if (floor(times) == times) {
     return(rep(col, times))
@@ -484,3 +509,4 @@ env_utils_V1_2$elongate_col <- function(col, l) {
     return(res)
   }
 }
+env_utils_V1_2$elongate_col <- elongate_col
