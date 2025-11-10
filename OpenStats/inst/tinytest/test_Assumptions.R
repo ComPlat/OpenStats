@@ -1,5 +1,5 @@
 coverage_test <- nzchar(Sys.getenv("R_COVR"))
-coverage_test <- TRUE # Test whether github action fails
+coverage_test <- FALSE # Test whether github action fails
 run_test <- function(f) {
   if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
