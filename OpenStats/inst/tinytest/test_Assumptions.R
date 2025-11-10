@@ -1,4 +1,5 @@
 coverage_test <- nzchar(Sys.getenv("R_COVR"))
+coverage_test <- TRUE # Test whether github action fails
 run_test <- function(f) {
   if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
@@ -102,7 +103,7 @@ test_diagnose_plot <- function(app, srv, in_background) {
       ex <- session$userData$export
       if (!is.null(ex) && res_name %in% names(ex)) break
 
-      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 60)
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 30)
         stop(paste("timeout; have keys:", paste(names(ex %||% list()), collapse = ",")))
 
       Sys.sleep(0.05)
