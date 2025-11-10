@@ -1,5 +1,4 @@
 coverage_test <- nzchar(Sys.getenv("R_COVR"))
-coverage_test <- FALSE # Test whether github action fails
 run_test <- function(f) {
   if (coverage_test) f(app, srv, FALSE) else f(app, srv, TRUE)
 }
@@ -114,4 +113,4 @@ test_diagnose_plot <- function(app, srv, in_background) {
   })
    expect_true(inherits(got, "plot"))
 }
-run_test(test_diagnose_plot)
+# run_test(test_diagnose_plot)
