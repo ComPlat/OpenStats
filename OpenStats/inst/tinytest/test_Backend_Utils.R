@@ -930,7 +930,7 @@ test_create_js_string <- function() {
   )
 
   # Cleanup
-  unlink(diag_fn)
+  # unlink(diag_fn)
 }
 test_create_js_string()
 
@@ -974,8 +974,8 @@ test_create_excel_file <- function() {
   )
 
   # Cleanup
-  file.remove(file)
-  unlink(temp_files)
+  # file.remove(file)
+  # unlink(temp_files)
 }
 test_create_excel_file()
 
