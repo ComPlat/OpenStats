@@ -191,9 +191,7 @@ create_excel_file <- function(l) {
   )
 
   # Clean up
-  for (f in seq_along(plot_files)) {
-    unlink(p)
-  }
+  unlink(plot_files[file.exists(plot_files)], force = TRUE)
 
   return(fn)
 }
