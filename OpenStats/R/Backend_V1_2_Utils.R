@@ -93,26 +93,6 @@ create_excel_file <- function(l) {
         gridExpand = TRUE
       )
       curr_row <- curr_row + 2
-    } else if (inherits(l[[i]], "diagnosticPlot")) {
-      p <- l[[i]]@p
-      width <- l[[i]]@width
-      height <- l[[i]]@height
-      resolution <- l[[i]]@resolution
-      fn <- tempfile(fileext = ".png")
-      ggsave(
-        plot = p,
-        filename = fn, width = width, height = height, dpi = resolution
-      )
-      openxlsx::insertImage(wb, "Results", fn, startRow = curr_row)
-      curr_row <- curr_row + 20
-      plot_files <- c(plot_files, l[[i]]@p) # TODO: why????
-      plot_files <- c(plot_files, fn)
-      openxlsx::addStyle(
-        wb, sheet = "Results", style = line_style, rows = curr_row,
-        cols = 1:width,
-        gridExpand = TRUE
-      )
-      curr_row <- curr_row + 5
     } else if (inherits(l[[i]], "doseResponse")) {
       openxlsx::writeData(wb, "Results", l[[i]]@df, startRow = curr_row)
       curr_row <- curr_row + nrow(l[[i]]@df) + 5
@@ -214,10 +194,6 @@ create_js_string <- function(l) {
       )
       jsString <- c(jsString, paste0("data:image/png;base64,", base64enc::base64encode(fn)))
       unlink(fn)
-      js_names <- c(js_names, names_l[i])
-    } else if (inherits(l[[i]], "diagnosticPlot")) {
-      jsString <- c(jsString, paste0("data:image/png;base64,", base64enc::base64encode(l[[i]]@p)))
-      unlink(l[[i]]@p)
       js_names <- c(js_names, names_l[i])
     } else if (inherits(l[[i]], "doseResponse")) {
       p <- l[[i]]@p

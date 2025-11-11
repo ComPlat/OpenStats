@@ -42,11 +42,6 @@ setClass("plot",
     resolution = "numeric"
   )
 )
-setClass("diagnosticPlot",
-  slots = c(
-    p = "character"
-  )
-)
 setClass("summaryModel",
   slots = c(
     p = "plot",
