@@ -2,6 +2,7 @@ env_diagnostic_plots_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
 cooks_distance_plot <- function(df, formula) {
   Index <- function() stop("Should never be called") # Please R CMD check
+  CooksDistance <- function() stop("Should never be called") # Please R CMD check
   # https://rpubs.com/DragonflyStats/Cooks-Distance
   model <- NULL
   if (inherits(formula, "LinearFormula")) {
@@ -49,6 +50,9 @@ cooks_distance_plot <- function(df, formula) {
 env_diagnostic_plots_V1_2$cooks_distance_plot <- cooks_distance_plot
 
 resids_vs_fitted_plot <- function(fitted, resids, n, formula, influential_points) {
+  x <- function() stop("Should never be called") # Please R CMD check
+  y <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
   line_data <- lowess(fitted, resids) |> as.data.frame()
   resids_fitted_df <- data.frame(fitted = fitted, residuals = resids, index = 1:n)
   resids_vs_fitted <- ggplot( data = resids_fitted_df, aes(x = fitted, y = residuals)) +
@@ -89,6 +93,8 @@ resids_vs_fitted_plot <- function(fitted, resids, n, formula, influential_points
 env_diagnostic_plots_V1_2$resids_vs_fitted_plot <- resids_vs_fitted_plot
 
 qq_norm_plot <- function(resids, n, formula, influential_points) {
+  quantiles <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
   standardized_resids <- resids / sd(resids)
   sqrt_resids <- sqrt(abs(standardized_resids))
   ordered_resids <- sort(standardized_resids)
@@ -129,6 +135,9 @@ qq_norm_plot <- function(resids, n, formula, influential_points) {
 env_diagnostic_plots_V1_2$qq_norm_plot <- qq_norm_plot
 
 manual_scale_location_plot <- function(fitted, resids, n, formula, influential_points) {
+  x <- function() stop("Should never be called") # Please R CMD check
+  y <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
   standardized_resids <- resids / sd(resids)
   sqrt_resids <- sqrt(abs(standardized_resids))
   line_data <- lowess(fitted, sqrt_resids) |> as.data.frame()
@@ -178,6 +187,9 @@ manual_scale_location_plot <- function(fitted, resids, n, formula, influential_p
 env_diagnostic_plots_V1_2$manual_scale_location_plot <- manual_scale_location_plot
 
 residuals_vs_leverage_plot <- function(leverage, resids, n, formula, influential_points) {
+  x <- function() stop("Should never be called") # Please R CMD check
+  y <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
   standardized_resids <- resids / sd(resids)
   line_data <- lowess(leverage, standardized_resids) |> as.data.frame()
   residuals_leverage_df <- data.frame(

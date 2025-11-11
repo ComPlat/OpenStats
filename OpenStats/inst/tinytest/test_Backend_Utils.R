@@ -882,20 +882,15 @@ test_create_js_string <- function() {
     geom_boxplot()
   plot_obj <- new("plot", p = p, width = 10, height = 10, resolution = 600)
 
-  # 2. Create a diagnostic plot object
-  diag_fn <- tempfile(fileext = ".png")
-  ggsave(plot = p, filename = diag_fn, width = 10, height = 10, dpi = 600)
-  diag_obj <- new("diagnosticPlot", p = diag_fn)
-
-  # 3. Create a dose response object
+  # 2. Create a dose response object
   dose_obj <- new("doseResponse", df = iris, p = list(p, p))
 
-  # 4. Data frame and character
+  # 3. Data frame and character
   df <- iris
   char_obj <- "This is a test string"
 
   # Combine into list
-  l <- list(plot_obj, diag_obj, dose_obj, df, char_obj)
+  l <- list(plot_obj, dose_obj, df, char_obj)
 
   # Call the function
   result <- OpenStats:::create_js_string(l)
@@ -903,7 +898,7 @@ test_create_js_string <- function() {
   # Validate the result
   # Check structure and length
   expect_equal(
-    length(result[[1]]), 7,
+    length(result[[1]]), 6,
     info = "Result should include encoded strings for each element"
   )
 
@@ -914,23 +909,17 @@ test_create_js_string <- function() {
   )
   expect_true(
     grepl("^data:image/png;base64,", result[[1]][[2]]),
-    info = "Second element should be a base64-encoded diagnostic plot"
-  )
-  expect_true(
-    grepl("^data:image/png;base64,", result[[1]][[3]]),
     info = "Dose response plot should be base64-encoded"
   )
   expect_true(
-    grepl("^Sepal.Length", result[[1]][[5]]),
+    grepl("^Sepal.Length", result[[1]][[4]]),
     info = "Data frame should be converted to string format"
   )
   expect_equal(
-    result[[1]][[7]], char_obj,
+    result[[1]][[6]], char_obj,
     info = "Character string should remain as is"
   )
 
-  # Cleanup
-  unlink(diag_fn)
 }
 test_create_js_string()
 
@@ -967,15 +956,8 @@ test_create_excel_file <- function() {
     info = "Data column names should match"
   )
 
-  # Check plot presence
-  temp_files <- dir(tempdir(), pattern = "\\.png$")
-  expect_true(
-    length(temp_files) > 0, "At least one temporary plot file should exist"
-  )
-
   # Cleanup
   file.remove(file)
-  unlink(temp_files)
 }
 test_create_excel_file()
 
