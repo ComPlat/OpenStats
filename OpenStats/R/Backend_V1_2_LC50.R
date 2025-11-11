@@ -260,7 +260,7 @@ check_dr_df <- function(df, abs_col,
     !is.factor(df[, substance_name_col])) {
     return(errorClass$new("The substance names are not character"))
   }
-  substances <- unique(df[, substance_name_col])
+  substances <- unique(df[, substance_name_col]) # TODO: is this even possible?
   if (length(substances) < 1) {
     return(errorClass$new("The data for compounds seems to be missing"))
   }
@@ -279,7 +279,7 @@ transform_conc_dr <- function(conc_col) {
     ))
   }
   if (!is.numeric(temp_conc)) {
-    return(errorClass$new("The concentration data is not numerical"))
+    return(errorClass$new("The concentration data is not numerical")) # TODO: is this even possible?
   }
   return(temp_conc)
 }

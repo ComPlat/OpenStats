@@ -6,6 +6,7 @@ add_facet <- function(p, facetVar, facetMode, facetScales) {
   } else if (facetMode == "facet_grid") {
     return(p + facet_grid(. ~ .data[[facetVar]], scales = facetScales))
   }
+  return(p)
 }
 env_plotting_V1_2$add_facet <- add_facet
 
@@ -37,7 +38,7 @@ boxplot_fct <- function(df, x, y, xLabel, yLabel,
                        colourVar, legendTitleColour,
                        colourTheme, facetMode, facetVar, facetScales,
                        xMin, xMax, yMin, yMax) {
-  aes <- aes(x = .data[[x]], y = .data[[y]])
+  base_aes <- aes(x = .data[[x]], y = .data[[y]])
   aesColour <- NULL
   aesFill <- NULL
   p <- NULL
@@ -62,7 +63,7 @@ boxplot_fct <- function(df, x, y, xLabel, yLabel,
   p <- ggplot() +
     geom_boxplot(
       data = df,
-      aes(!!!aes, !!!aesColour, !!!aesFill,
+      aes(!!!base_aes, !!!aesColour, !!!aesFill,
         group = interaction(
           .data[[x]],
           !!!aesColour, !!!aesFill
@@ -73,8 +74,9 @@ boxplot_fct <- function(df, x, y, xLabel, yLabel,
   p <- p + ylab(yLabel)
   p <- p + guides(fill = guide_legend(title = legendTitleFill))
   p <- p + guides(colour = guide_legend(title = legendTitleColour))
-  p <- p + scale_fill_brewer(palette = fillTheme)
-  p <- p + scale_color_brewer(palette = colourTheme)
+
+  if (fillVar != "")  p <- p + scale_fill_brewer(palette = fillTheme)
+  if (colourVar != "") p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
     p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   } else {
@@ -88,7 +90,7 @@ dotplot_fct <- function(df, x, y, xLabel, yLabel,
                         colourVar, legendTitleColour,
                         colourTheme, facetMode, facetVar, facetScales,
                         xMin, xMax, yMin, yMax) {
-  aes <- aes(x = .data[[x]], y = .data[[y]])
+  base_aes <- aes(x = .data[[x]], y = .data[[y]])
   aesColour <- NULL
   p <- NULL
   if (colourVar == "") {
@@ -103,7 +105,7 @@ dotplot_fct <- function(df, x, y, xLabel, yLabel,
   p <- ggplot() +
     geom_point(
       data = df,
-      aes(!!!aes, !!!aesColour,
+      aes(!!!base_aes, !!!aesColour,
         group = interaction(
           .data[[x]],
           !!!aesColour
@@ -113,7 +115,7 @@ dotplot_fct <- function(df, x, y, xLabel, yLabel,
   p <- p + xlab(xLabel)
   p <- p + ylab(yLabel)
   p <- p + guides(colour = guide_legend(title = legendTitleColour))
-  p <- p + scale_color_brewer(palette = colourTheme)
+  if (colourVar != "") p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
     p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   } else {
@@ -127,7 +129,7 @@ lineplot_fct <- function(df, x, y, xLabel, yLabel,
                         colourVar, legendTitleColour,
                         colourTheme, facetMode, facetVar, facetScales,
                         xMin, xMax, yMin, yMax) {
-  aes <- aes(x = .data[[x]], y = .data[[y]])
+  base_aes<- aes(x = .data[[x]], y = .data[[y]])
   aesColour <- NULL
   p <- NULL
   if (colourVar == "") {
@@ -142,7 +144,7 @@ lineplot_fct <- function(df, x, y, xLabel, yLabel,
   p <- ggplot() +
     geom_line(
       data = df,
-      aes(!!!aes, !!!aesColour,
+      aes(!!!base_aes, !!!aesColour,
         group = interaction(
           .data[[x]],
           !!!aesColour
@@ -152,7 +154,7 @@ lineplot_fct <- function(df, x, y, xLabel, yLabel,
   p <- p + xlab(xLabel)
   p <- p + ylab(yLabel)
   p <- p + guides(colour = guide_legend(title = legendTitleColour))
-  p <- p + scale_color_brewer(palette = colourTheme)
+  if (colourVar != "") p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
     p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   } else {

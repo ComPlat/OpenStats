@@ -1,4 +1,68 @@
 library(tinytest)
+library(OpenStats)
+
+test_cast_cols <- function() {
+  df <- data.frame(
+    a = "1", b = "1.1", c = "Bla"
+  )
+  res <- OpenStats:::cast_types_cols(df)
+  expect_true(is.numeric(res[[1]]))
+  expect_true(is.numeric(res[[2]]))
+  expect_true(is.factor(res[[3]]))
+}
+test_cast_cols()
+
+test_is_separator <- function() {
+  res1 <- OpenStats:::is_separator(c(1, 2, 3))
+  res2 <- OpenStats:::is_separator(c(NA, NA))
+  expect_true(!res1)
+  expect_true(res2)
+}
+test_is_separator()
+
+test_scan_rows_or_cols <- function() {
+  res_row <- OpenStats:::scan_rows_or_cols(CO2)[[1]]
+  res_col <- OpenStats:::scan_rows_or_cols(CO2, FALSE)[[1]]
+  expect_equal(list(start = 1, end = 84), res_row)
+  expect_equal(list(start = 1, end = 5), res_col)
+  expect_equal(c(res_row[[2]], res_col[[2]]), dim(CO2))
+
+  # scan_rows_or_cols find the dims of the most left and most upper table
+  path <- system.file("/test_data/MultiTable4.csv", package = "OpenStats")
+  raw_content <- OpenStats:::read_raw(path)
+  res_row <- OpenStats:::scan_rows_or_cols(raw_content)[[1]]
+  res_col <- OpenStats:::scan_rows_or_cols(raw_content, FALSE)[[1]]
+  expect_equal(list(start = 1, end = 3), res_row)
+  expect_equal(list(start = 1, end = 3), res_col)
+}
+test_scan_rows_or_cols()
+
+test_find_sub_tables <- function() { # TODO: proceed
+  res1 <- OpenStats:::find_sub_tables(c(1, 84), c(1, 5), CO2)
+  expect_true(res1)
+}
+test_find_sub_tables()
+
+test_extract_tables <- function() {
+  env_tables <- new.env(parent = emptyenv())
+  env_tables$tables <- list()
+  path <- system.file("/test_data/MultiTable4.csv", package = "OpenStats")
+  raw_content <- OpenStats:::read_raw(path)
+  OpenStats:::extract_tables(env_tables, raw_content)
+  expect_true(length(env_tables$tables) == 3L) # Is tested in more details elsewhere
+}
+test_extract_tables()
+
+test_convert_to_df <- function() {
+  env_tables <- new.env(parent = emptyenv())
+  env_tables$tables <- list()
+  path <- system.file("/test_data/MultiTable4.csv", package = "OpenStats")
+  raw_content <- OpenStats:::read_raw(path)
+  OpenStats:::extract_tables(env_tables, raw_content)
+  res <- OpenStats:::convert_to_dfs(env_tables$tables)
+  expect_true(length(res) == 3L) # Is tesed in more details elsewhere
+}
+test_convert_to_df()
 
 test_identify_seperator <- function() {
   comma_path <- system.file("/test_data/CO2.csv", package = "OpenStats")

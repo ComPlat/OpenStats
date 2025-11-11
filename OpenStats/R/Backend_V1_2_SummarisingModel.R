@@ -55,10 +55,12 @@ get_predictions <- function(model, newdata, level = 0.95) {
 }
 env_summarising_model_V1_2$get_predictions <- get_predictions
 
+# nocov start plotting
 add_y_lab_title <- function(p, ytitle) {
   p + labs(y = paste0("Predicted ", ytitle))
 }
 env_summarising_model_V1_2$add_y_lab_title <- add_y_lab_title
+# nocov end plotting
 
 plot_one_pred <- function(pred_df, type, pred, response) {
   predicted <- function() stop("Should never be called") # Please R CMD check
@@ -161,6 +163,7 @@ trim_formula_predictors <- function(formula, max_predictors = 4) {
 }
 env_summarising_model_V1_2$trim_formula_predictors <- trim_formula_predictors
 
+# nocov start plotting
 add_theme_model_plot <- function(p) {
   p + theme(text = element_text(size = 20))
 }
@@ -191,6 +194,7 @@ create_model_plot <- function(pred_df, types, predictors, response, r2_label) {
   }
 }
 env_summarising_model_V1_2$create_model_plot <- create_model_plot
+# nocov end plotting
 
 plot_pred_lm <- function(data, formula) {
   # How different types are handeled:
@@ -284,6 +288,7 @@ env_summarising_model_V1_2$create_information_criterions <- create_information_c
 
 # This offers the user the option to directly visualise the data based on a model
 # =================================================================================================
+# nocov start plotting
 add_desired_layer <- function(p, layer) {
   if (layer == "box") {
     p + geom_boxplot()
@@ -294,6 +299,7 @@ add_desired_layer <- function(p, layer) {
   }
 }
 env_summarising_model_V1_2$add_desired_layer <- add_desired_layer
+# nocov end plotting
 
 plot_one <- function(df, type, pred, response, layer) {
   aes <- NULL
@@ -343,6 +349,7 @@ plot_four <- function(df, types, preds, response, layer) {
 }
 env_summarising_model_V1_2$plot_four <- plot_four
 
+# nocov start plotting
 plot_model <- function(data, formula, layer) {
   formula <- formula@formula
   f_split <- env_utils_V1_2$split_formula(formula)
@@ -376,3 +383,4 @@ plot_model <- function(data, formula, layer) {
   }
 }
 env_summarising_model_V1_2$plot_model <- plot_model
+# nocov end plotting

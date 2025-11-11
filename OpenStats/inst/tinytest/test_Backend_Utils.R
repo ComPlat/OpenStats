@@ -875,8 +875,8 @@ test_stack_unstackDF()
 # Test env_utils_V1_2$create_js_string
 # =======================================================================================
 test_create_js_string <- function() {
-  if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
-  if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()
+  # if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
+  # if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()
   # 1. Create a plot object
   p <- ggplot(data = iris, aes(x = Species, y = Sepal.Length)) +
     geom_boxplot()
@@ -937,8 +937,8 @@ test_create_js_string()
 # Test env_utils_V1_2$create_excel_file
 # =======================================================================================
 test_create_excel_file <- function() {
-  if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
-  if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()
+  # if (!identical(Sys.getenv("NOT_CRAN"), "true")) return()
+  # if (!identical(Sys.getenv("RUN_UI_TESTS"), "true")) return()
   p <- ggplot(
     data = iris,
     aes(x = Species, y = Sepal.Length)

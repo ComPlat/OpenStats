@@ -1,6 +1,6 @@
 env_diagnostic_plots_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-cooks_distance <- function(df, formula) {
+cooks_distance_plot <- function(df, formula) {
   Index <- function() stop("Should never be called") # Please R CMD check
   # https://rpubs.com/DragonflyStats/Cooks-Distance
   model <- NULL
@@ -46,44 +46,12 @@ cooks_distance <- function(df, formula) {
   }
   p
 }
-env_diagnostic_plots_V1_2$cooks_distance <- cooks_distance
+env_diagnostic_plots_V1_2$cooks_distance_plot <- cooks_distance_plot
 
-diagnostic_plots <- function(df, formula) {
-  x <- function() stop("Should never be called") # Please R CMD check
-  y <- function() stop("Should never be called") # Please R CMD check
-  index <- function() stop("Should never be called") # Please R CMD check
-  quantiles <- function() stop("Should never be called") # Please R CMD check
-
-  model <- NULL
-  if (inherits(formula, "LinearFormula")) {
-    model <- lm(formula@formula, data = df)
-  } else if (inherits(formula, "GeneralisedLinearFormula")) {
-    family <- formula@family
-    link_fct <- formula@link_fct
-    family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
-    model <- glm(formula@formula, data = df, family = eval(family))
-  }
-  resids <- residuals(model)
-  fitted <- fitted(model)
-
-  # Identify influential points
-  p <- length(coef(model))
-  n <- length(resids)
-  leverage <- hatvalues(model)
-  cooks_dist <- cooks.distance(model)
-  high_leverage_threshold <- (2 * (p + 1)) / n
-  high_cooks_threshold <- 4 / n
-  influential_points <- which(
-    leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
-  )
-
-  # resids vs fitted
+resids_vs_fitted_plot <- function(fitted, resids, n, formula, influential_points) {
   line_data <- lowess(fitted, resids) |> as.data.frame()
   resids_fitted_df <- data.frame(fitted = fitted, residuals = resids, index = 1:n)
-  resids_vs_fitted <- ggplot(
-    data = resids_fitted_df,
-    aes(x = fitted, y = residuals)
-  ) +
+  resids_vs_fitted <- ggplot( data = resids_fitted_df, aes(x = fitted, y = residuals)) +
     geom_point() +
     geom_hline(yintercept = 0,
       linetype = "dashed",
@@ -100,6 +68,7 @@ diagnostic_plots <- function(df, formula) {
       color = "black",
       size = 3) +
     theme(plot.caption = element_text(size = 12, hjust = 0))
+
   if (inherits(formula, "LinearFormula")) {
     resids_vs_fitted <- resids_vs_fitted + labs(
       y = "Residuals", x = "Fitted values",
@@ -115,8 +84,11 @@ diagnostic_plots <- function(df, formula) {
       title = "Residuals vs Fitted values"
     )
   }
+  resids_vs_fitted
+}
+env_diagnostic_plots_V1_2$resids_vs_fitted_plot <- resids_vs_fitted_plot
 
-  # qq norm plot
+qq_norm_plot <- function(resids, n, formula, influential_points) {
   standardized_resids <- resids / sd(resids)
   sqrt_resids <- sqrt(abs(standardized_resids))
   ordered_resids <- sort(standardized_resids)
@@ -127,17 +99,9 @@ diagnostic_plots <- function(df, formula) {
   )
   slope <- sd(ordered_resids)
   intercept <- mean(ordered_resids)
-  resids_vs_quantiles <- ggplot(
-    data = resids_quantiles_df,
-    aes(x = quantiles, y = residuals)
-  ) +
+  resids_vs_quantiles <- ggplot( data = resids_quantiles_df, aes(x = quantiles, y = residuals)) +
     geom_point() +
-    geom_abline(
-      aes(
-        slope = slope,
-        intercept = intercept
-      )
-    ) +
+    geom_abline(aes(slope = slope, intercept = intercept)) +
     geom_text(data = resids_quantiles_df[influential_points, ],
       aes(label = index),
       vjust = -1,
@@ -160,8 +124,13 @@ diagnostic_plots <- function(df, formula) {
       title = "Q-Q Residuals"
     )
   }
+  resids_vs_quantiles
+}
+env_diagnostic_plots_V1_2$qq_norm_plot <- qq_norm_plot
 
-  # Manual Scale-Location Plot
+manual_scale_location_plot <- function(fitted, resids, n, formula, influential_points) {
+  standardized_resids <- resids / sd(resids)
+  sqrt_resids <- sqrt(abs(standardized_resids))
   line_data <- lowess(fitted, sqrt_resids) |> as.data.frame()
   sqrt_resids_fitted_df <- data.frame(
     fitted = fitted, residuals = sqrt_resids,
@@ -204,7 +173,12 @@ diagnostic_plots <- function(df, formula) {
       title = "Scale-Location"
     )
   }
-  # Residuals vs Leverage
+  sqrt_resids_vs_fitted
+}
+env_diagnostic_plots_V1_2$manual_scale_location_plot <- manual_scale_location_plot
+
+residuals_vs_leverage_plot <- function(leverage, resids, n, formula, influential_points) {
+  standardized_resids <- resids / sd(resids)
   line_data <- lowess(leverage, standardized_resids) |> as.data.frame()
   residuals_leverage_df <- data.frame(
     residuals = standardized_resids, leverage = leverage,
@@ -249,13 +223,45 @@ diagnostic_plots <- function(df, formula) {
       title = "Residuals vs Leverage"
     )
   }
+  residuals_vs_leverage
+}
+env_diagnostic_plots_V1_2$residuals_vs_leverage_plot <- residuals_vs_leverage_plot
+
+diagnostic_plots <- function(df, formula) {
+  x <- function() stop("Should never be called") # Please R CMD check
+  y <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
+  quantiles <- function() stop("Should never be called") # Please R CMD check
+
+  model <- NULL
+  if (inherits(formula, "LinearFormula")) {
+    model <- lm(formula@formula, data = df)
+  } else if (inherits(formula, "GeneralisedLinearFormula")) {
+    family <- formula@family
+    link_fct <- formula@link_fct
+    family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
+    model <- glm(formula@formula, data = df, family = eval(family))
+  }
+  resids <- residuals(model)
+  fitted <- fitted(model)
+
+  # Identify influential points
+  p <- length(coef(model))
+  n <- length(resids)
+  leverage <- hatvalues(model)
+  cooks_dist <- cooks.distance(model)
+  high_leverage_threshold <- (2 * (p + 1)) / n
+  high_cooks_threshold <- 4 / n
+  influential_points <- which(
+    leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
+  )
 
   plot_grid(
-    resids_vs_fitted,
-    resids_vs_quantiles,
-    sqrt_resids_vs_fitted,
-    residuals_vs_leverage,
-    env_diagnostic_plots_V1_2$cooks_distance(df, formula)
+    env_diagnostic_plots_V1_2$resids_vs_fitted_plot(fitted, resids, n, formula, influential_points),
+    env_diagnostic_plots_V1_2$qq_norm_plot(resids, n, formula, influential_points),
+    env_diagnostic_plots_V1_2$manual_scale_location_plot(fitted, resids, n, formula, influential_points),
+    env_diagnostic_plots_V1_2$residuals_vs_leverage_plot(leverage, resids, n, formula, influential_points),
+    env_diagnostic_plots_V1_2$cooks_distance_plot(df, formula)
   )
 }
 env_diagnostic_plots_V1_2$diagnostic_plots <- diagnostic_plots

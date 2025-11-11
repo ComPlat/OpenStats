@@ -3,6 +3,7 @@ env_optim_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
 # Run optimization
 # ====================================================================================
+# nocov start plotting
 add_theme_optim <- function(p) {
   p + theme(
     plot.caption = element_text(hjust = 0),
@@ -11,6 +12,7 @@ add_theme_optim <- function(p) {
   )
 }
 env_optim_V1_2$add_theme_optim <- add_theme_optim
+# nocov end plotting
 
 create_formula_optim <- function(formula, df, lower, upper, seed) {
   rhs <- as.character(formula)[3] |> str2lang()
@@ -166,6 +168,7 @@ env_optim_V1_2$information_criterion_optim <- information_criterion_optim
 
 # Assumptions for optim (Not used yet)
 # ====================================================================================
+# nocov start not used yet
 plot_pred_optim <- function(result) {
   df <- result@predicted_df
   pred <- df[df$group == "Predicted", "y"]
@@ -220,3 +223,4 @@ assumptions_optim <- function(result) {
   new("plot", p = p, width = 10, height = 10, resolution = 600)
 }
 env_optim_V1_2$assumptions_optim <- assumptions_optim
+# nocov end not used yet
