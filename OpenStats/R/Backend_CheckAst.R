@@ -1,4 +1,3 @@
-# I directly assign here to environment. Even though covr does not add this file than to the coverage. But due to its recursive structure it would be a bit cumbersome
 env_check_ast_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
 env_check_ast_V1_2$allowed_fcts <- function() {
