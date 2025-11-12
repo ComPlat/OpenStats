@@ -194,6 +194,7 @@ test_drawplot <- function() {
   expect_true(inherits(layers[[1]]$geom, "GeomBoxplot"))
   expect_true(inherits(layers[[2]]$geom, "GeomPoint"))
   expect_true(inherits(layers[[3]]$geom, "GeomLine"))
+  print(class(layers[[4]]$geom))
   expect_true(inherits(layers[[4]]$geom, "GeomErrorbarh"))
 
   built <- ggplot2::ggplot_build(p)

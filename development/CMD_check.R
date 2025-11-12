@@ -2,9 +2,7 @@ Sys.setenv(R_COVR = "TESTIT")
 
 tinytest::test_package("OpenStats")
 
-tinytest::run_test_file("OpenStats/inst/tinytest/test_Operations.R")
-tinytest::run_test_file("OpenStats/inst/tinytest/test_Operations.R")
-tinytest::run_test_file("OpenStats/inst/tinytest/test_TestFormulaUI.R")
+tinytest::run_test_file("OpenStats/inst/tinytest/test_Backend_DoseResponse.R")
 
 cov <- covr::package_coverage(
   path = "./OpenStats",

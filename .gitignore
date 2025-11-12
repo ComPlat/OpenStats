@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 shinyproxy-3.0.1.jar
+*.tar.gz
 docs/shinylive/webr/packages/BH/BH_1.84.0-0.data
