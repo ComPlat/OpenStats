@@ -194,7 +194,7 @@ test_drawplot <- function() {
   expect_true(inherits(layers[[1]]$geom, "GeomBoxplot"))
   expect_true(inherits(layers[[2]]$geom, "GeomPoint"))
   expect_true(inherits(layers[[3]]$geom, "GeomLine"))
-  expect_true(inherits(layers[[4]]$geom, "GeomErrorbarh") || inherits(layers[[4]]$geom, "GeomErrorbar"))
+  expect_true(inherits(layers[[4]]$geom, "GeomErrorbarh") || inherits(layers[[4]]$geom, "GeomErrorbar")) # GeomErrorbar for older ggplot2 versions
 
   built <- ggplot2::ggplot_build(p)
   layers <- built$plot$layers[[1]]

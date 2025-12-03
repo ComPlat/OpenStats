@@ -1,0 +1,153 @@
+---
+title: "OpenStats: Safely evaluating code at the Server side"
+date: 2025-09-12
+categories: [R, Rstats]
+format: html
+toc: true
+code-fold: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 4.5
+)
+```
+
+## Introduction
+
+OpenStats is a shiny app that brings the power of R to users which are not familiar with programming.
+In this blog I want to highlight how the user defines expressions of R code which can be safely evaluated at the server.
+
+## Evaluation of R code
+
+Firstly, users would upload one or more files containing the data which should be analysed.
+Subsequently, the *DataWrangling* tab can be accessed. As can be seen below the user can write R code into this text field.
+By clicking the button *Run operation and store intermediate results* the result of the expression is stored and can be afterwards accessed
+by using the defined name (in the example: *mean_conc*).
+
+![Operation field](operation_field.png)
+
+## Using the text field as novice R programmer
+
+For people who are not familiar with programming it is probably intimidating to write directly into the text field as it is the same as writing a code line.
+Therefore, it is possible to assemble the expression by clicking on buttons. Each click addes the respective text chunk into the *operation field*.
+Below you see a small excerpt of the available buttons.
+The *Variables* frame contain a button to use the entire dataset (in green). Moreover, it is possible to refer to the respective columns.
+Naturally, these buttons depend on the loaded dataset and are therefore rendered dynamically.
+
+![Operation field](mouse_control.png)
+
+## Isn't it dangerous that users can add any R code?
+
+The question arises how to ensure safe evaluation of expressions defined by users.
+In particular as power users can directly write code instead of using the button interface.
+
+### Checking the code
+
+After a simple check whether the input string is too long the *Abstract Syntax Tree* of the code is analysed.
+By using this approach, it is possible to investigate the expression without evaluation of it.
+Moreover, it is possible to distinguish between functions and variables.
+Thereby, it is easy to check whether the encountered variable or function is listed in the respecitve whitelist.
+
+```r
+allowed_fcts <- function() {
+  c(
+    "-", "+", "*", "/", "(",
+    "log", "log10", "sqrt", "exp", "^",
+    "sin", "cos", "tan", "tanh", "sinh", "cosh", "acos", "asin", "atan",
+    "as.numeric", "as.character", "as.logical", "as.factor", "as.integer",
+    ">", "<", "<=", ">=", "==", "!=",
+    "abs", "ceiling", "floor", "trunc", "round",
+    "paste", "paste0", "tolower", "toupper",
+    "Dnorm", "Pnorm", "Qnorm", "Rnorm", "Dbinom",
+    "Pbinom", "Qbinom", "Rbinom", "Dpois",
+    "Ppois", "Rpois", "Dunif", "Punif", "Qunif", "Runif",
+    "Mean", "SD", "Median", "quantile", "range",
+    "Sum", "diff", "Min", "Max", "scale",
+    "C", "Seq", "DataFrame", "vector", "length", "matrix", "~",
+    "get_rows", "get_cols", "get_elem",
+    "as.char", "as.int", "as.real", "as.fact"
+  )
+}
+
+check_ast <- function(inp, allowed_variables) {
+  if (!is.call(inp)) {
+    return(inp)
+  }
+  inp <- as.list(inp)
+  # check fct
+  fct <- inp[[1]]
+  check <- deparse(fct)
+  if ((check %in% allowed_fcts()) == FALSE) {
+    stop(paste("Found unallowed function: ", check))
+  }
+  # check variables
+  lapply(inp, function(x) {
+    if (!is.list(x) && is.symbol(x) && !(deparse(x) %in% allowed_fcts())) {
+      if (!(deparse(x) %in% allowed_variables)) {
+        stop(paste0("Found unknown variable:", deparse(x)))
+      }
+    }
+  })
+  lapply(inp, function(x) {
+    check_ast(x, allowed_variables)
+  })
+}
+```
+
+### Evaluation of the code
+
+Another, potentially issue is that only the correct variables are accessed.
+Therefore, all permitted functions and variables are added in a specifically created environment.
+Next, the operation is evaluated within this environment. Thereby, it is guaranteed that the correct variables
+and functions are used and that internal variables of OpenStats are affected.
+
+```r
+create_run_env <- function() {
+  env <- new.env(parent = baseenv())
+  env$get_elem <- get_elem
+  env$get_rows <- get_rows
+  env$get_cols <- get_cols
+  env$Mean <- Mean
+  env$SD <- SD
+  env$Median <- Median
+  env$Sum <- Sum
+  env$Min <- Min
+  env$Max <- Max
+  env$C <- C
+  env$Seq <- Seq
+  env$DataFrame <- DataFrame
+  env$as.char <- as.character
+  env$as.int <- as.integer
+  env$as.real <- as.numeric
+  env$as.fact <- as.factor
+  env$Dnorm <- Dnorm
+  env$Pnorm <- Pnorm
+  env$Qnorm <- Qnorm
+  env$Rnorm <- Rnorm
+  env$Dbinom <- Dbinom
+  env$Pbinom <- Pbinom
+  env$Qbinom <- Qbinom
+  env$Rbinom <- Rbinom
+  env$Dpois <- Dpois
+  env$Ppois <- Ppois
+  env$Rpois <- Rpois
+  env$Dunif <- Dunif
+  env$Punif <- Punif
+  env$Qunif <- Qunif
+  env$Runif <- Runif
+  env
+}
+eval_env <- create_run_env()
+list2env(intermediate_vars, envir = eval_env)
+list2env(df, envir = eval_env)
+eval_env[[df_name]] <- self$df
+new <- eval(parse(text = operation), envir = eval_env)
+```
+
+
