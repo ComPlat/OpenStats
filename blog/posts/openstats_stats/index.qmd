@@ -1,0 +1,233 @@
+---
+title: "Statistical data analysis in OpenStats"
+date: 2025-09-12
+categories: [R, Rstats]
+format: html
+toc: true
+code-fold: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 4.5
+)
+```
+
+In this post, I will show how statistical data analysis is performed in OpenStats.
+We start by importing data, defining the active dataset, specifying statistical models, and finally running tests and inspecting results.
+
+## Data import
+
+The first step is to import data into OpenStats. It is possible to import XLSX, TXT and CSV files.
+Notably, the files can contain more than one table. The only, requirement is that tables are separated from each other
+with at least one empty column and/or row.
+OpenStats can be used in two modes. The default one is the *local* mode, where the application runs on the  computer of the user.
+In this mode the standard upload of files via the browse window is supported.
+The other mode is the usage of OpenStats in combination with Chemotion ELN (https://chemotion.net/).
+For a detailed documentation you can access: https://doi.org/10.26434/chemrxiv-2025-9rgbd where the file transfer is described in detail.
+
+## Central concepts of OpenStats
+
+OpenStats main purpose is the statistical analysis of data. Therefore, the application reacts to the **active dataset** and the **statistical model**.
+
+### The **active dataset**
+
+The user uploads one or more datasets and optionally sets the **active dataset**.
+Based on the active dataset the UI is adapted as shown for the Buttons available in the *DataWrangling* tab.
+
+![Active Dataset](active_dataset.png)
+![Buttons for iris](buttons_iris.png)
+![Buttons for CO2](buttons_co2.png)
+
+### The **statistical model**
+
+After uploading the data a **statistical model** has to be defined as prerequisite to conduct any tests.
+Currently, OpenStats offers a linear a generalized linear and an optimization model. To define a model one opens the *Formula Editor*.
+The response variable can simply be chosen using a drop down menu (where each column of the active dataset is available).
+Instead, the right side of the formula is defined within a specific text field.
+In the example, below only the main effect of *conc* is of interest. The user can either use the buttons to fill the content of the field or directly write into the text field.
+For more details how the text is safely evaluated please check this blog post: https://complat.github.io/OpenStats/posts/openstats_safe_evaluation/
+Thus, this UI resembles the definition of a formula in R.
+
+![Formula Editor](formula_editor.png)
+
+After clicking *Create statistical model* a summary is directly created. Here, the model is visualized and the output of `summary(model)` as well as the information criteria are shown.
+
+![Model Summary](model_summary.png)
+
+I want to give a short side note to optimization models. Here a formula is created as described above but the expression has to contain at least one unknown parameter.
+These parameters are then optimized in order to match the dependent variable. Thus, the definition of these models has the purpose to identify the optimal parameters.
+Thereby, this can be used to define calibration curves.
+
+## Running tests
+
+After defining the **statistical model** one can run a test as shown below where an ANOVA is conducted.
+
+![Run ANOVA](anova_button.png)
+![ANOVA result](anova_res.png)
+
+## Display of results
+
+The results are stored in one long list. Independently, in which sub tab the result was created it is added to this single list.
+The user has the possibility to remove entries by using the respective button.
+
+![Results](result_list.png)
+
+Each result in OpenStats is stored in a dedicated storage class, as illustrated below for the model summary.
+The only exception are data.frame objects, which can be handled directly without a custom class.
+To display the results, the UI elements are created first.
+This is done by iterating over the result list and, depending on the type of each element,
+adding the corresponding div container to the output. All generated UI components are then collected and combined using tagList.
+
+An observer is subsequently used to iterate over the results again.
+In this second pass, each element is rendered and assigned to its respective UI slot,
+ensuring that every result—whether a plot, table, or summary—is displayed correctly.
+
+### How OpenStats stores and renders results internally
+
+```r
+setClass("summaryModel",
+  slots = c(
+    p = "plot",
+    summary = "data.frame",
+    information_criterions = "data.frame"
+  )
+)
+# Results
+# ----------------------------------------------------------
+# Render results list
+output$Results <- renderUI({
+  if (input$conditionedPanels == "DataWrangling") {
+    return(
+      div(
+        class = "var-box-output",
+        h3(strong("The results are displayed in the other tabs"))
+      )
+    )
+  }
+  res <- ResultsState$all_data |> rev()
+  if (length(res) == 0) {
+    return()
+  }
+  res_ui_list <- lapply(names(res), function(name) {
+    temp <- res[[name]]
+    if (is.vector(temp)) {
+      div(
+        class = "var-box-output",
+        div(
+          class = "var-box-name",
+          name
+        ),
+        verbatimTextOutput(paste0("res_", name)),
+        actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+      )
+    } else if (is.data.frame(temp)) {
+      div(
+        class = "var-box-output",
+        div(
+          class = "var-box-name",
+          name
+        ),
+        DTOutput(paste0("res_", name)),
+        actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+      )
+    } else if (inherits(temp, "doseResponse")) {
+      div(
+        class = "var-box-output",
+        div(
+          class = "var-box-name",
+          name
+        ),
+        plotOutput(paste0("res_dose_response_", name),
+          width = "100%", height = "800px"
+        ),
+        actionButton(paste0("res_previous_", name), "Previous plot"),
+        actionButton(paste0("res_next_", name), "Next plot"),
+        DTOutput(paste0("res_dose_response_df_", name)),
+        actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+      )
+    } else if (inherits(temp, "plot")) {
+      div(
+        class = "var-box-output",
+        div(
+          class = "var-box-name",
+          name
+        ),
+        plotOutput(paste0("res_", name), width = "100%", height = "800px"),
+        actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+      )
+    } else if (inherits(temp, "summaryModel")) {
+      div(
+        class = "var-box-output",
+        div(
+          class = "var-box-name",
+          name
+        ),
+        plotOutput(paste0("res_plot_", name)),
+        DTOutput(paste0("res_summary_", name)),
+        DTOutput(paste0("res_information_criterion_", name)),
+        actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+      )
+    } else {
+      div(
+        class = "var-box-output",
+        div(
+          class = "var-box-name",
+          name
+        ),
+        verbatimTextOutput(paste0("res_", name)),
+        actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+      )
+    }
+  })
+  download_stuff <- div(
+    class = "var-box-output",
+    h3(strong("Results")),
+    p("The following list contains the results"),
+    actionButton("download", "Save"),
+    textInput("user_filename", "Set filename", value = "")
+  )
+  do.call(tagList, list(download_stuff, res_ui_list))
+})
+# Show results
+observe({
+  if (length(ResultsState$all_data) == 0) {
+    return()
+  }
+  res <- ResultsState$all_data
+  res_ui_list <- lapply(names(res), function(name) {
+    rendered <- attributes(ResultsState$all_data[[name]])$rendered
+    if (!is.null(rendered) && rendered) return()
+    observeEvent(res[[name]], {
+      temp <- res[[name]]
+      set_rendered <- if (inherits(temp, "doseResponse")) FALSE else TRUE
+      if (is.vector(temp)) {
+        output[[paste0("res_", name)]] <- renderPrint(temp)
+      } else if (is.data.frame(temp)) {
+        output[[paste0("res_", name)]] <- render_df(temp)
+      } else if (inherits(temp, "doseResponse")) {
+        output[[paste0("res_dose_response_", name)]] <- renderPlot(temp@p[[temp@current_page]])
+        output[[paste0("res_dose_response_df_", name)]] <- render_df(temp@df, 2)
+      } else if (inherits(temp, "plot")) {
+        output[[paste0("res_", name)]] <- renderPlot(temp@p)
+      } else if (inherits(temp, "summaryModel")) {
+        output[[paste0("res_plot_", name)]] <- renderPlot(temp@p)
+        output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
+        output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
+      } else {
+        output[[paste0("res_", name)]] <- renderPrint(temp)
+      }
+      if (set_rendered) attr(ResultsState$all_data[[name]], "rendered") <- TRUE
+    })
+  })
+  do.call(tagList, res_ui_list)
+})
+```
+
+
+
