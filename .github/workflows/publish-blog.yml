@@ -39,19 +39,15 @@ jobs:
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # - name: Render blog/
-      #   uses: quarto-dev/quarto-actions/render@v2
-      #   with:
-      #     path: blog
-      - name: Render full site
+      - name: Render blog/
         uses: quarto-dev/quarto-actions/render@v2
         with:
-          path: .
+          path: blog
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: blog/_site
 
       - name: Deploy to GitHub Pages
         id: deployment
