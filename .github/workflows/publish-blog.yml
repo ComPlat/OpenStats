@@ -4,8 +4,10 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'blog/**'
+      - '**.qmd'
+      - '_quarto.yml'
       - '.github/workflows/publish-blog.yml'
+      - 'posts/**'
   workflow_dispatch:
 
 permissions:
@@ -20,35 +22,31 @@ concurrency:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pandoc (required by Quarto)
+      - name: Setup Pandoc
         uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Setup R (for knitr)
+      - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
 
-      - name: Install R packages
-        run: |
-          Rscript -e 'install.packages(c("knitr", "rmarkdown"))'
+      - name: Install needed R packages
+        run: Rscript -e 'install.packages(c("knitr", "rmarkdown"))'
 
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # - name: Render blog/
-      #   uses: quarto-dev/quarto-actions/render@v2
-      #   with:
-      #     path: blog
-      - name: Render full site
+      - name: Render full Quarto site
         uses: quarto-dev/quarto-actions/render@v2
         with:
-          path: blog
+          path: .
 
-      - name: Upload artifact
+      - name: Upload artifact (for GitHub Pages)
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
