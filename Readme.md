@@ -48,10 +48,12 @@ install.packages("remotes")
 ```R
 library(remotes)
 ```
-2. Use the `install_github` function to install the package "COMELN".
+2. Use the `install_github` function to install the package.
 ```R
-remotes::install_github("ComPlat/OpenStats", subdir = "comeln")
 remotes::install_github("ComPlat/OpenStats", subdir = "OpenStats")
+
+# Optionally if you want to use OpenStats in combination with ChemotionELN
+remotes::install_github("ComPlat/OpenStats", subdir = "comeln")
 ```
 
 3. Restart R/RStudio and start the app
