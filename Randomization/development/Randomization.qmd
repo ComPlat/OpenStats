@@ -1,0 +1,206 @@
+---
+title: "Power Analysis and Randomization Workflow"
+format:
+  pdf:
+    number-sections: true
+fontsize: 11pt
+geometry: margin=1in
+---
+
+
+# Introduction
+
+This document demonstrates an end-to-end workflow for planning and executing
+biological experiments using the R package *Randomization*.
+It covers three core components:
+
+1. **Power analysis**
+   We determine how many repetitions per treatment level are required to reach
+   a desired statistical power (here: one-way ANOVA based on *Cohen’s f*).
+2. **Design matrix generation**
+   From user-defined predictors (e.g., Treatment, Cell line), a full design
+   matrix is created. All experimental combinations are expanded to the
+   repetition count determined by the power analysis.
+3. **Random assignment**
+   The design matrix is randomly assigned to user-defined groups
+   (e.g., measurement days, plates, runs).
+   The following methods are implemented:
+   - **Simple randomisation**
+     Every row is independently assigned according to the specified ratio.
+   - **Block randomisation**
+     Randomisation occurs *within* levels of a chosen factor
+     (e.g., Treatment-wise balancing across days).
+   - **Block-stratified randomisation**
+     Randomisation occurs within *combinations* of several predictors  
+     (e.g., stratifying by Treatment × Cell line).
+   - **Balanced randomisation**
+     Each predictor combination is balanced across groups, followed by a global shuffle.
+
+```{r}
+#| echo: false
+sr <- function(res) {
+  res <- res[, -3] # remove id
+  rt <- table(res)
+  lapply(c("Day1", "Day2", "Day3"), function(d) {
+    sub <- rt[, , d]
+    rs <- rowSums(sub)
+    cs <- colSums(sub)
+    sub <- rbind(sub, Sum = cs)
+    sub <- cbind(sub, Sum = c(rs, sum(cs)))
+    cat(d, "\n")
+    print(sub)
+  })
+}
+```
+
+{{< pagebreak >}}
+
+# Power analysis & Random assignment
+
+In this chapter, the usage of function `randomization_one_way_anova` is demonstrated. The results are printed by an internal helper function called *sr*.
+
+## Predictors
+
+First the Predictors have to be defined as a named list.
+Each element represents one experimental factor and its possible levels.
+The *primary_factor* determines which predictor is used in the one-way ANOVA
+power analysis. Only this factor influences the required sample size.
+All other predictors are later included only in the design matrix.
+
+```{r}
+predictors <- list(
+  cellLines = c("HeLa", "Hek"),
+  Treatment = LETTERS[1:4]
+)
+primary_factor <- "Treatment"
+```
+
+## Simple randomisation
+
+Each row of the design matrix is randomly assigned to one of the groups.
+Assignments follow the user-defined ratios (e.g., 1:1:1).
+There is no balancing by Treatment or Cell line — this is the most basic form
+of randomisation.
+
+```{r}
+res <- Randomization::randomization_one_way_anova(
+  predictors, "Treatment", groups = c("Day1", "Day2", "Day3"),
+  group_type = "infinite",
+  ratios = c(1, 1, 1), 0.25, 0.05, 0.8,
+  randomization_method = "simple", seed = 42
+) |> sr()
+```
+
+{{< pagebreak >}}
+
+## Block randomisation
+
+Here, randomisation is performed *within each level* of the primary factor.
+For example:
+- each Treatment level is randomised separately,
+- ensuring that every Treatment is distributed across measurement days
+  according to the target ratios.
+This reduces confounding between Treatment and Day.
+
+```{r}
+res <- Randomization::randomization_one_way_anova(
+  predictors, "Treatment", groups = c("Day1", "Day2", "Day3"),
+  group_type = "infinite",
+  ratios = c(1, 1, 1), 0.25, 0.05, 0.8,
+  randomization_method = "block", seed = 42
+) |> sr()
+```
+
+{{< pagebreak >}}
+
+## Block-stratified randomisation
+
+This method stratifies on *multiple predictors simultaneously* (e.g., Treatment × Cell line).
+Randomisation happens independently within every stratum.
+This is extremely useful when laboratories want to ensure that
+all combinations (such as all Treatment–Cell line pairs)
+appear on all days in a controlled ratio.
+
+```{r}
+res <- Randomization::randomization_one_way_anova(
+  predictors, primary_factor = "Treatment",
+  groups = c("Day1", "Day2", "Day3"),
+  group_type = "infinite", ratios = c(1, 1, 1),
+  cohens_f = 0.25, sig_level = 0.05, desired_power = 0.8,
+  randomization_method = "block_stratified",
+  strata_cols = c("cellLines", "Treatment"), seed = 42
+) |> sr()
+```
+
+{{< pagebreak >}}
+
+# Advanced Randomized Assignment
+
+The following section illustrates the full analytical workflow step by step.
+
+1. We compute the required sample size using `pwr.anova.test()` from the *pwr* package.
+2. We construct a completely randomised design matrix based on all predictors.
+3. We optionally expand this matrix to meet the sample size requirements.
+4. We apply a chosen randomisation method to assign each row to a group.
+
+## Power Analysis
+
+```{r}
+n_levels <- length(predictors[[primary_factor]])
+cohens_f <- 0.25
+sig_level <- 0.05
+desired_power <- 0.8
+power_analysis_res <- pwr::pwr.anova.test(
+  k = n_levels,
+  f = cohens_f,
+  sig.level = sig_level,
+  power = desired_power
+)
+plot(power_analysis_res)
+
+```
+
+## Completely randomized design
+
+A fully crossed design matrix is generated using `expand.grid()`.
+This includes every combination of predictors, e.g.:
+
+- 2 cell lines
+- 4 treatments
+→ 8 combinations in total
+
+The required number of repetitions per treatment level is calculated from the
+power analysis. These repetitions are then distributed across predictor
+combinations, producing the final design matrix used in randomisation.
+
+```{r}
+n_per_level <- power_analysis_res$n
+knitr::kable(data.frame("N per level" = n_per_level))
+other_factors <- predictors[setdiff(names(predictors), primary_factor)]
+combos_per_level <- prod(vapply(other_factors, length, integer(1)))
+n_per_combo <- ceiling(n_per_level / combos_per_level)
+design <- Randomization:::completely_randomised_design(predictors, n_per_combo)
+design_excerpt <- table(design) |> as.data.frame()
+design_excerpt <- design_excerpt[design_excerpt$Freq != 0, ]
+knitr::kable(design_excerpt[, -3])
+```
+
+{{< pagebreak >}}
+
+## Random group assignment
+
+The design matrix is assigned to groups using the unified `random_assign()` function.
+The example below demonstrates block-stratified randomisation by stratifying on `cellLines`,
+i.e. the assignments within each cell line follow the target group ratios.
+
+```{r}
+groups <- c("Day1", "Day2", "Day3")
+ratios <- c(1, 1, 1)
+col <- "Group"
+strata_cols <- "cellLines"
+design_assigned <- Randomization::random_assign(
+  df = design, groups = groups, group_type = "infinite", ratios = ratios,
+  col = col, strata_cols = strata_cols,
+  randomization_method = "block_stratified", seed = 1234
+) |> sr()
+```

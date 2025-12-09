@@ -1,0 +1,22 @@
+---
+title: "Meeting 2025-12-04"
+format:
+  pdf:
+    number-sections: true
+fontsize: 11pt
+geometry: margin=1in
+---
+
+- simple randomization --> only mix design matrix entries.
+
+- treatment: A, B, C, D
+  * Each treatment measurement 3 times
+  * shuffle design matrix blocks
+
+- stratified randomization
+  * with continous variables.
+    For example weight of animals.
+    Thus, in each block, the distribution of the weight should be represented
+
+- DOE not always completly randomized
+  * How to create design matrices?

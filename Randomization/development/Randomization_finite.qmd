@@ -1,0 +1,138 @@
+---
+title: "Randomization Workflow for finite groups"
+format:
+  pdf:
+    number-sections: true
+fontsize: 11pt
+geometry: margin=1in
+---
+
+```{r}
+#| echo: false
+library(ggplot2)
+
+pl <- function(res) {
+  res$random_group <- as.numeric(res$random_group)
+  global_df <- data.frame(
+    value = weights,
+    source = "Global"
+  )
+  block_df <- data.frame(
+    value = res$random_group,
+    source = "Assigned",
+    Treatment = res$Treatment,
+    cellLines = res$cellLines
+  )
+  p1 <- ggplot() +
+    geom_density(data = global_df,
+      aes(x = value, linetype = source),
+      linewidth = 1) +
+    geom_density(data = block_df,
+      aes(x = value, color = Treatment),
+      alpha = 0.6) +
+    labs(
+      title = "Global vs Block-wise Weight Distributions",
+      x = "Weight",
+      y = "Density"
+    ) +
+    theme_minimal()
+  p2 <- ggplot() +
+    geom_density(data = global_df,
+      aes(x = value, linetype = source),
+      linewidth = 1) +
+    geom_density(data = block_df,
+      aes(x = value, color = cellLines),
+      alpha = 0.6) +
+    labs(
+      title = "Global vs Block-wise Weight Distributions",
+      x = "Weight",
+      y = "Density"
+    ) +
+    theme_minimal()
+  cowplot::plot_grid(p1, p2, ncol = 1L)
+}
+```
+
+# Introduction
+
+This document demonstrates an end-to-end workflow for planning and executing
+biological experiments using the R package *Randomization*.
+It covers three core components:
+
+1. **Power analysis**
+   We determine how many repetitions per treatment level are required to reach
+   a desired statistical power (here: one-way ANOVA based on *Cohen’s f*).
+2. **Design matrix generation**
+   From user-defined predictors (e.g., Treatment, Cell line), a full design
+   matrix is created. All experimental combinations are expanded to the
+   repetition count determined by the power analysis.
+3. **Random assignment**
+   The design matrix is randomly assigned to user-defined groups
+   (e.g., measurement weights, plates, runs).
+   In this document the assignment of a finite group (*weights*) is demonstrated.
+
+```{r}
+predictors <- list(
+  cellLines = c("HeLa", "Hek"),
+  Treatment = LETTERS[1:4]
+)
+primary_factor <- "Treatment"
+set.seed(1234)
+weights <- rnorm(250, 300, 25)
+```
+
+{{< pagebreak >}}
+
+## Simple randomisation
+
+Each row of the design matrix is randomly assigned to one of the groups.
+There is no balancing by Treatment or Cell line — this is the most basic form
+of randomisation. Here the weights of e.g. animals are assigned to the design matrix.
+
+```{r}
+Randomization::randomization_one_way_anova(
+  predictors = predictors, primary_factor = "Treatment",
+  groups = weights, group_type = "finite",
+  cohens_f = 0.25, sig_level = 0.05, desired_power = 0.9,
+  randomization_method = "simple",
+  seed = 42
+) |> pl()
+```
+
+{{< pagebreak >}}
+
+## Block randomisation
+
+Here, randomisation is performed *within each level* of the primary factor.
+For example:
+- each Treatment level is randomised separately,
+- the weights of e.g. animals are assigned to the design matrix.
+
+```{r}
+Randomization::randomization_one_way_anova(
+  predictors = predictors, primary_factor = "Treatment",
+  groups = weights, group_type = "finite",
+  cohens_f = 0.25, sig_level = 0.05, desired_power = 0.9,
+  randomization_method = "block",
+  seed = 124
+) |> pl()
+```
+
+{{< pagebreak >}}
+
+## Block-stratified randomisation
+
+This method stratifies on *multiple predictors simultaneously* (e.g., Treatment × Cell line).
+Randomisation happens independently within every stratum.
+Here the weights of e.g. animals are assigned to the design matrix.
+
+```{r}
+Randomization::randomization_one_way_anova(
+  predictors = predictors, primary_factor = "Treatment",
+  groups = weights, group_type = "finite",
+  cohens_f = 0.25, sig_level = 0.05, desired_power = 0.9,
+  randomization_method = "block_stratified",
+  strata_cols = c("cellLines", "Treatment"),
+  seed = 123
+) |> pl()
+```

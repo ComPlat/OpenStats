@@ -1,0 +1,16 @@
+Package: Randomization
+Type: Package
+Title: Randomization of Designs
+Version: 0.1
+Date: 2025-11-27
+Authors@R: person(given = "Krämer",
+    family = "Konrad",
+    role = c("aut", "cre"),
+    email = "konrad.kraemer@kit.edu")
+Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
+Description: Randomization of Designs of Experimental Plans.
+License: GPL-3
+Depends: R (>= 4.1.0)
+Imports: pwr
+Suggests: tinytest
+Encoding: UTF-8
