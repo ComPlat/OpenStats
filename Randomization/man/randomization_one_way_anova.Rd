@@ -67,13 +67,5 @@ res <- randomization_one_way_anova(
   strata_cols = c("cellLines", "Treatment"),
   seed = 42
 )
-res <- randomization_one_way_anova(
-  predictors, "Treatment",
-  groups = c("Day1", "Day2", "Day3"), ratios = c(1, 1, 1),
-  "infinite",
-  0.25, 0.05, 0.8,
-  randomization_method = "balanced",
-  strata_cols = "cellLines", seed = 42
-)
 }
 }
