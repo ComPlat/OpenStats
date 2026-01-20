@@ -937,7 +937,6 @@ summarise_model_V1_2 <- R6::R6Class(
           invokeRestart("muffleWarning")
         }
       )
-
     },
 
     eval = function(ResultsState) {
@@ -1017,16 +1016,18 @@ create_formula_V1_2 <- R6::R6Class(
         )
       } else if (model_type == "Optimization Model") {
         details <- c(...)
-        lower <- details[[1]]
-        upper <- details[[2]]
-        seed <- details[[3]]
+        method <- details[[1]]
+        lower <- details[[2]]
+        upper <- details[[3]]
+        seed <- details[[4]]
         formula <- paste0(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
-        DataModelState$formula <- env_optim_V1_2$create_formula_optim(formula, self$df, lower, upper, seed)
+        DataModelState$formula <- env_optim_V1_2$create_formula_optim(formula, self$df, method, lower, upper, seed)
         eq <- paste0(self$response_var, " = ", self$right_site)
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(
           type = "CreateFormula",
           formula = deparse(formula),
+          method = method,
           lower = lower, upper = upper, seed = seed,
           "Model Type" = "Optimization Model"
         )

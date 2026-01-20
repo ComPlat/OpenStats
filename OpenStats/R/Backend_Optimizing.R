@@ -14,7 +14,7 @@ add_theme_optim <- function(p) {
 env_optim_V1_2$add_theme_optim <- add_theme_optim
 # nocov end plotting
 
-create_formula_optim <- function(formula, df, lower, upper, seed) {
+create_formula_optim <- function(formula, df, method, lower, upper, seed) {
   rhs <- as.character(formula)[3] |> str2lang()
   lhs <- as.character(formula)[2]
   vars <- all.vars(rhs)
@@ -25,7 +25,7 @@ create_formula_optim <- function(formula, df, lower, upper, seed) {
   stopifnot("No unknown parameters to optimize." = length(params) > 0)
   new(
     "OptimFormula", formula = formula, parameter = params, lhs = lhs, rhs = rhs,
-    lower = lower, upper = upper, seed = seed
+    method = method, lower = as.numeric(lower), upper = as.numeric(upper), seed = as.numeric(seed)
   )
 }
 env_optim_V1_2$create_formula_optim <- create_formula_optim
@@ -110,20 +110,61 @@ optimize <- function(formula, df) {
   params <- formula@parameter
   env_optim_V1_2$check_seed_optim(formula@seed)
   set.seed(formula@seed)
-  loss_fn <- env_optim_V1_2$make_loss_fn_optim(formula, df)
-  start_params <- env_optim_V1_2$find_start_optim(loss_fn, length(params), formula@lower, formula@upper)
-  opti_params <- optim(par = start_params, fn = loss_fn)
-  if (is.null(opti_params$message)) opti_params$message <- ""
-  x_vars <- env_optim_V1_2$determine_pred_variable_optim(formula, df)
-  data <- env_optim_V1_2$predict_optim(opti_params, loss_fn, df, x_vars, lhs)
-  new("optimResult",
-    parameter = opti_params$par,
-    error = opti_params$value,
-    convergence = opti_params$convergence == 0,
-    message = opti_params$message,
-    predicted_df = data,
-    x_vars = x_vars # Needed for latter plotting
-  )
+  if (formula@method == "general purpose optimization") {
+    loss_fn <- env_optim_V1_2$make_loss_fn_optim(formula, df)
+    start_params <- env_optim_V1_2$find_start_optim(loss_fn, length(params), formula@lower, formula@upper)
+    opti_params <- optim(par = start_params, fn = loss_fn)
+    if (is.null(opti_params$message)) opti_params$message <- ""
+    x_vars <- env_optim_V1_2$determine_pred_variable_optim(formula, df)
+    data <- env_optim_V1_2$predict_optim(opti_params, loss_fn, df, x_vars, lhs)
+    new("optimResult",
+      parameter = opti_params$par,
+      error = opti_params$value,
+      convergence = opti_params$convergence == 0,
+      message = opti_params$message,
+      predicted_df = data,
+      x_vars = x_vars # Needed for latter plotting
+    )
+  } else if (formula@method == "nonlinear least squares") {
+    params_len <- length(params)
+    start <- setNames(as.list(runif(params_len, min = formula@lower, max = formula@upper)), params)
+    model <- nls(
+      formula@formula,
+      df,
+      start = start,
+      lower = setNames(rep(formula@lower, params_len), params),
+      upper = setNames(rep(formula@upper , params_len), params),
+      algorithm = "port"
+    )
+    par <- broom::tidy(model) |> as.data.frame()
+    par <- par$estimate
+    pred <- predict(model)
+    error <- sum((df[[formula@lhs]] - pred)^2)
+    x_vars <- env_optim_V1_2$determine_pred_variable_optim(formula, df)
+
+    predict_optim_nls <- function(model, df, x_vars, y_var) {
+      pred <- predict(model)
+      xdata <- do.call(paste, c(
+        lapply(df[x_vars], function(v) {
+          if (is.numeric(v)) round(v, 3) else v
+        }),
+        sep = "-"
+      ))
+      data.frame(
+        i = rep(1:length(xdata), 2), x = rep(xdata, 2), y = c(df[[y_var]], pred),
+        group = c(rep("Original", nrow(df)), rep("Predicted", nrow(df)))
+      )
+    }
+    data <- predict_optim_nls(model, df, x_vars, formula@lhs)
+    new("optimResult",
+      parameter = par,
+      error = error,
+      convergence = model$convergence == 0,
+      message = model$message,
+      predicted_df = data,
+      x_vars = x_vars # Needed for latter plotting
+    )
+  }
 }
 env_optim_V1_2$optimize <- optimize
 

@@ -16,6 +16,7 @@ setClass("OptimFormula",
     parameter = "character",
     lhs = "character",
     rhs = "call",
+    method = "character",
     lower = "numeric",
     upper = "numeric",
     seed = "numeric"

@@ -315,11 +315,19 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
     # Optim UI
-    output[["optim_boundaries"]] <- renderUI({
+    output[["optim_boundaries_and_method"]] <- renderUI({
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         NULL
       } else if (input$model_type == "Optimization Model") {
         div(
+          selectInput(
+            "FO-optim_method", "Optimization method",
+            c(
+              "general purpose optimization" = "general purpose optimization",
+              "nonlinear least squares" = "nonlinear least squares"
+            ),
+            selectize = FALSE
+          ),
           numericInput("FO-LowerBoundary", "Lower boundary of parameters", value = 0),
           numericInput("FO-UpperBoundary", "Upper boundary of parameters", value = 100),
           numericInput("FO-Seed", "Seed (start value for random number generation)", value = sample(1:10^6, 1))
@@ -445,7 +453,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             } else if (input$model_type == "Optimization Model") {
               model_latex <- cf$eval(
                 ResultsState, DataModelState, input$model_type,
-                input$LowerBoundary, input$UpperBoundary, input$Seed
+                input$optim_method ,input$LowerBoundary, input$UpperBoundary, input$Seed
               )
             }
             output$model <- renderUI({

@@ -461,6 +461,8 @@ app <- function() {
                   p("Optimization Model"),
                   deparse(DataModelState$formula@formula),
                   br(),
+                  paste0("Optimization method: ", DataModelState$formula@method),
+                  br(),
                   paste0("Lower boundary: ", deparse(DataModelState$formula@lower)),
                   paste0("Upper boundary: ", deparse(DataModelState$formula@upper)),
                   br(),

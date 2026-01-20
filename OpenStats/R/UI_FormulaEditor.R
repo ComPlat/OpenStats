@@ -19,7 +19,7 @@ FormulaEditorUI <- function(id) {
           uiOutput(NS(id, "glm_family_dropdown")),
           uiOutput(NS(id, "glm_link_fct_dropdown")),
           uiOutput(NS(id, "optim_predefined_equations")),
-          uiOutput(NS(id, "optim_boundaries")),
+          uiOutput(NS(id, "optim_boundaries_and_method")),
           class = "boxed-output"
         )
       ),

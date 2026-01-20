@@ -1,0 +1,106 @@
+{
+  "id": "123456789",
+  "request_id": "999",
+  "wellplates": [
+    {
+      "id": "1",
+      "readoutTitles": [
+        "Readout1",
+        "Readout2"
+      ],
+      "wells": [
+        {
+          "id": 1, "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "mg",
+              "value": "1.376"
+            },
+            {
+              "unit": "1.4",
+              "value": "1"
+            },
+            {
+              "unit": "1.4",
+              "value": "1"
+            }
+          ],
+          "sample": {
+            "id": 100,
+            "short_label": "CU1-2-1",
+            "conc": 0.999
+          }
+        },
+        {
+          "id": 2,
+          "position": {
+            "x": 2,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "mg",
+              "value": "1.436"
+            },
+            {
+              "unit": "mg",
+              "value": "1.385"
+            }
+          ],
+          "sample": {
+            "id": 8204,
+            "short_label": "CU1-1-1",
+            "conc": 0.789
+          }
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "readoutTitles": [
+        "Readout1"
+      ],
+      "wells": [
+        {
+          "id": 97,
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "mg",
+              "value": "0.939"
+            }
+          ],
+          "sample": {
+            "id": 8207,
+            "short_label": "CU1-3-1",
+            "conc": 1.2
+          }
+        },
+        {
+          "id": 110,
+          "position": {
+            "x": 8,
+            "y": 12
+          },
+          "readouts": [
+            {
+              "unit": "mg",
+              "value": "1.045"
+            }
+          ],
+          "sample": {
+            "id": 8208,
+            "short_label": "CU1-3-1-1",
+            "conc": 0.1
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "id": ["123456789"],
+  "request_id": ["999"],
+  "Output": [
+    {
+      "input": [
+        {
+          "conc": "0.5",
+          "name": "S1",
+          "values": 1.376,
+          "readout_id": 1,
+          "well_id": 3,
+          "sample_id": 1,
+          "wellplate_id": 2
+        },
+        {
+          "conc": "0.5",
+          "name": "S1",
+          "values": 1.219,
+          "readout_id": 1,
+          "well_id": 3,
+          "sample_id": 2,
+          "wellplate_id": 3
+        },
+        {
+          "conc": "0.5",
+          "name": "S1",
+          "values": 1.525,
+          "readout_id": 1,
+          "well_id": 1,
+          "sample_id": 3,
+          "wellplate_id": 1
+        },
+        {
+          "conc": "0.5",
+          "name": "S1",
+          "values": 1.482,
+          "readout_id": 1,
+          "well_id": 2,
+          "sample_id": 1,
+          "wellplate_id": 3
+        },
+        {
+          "conc": "0.5",
+          "name": "S1",
+          "values": 1.367,
+          "readout_id": 1,
+          "well_id": 1,
+          "sample_id": 1,
+          "wellplate_id": 1
+        },
+        {
+          "conc": "pos",
+          "name": "pos",
+          "values": 0.129,
+          "readout_id": 1,
+          "well_id": 3,
+          "sample_id": 2,
+          "wellplate_id": 1
+        },
+        {
+          "conc": "5",
+          "name": "S1",
+          "values": 1.436,
+          "readout_id": 1,
+          "well_id": 1,
+          "sample_id": 2,
+          "wellplate_id": 2
+        },
+      ],
+      "result": [
+        {
+          "name": "S1",
+          "Response_lowestdose_predicted": 1.3942,
+          "Response_highestdose_predicted": 1.2779,
+          "HillCoefficient": 5.2705,
+          "asymptote_one": 1.2779,
+          "asymptote_two": 1.3942,
+          "IC50_relative": 5.1435,
+          "IC50_relative_lower": 1.5584,
+          "IC50_relative_higher": 8.7287,
+          "pIC50": -0.7113,
+          "RSE": 0.0959,
+          "p_value": 0.1441,
+          "Problems": " Response Difference lower than 25%",
+          "_row": "Prediction"
+        },
+        {
+          "name": "S2",
+          "Response_lowestdose_predicted": 1.4239,
+          "Response_highestdose_predicted": 1.3041,
+          "HillCoefficient": 10.2876,
+          "asymptote_one": 1.3041,
+          "asymptote_two": 1.4239,
+          "IC50_relative": 6.4657,
+          "IC50_relative_lower": 2.5026,
+          "IC50_relative_higher": 10.4288,
+          "pIC50": -0.8106,
+          "RSE": 0.0943,
+          "p_value": 0.0534,
+          "Problems": " Response Difference lower than 25%",
+          "_row": "Prediction1"
+        },
+        {
+          "name": "S3",
+          "Response_lowestdose_predicted": 1.4162,
+          "Response_highestdose_predicted": 1.0426,
+          "HillCoefficient": 2.8801,
+          "asymptote_one": 1.0362,
+          "asymptote_two": 1.4165,
+          "IC50_relative": 6.0771,
+          "IC50_relative_lower": 4.58,
+          "IC50_relative_higher": 7.5741,
+          "pIC50": -0.7837,
+          "RSE": 0.0524,
+          "p_value": 2.8105e-10,
+          "Problems": "",
+          "_row": "Prediction2"
+        },
+        {
+          "name": "S4",
+          "Response_lowestdose_predicted": 1.3899,
+          "Response_highestdose_predicted": 1.0495,
+          "HillCoefficient": 0.4908,
+          "asymptote_one": 0.7548,
+          "asymptote_two": 1.547,
+          "IC50_relative": 8.6043,
+          "IC50_relative_lower": -37.3583,
+          "IC50_relative_higher": 54.5669,
+          "pIC50": -0.9347,
+          "RSE": 0.0592,
+          "p_value": 3.2774e-08,
+          "Problems": "",
+          "_row": "Prediction3"
+        },
+        {
+          "name": "S5",
+          "Response_lowestdose_predicted": 1.3152,
+          "Response_highestdose_predicted": 1.3058,
+          "HillCoefficient": 0.2366,
+          "asymptote_one": 1.2909,
+          "asymptote_two": 1.3323,
+          "IC50_relative": 2.1832,
+          "pIC50": -0.3391,
+          "RSE": 0.0464,
+          "p_value": 0.9866,
+          "Problems": " Response Difference lower than 25%",
+          "_row": "Prediction4"
+        },
+        {
+          "name": "S6",
+          "Response_lowestdose_predicted": 1.3953,
+          "Response_highestdose_predicted": 1.4465,
+          "HillCoefficient": -0.2931,
+          "asymptote_one": 1.3479,
+          "asymptote_two": 1.5462,
+          "IC50_relative": 26.0248,
+          "pIC50": -1.4154,
+          "RSE": 0.0605,
+          "p_value": 0.517,
+          "Problems": " Response Difference lower than 25%",
+          "_row": "Prediction5"
+        },
+        {
+          "name": "S7",
+          "Response_lowestdose_predicted": 1.4395,
+          "Response_highestdose_predicted": 1.1602,
+          "HillCoefficient": 16.2984,
+          "asymptote_one": 1.1602,
+          "asymptote_two": 1.4395,
+          "IC50_relative": 8.4697,
+          "IC50_relative_lower": 0.7157,
+          "IC50_relative_higher": 16.2236,
+          "pIC50": -0.9279,
+          "RSE": 0.0854,
+          "p_value": 2.9615e-06,
+          "Problems": "",
+          "_row": "Prediction6"
+        },
+        {
+          "name": "S8",
+          "Response_lowestdose_predicted": 1.3642,
+          "Response_highestdose_predicted": 0.4387,
+          "HillCoefficient": 3.2881,
+          "asymptote_one": 0.2742,
+          "asymptote_two": 1.3643,
+          "IC50_relative": 14.7844,
+          "IC50_relative_lower": 1.1432,
+          "IC50_relative_higher": 28.4257,
+          "pIC50": -1.1698,
+          "RSE": 0.0768,
+          "p_value": 9.4369e-15,
+          "Problems": "",
+          "_row": "Prediction7"
+        }
+      ]
+    }
+  ]
+}
