@@ -9,6 +9,9 @@ app <- function() {
     bgp <- get_bg_process()$new()
 
     # States
+    MethodState <- reactiveValues(
+      method = "Default", storage_class = NULL
+    )
     DataModelState <- reactiveValues(
       df = NULL, formula = NULL,
       backup_df = NULL, filter_col = NULL, filter_group = NULL,
@@ -92,7 +95,12 @@ app <- function() {
 
       file <- downloader(session, out_dir) #"/home/shiny/results"
 
-      env_import$read_data(file, DataModelState, ResultsState)
+      if (MethodState$method == "Default") {
+        env_import$read_data(file, DataModelState, ResultsState)
+      } else if (MethodState$method == "DoseResponse") {
+        MethodState$storage_class <- new("MethodDoseResponse", id = "", request_id = "")
+        env_import_dose_response$import_dose_response_json(file, DataModelState, ResultsState, MethodState)
+      }
       print_req(
         is.data.frame(DataModelState$df),
         "File can not be used. Upload into R failed!"
@@ -110,10 +118,38 @@ app <- function() {
       )
       req(is.data.frame(DataModelState$df))
     })
+
+    get_method <- reactive({
+      if (!requireNamespace("COMELN", quietly = TRUE)) {
+        shiny::validate(shiny::need(FALSE,
+          paste(
+            "Feature requires the 'COMELN' package.",
+            "Install it to enable downloads.",
+            'For GitHub: remotes::install_github("ComPlat/OpenStats", subdir = "comeln")'
+          )
+        ))
+        return(NULL)
+      }
+      get_method <- getExportedValue("COMELN", "getMethod")
+      m <- get_method()
+      if (m == "DoseResponse") {
+        MethodState$method <- "DoseResponse"
+        MethodState$storage_class <- new(
+          "MethodDoseResponse",
+          id = "", request_id = ""
+        )
+      }
+    })
+
     if (Sys.getenv("RUN_MODE") == "SERVER") {
       observe({
         req(is.null(DataModelState$df))
-        e <- try(download_file())
+        e <- try(get_method(), silent = TRUE)
+        if (inherits(e, "try-error")) {
+          err <- conditionMessage(attr(e, "condition"))
+          print_err(err)
+        }
+        e <- try(download_file(), silent = TRUE)
         if (inherits(e, "try-error")) {
           err <- conditionMessage(attr(e, "condition"))
           print_err(err)
@@ -567,12 +603,9 @@ app <- function() {
       l_history <- c("HistoryTable" = history_table)
       l <- c(l_history, l)
       l <- c(l, "HistoryJSON" = history_json)
+      # Sent data to ChemotionELN
+      # -----------------------------------------------------------------------
       if (Sys.getenv("RUN_MODE") == "SERVER") {
-        print_req(
-          env_utils$check_filename_for_server(input$user_filename),
-          "Defined filename does not have xlsx as extension"
-        )
-        excelFile <- env_utils$create_excel_file(l)
         if (!requireNamespace("COMELN", quietly = TRUE)) {
           shiny::validate(shiny::need(FALSE,
             paste(
@@ -584,8 +617,23 @@ app <- function() {
           return(NULL)
         }
         uploader <- getExportedValue("COMELN", "upload")
-        uploader(session, excelFile, new_name = input$user_filename)
-      } else if (Sys.getenv("RUN_MODE") == "LOCAL") {
+
+        if (MethodState$method == "Default") {
+          print_req(
+            env_utils$check_filename_for_server(input$user_filename),
+            "Defined filename does not have xlsx as extension"
+          )
+          excelFile <- env_utils$create_excel_file(l)
+          uploader(session, excelFile, new_name = input$user_filename)
+        }
+        else if (MethodState$method == "DoseResponse") {
+          jsonFile <- env_import_dose_response$dose_resonse_to_json(MethodState, ResultsState)
+          uploader(session, jsonFile, new_name = input$user_filename)
+        }
+      }
+      # Running OpenStats locally
+      # -----------------------------------------------------------------------
+      else if (Sys.getenv("RUN_MODE") == "LOCAL") {
         print_req(
           env_utils$check_filename_for_server(input$user_filename) || env_utils$check_filename_for_serverless(input$user_filename),
           "Defined filename does not have xlsx or zip as extension"

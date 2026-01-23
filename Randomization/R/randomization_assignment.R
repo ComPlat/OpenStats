@@ -1,5 +1,5 @@
-calc_stratum <- function(groups) {
-  breaks <- quantile(groups, probs = seq(0, 1, by = 0.1)) |> unique()
+calc_stratum <- function(groups, n_quantiles) {
+  breaks <- quantile(groups, probs = seq(0, 1, length.out = n_quantiles)) |> unique()
   stratum <- cut(
     groups,
     breaks = breaks,
@@ -8,17 +8,17 @@ calc_stratum <- function(groups) {
   )
   stratum
 }
-calc_ratios <- function(groups) {
-  stratum <- calc_stratum(groups)
+calc_ratios <- function(groups, n_quantiles) {
+  stratum <- calc_stratum(groups, n_quantiles)
   tbl_str <- table(stratum)
   vapply(tbl_str, \(g) g / sum(tbl_str), numeric(1))
 }
 
-groups_new <- function(groups) {
+groups_new <- function(groups, n_quantiles) {
   if (!is.numeric(groups)) stop("Finite groups must be numeric")
   self <- new.env(parent = emptyenv())
   self$groups <- groups
-  self$stratum <- calc_stratum(self$groups)
+  self$stratum <- calc_stratum(self$groups, n_quantiles)
   self$stratum_groups <- sort(unique(self$stratum))
   G <- new.env(parent = self)
   G$draw <- function(n_per_group) {
@@ -115,7 +115,7 @@ shuffle <- function(df) {
 }
 
 random_assign <- function(df, groups, group_type, ratios, col, block_col, strata_cols,
-                          randomization_method, seed) {
+                          randomization_method, n_quantiles, seed) {
   stopifnot(
     is.data.frame(df),
     group_type %in% c("finite", "infinite"),
@@ -134,12 +134,13 @@ random_assign <- function(df, groups, group_type, ratios, col, block_col, strata
   } else {
     stopifnot(
       is.numeric(groups), is.null(ratios),
-      nrow(df) <= length(groups)
+      nrow(df) <= length(groups),
+      is.numeric(n_quantiles)
     )
-    ratios <- calc_ratios(groups)
+    ratios <- calc_ratios(groups, n_quantiles)
   }
   G <- groups
-  if (group_type == "finite") G <- groups_new(groups)
+  if (group_type == "finite") G <- groups_new(groups, n_quantiles)
 
   if (randomization_method == "simple") {
     simple_random_assign(df, G, ratios, col, seed, group_type) |> shuffle()

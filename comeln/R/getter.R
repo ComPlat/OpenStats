@@ -18,3 +18,13 @@ getURL <- function(session) {
   url <- paste0(query$url)
   return(url)
 }
+
+getMethod <- function(session) {
+  query <- getQueryString()
+  m <- query[["method"]]
+  if (is.null(m) || m == "") {
+    return("Default")
+  } else {
+    return(m)
+  }
+}

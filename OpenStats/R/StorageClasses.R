@@ -1,3 +1,10 @@
+setClass("MethodDoseResponse",
+  slots = c(
+    id = "character",
+    request_id = "character"
+  )
+)
+
 setClass("LinearFormula",
   slots = c(
     formula = "formula"
@@ -25,6 +32,7 @@ setClass("OptimFormula",
 
 setClass("doseResponse",
   slots = c(
+    input_df = "data.frame",
     df = "data.frame",
     p = "ANY",
     name_col = "character",

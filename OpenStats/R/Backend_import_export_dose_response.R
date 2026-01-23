@@ -11,6 +11,14 @@ env_import_export_dose_response_V1_2$extract_sample_name <- extract_sample_name
 
 read_well <- function(well) {
   nrow <- length(well$readouts)
+  if (nrow == 0) {
+    res <- data.frame(
+      conc = NA, name = NA, values = NA,
+      readout_id = NA, well_id = NA, sample_id = NA
+    )
+    res <- res[!is.na(res$values), ]
+    return(res)
+  }
   res <- data.frame(
     conc = rep(NA, nrow),
     name = rep(NA, nrow),
@@ -38,7 +46,7 @@ read_plate <- function(data) {
 }
 env_import_export_dose_response_V1_2$read_plate <- read_plate
 
-import_dose_response_json <- function(path) {
+import_dose_response_json <- function(path, DataModelState, ResultsState, MethodState) {
   data <- jsonlite::read_json(path)
 
   stopifnot("id is NULL cannot import the data" = !is.null(data$id))
@@ -52,46 +60,44 @@ import_dose_response_json <- function(path) {
   row.names(df) <- NULL
   splitted_df <- split(df, df$readout_id)
   splitted_df <- setNames(splitted_df, paste0("Readout_", seq_len(length(splitted_df))))
-  list(
-    id = data$id, request_id = data$request_id,
-    data = splitted_df
-  )
+  MethodState$storage_class@id <- data$id
+  MethodState$storage_class@request_id <- data$request_id
+  DataModelState$df <- splitted_df[[1L]]
+  if (length(splitted_df) >= 1) {
+    lapply(splitted_df, function(t) {
+      name <- paste0("df", ResultsState$counter)
+      ResultsState$all_data[[name]] <- t
+      ResultsState$counter <- ResultsState$counter + 1
+    })
+  }
+  if (nrow(DataModelState$df) == 0) {
+    stop("The uploaded file is empty. Please upload a file with data.")
+  }
+  max_cols <- 1000
+  max_rows <- 1e6
+  if (nrow(DataModelState$df) > max_rows || ncol(DataModelState$df) > max_cols) {
+    stop(sprintf(
+      "Data exceeds the limit of %d rows or %d columns. Please upload a smaller dataset.",
+      max_rows, max_cols
+    ))
+  }
 }
 env_import_export_dose_response_V1_2$import_dose_response_json <- import_dose_response_json
 
-dose_response_to_json <- function(id, request_id, data_sets, results, path) {
+dose_response_to_json <- function(MethodState, ResultsState) {
   stopifnot("Lengths do not match between data_sets and results" = length(data_sets) == length(results))
-  input_result_pairs <- Map(function(inp, res) {
-    list(input = inp, result = res)
-  }, data_sets, results)
-  output <- list(id = id, request_id = request_id, Output = input_result_pairs)
+  input_result_pairs <- list()
+  for (i in seq_along(ResultsState$all_data)) {
+    elem <- ResultsState$all_data[[i]]
+    if (inherits(elem, "doseResponse")) {
+      input_result_pairs <- c(input_result_pairs, list(input = elem@input_df, result = elem@df))
+    }
+  }
+  stopifnot("No results available which could be sent to ChemotionELN", length(input_result_pairs) >= 1L)
+  output <- list(id = MethodState$id, request_id = MethodState$request_id, Output = input_result_pairs)
   output_json <- jsonlite::toJSON(output, pretty = TRUE)
+  path <- tempfile(fileext = ".json")
   writeLines(output_json, con = path)
+  return(path)
 }
 env_import_export_dose_response_V1_2$dose_response_to_json <- dose_response_to_json 
-
-path <- "./development/json_from_eln.json"
-imported <- env_import_export_dose_response_V1_2$import_dose_response_json(path)
-imported
-
-df <- read.csv("./test_data/DoseResponse.csv")
-df <- df[, c(3L, 2L, 1L)]
-names(df) <- c("conc", "name", "values")
-df$readout_id <- 1
-df$well_id <- sample(c(1, 2, 3), nrow(df), replace = TRUE)
-df$sample_id <- sample(c(1, 2, 3), nrow(df), replace = TRUE)
-df$wellplate_id <- sample(c(1, 2, 3), nrow(df), replace = TRUE)
-head(df)
-res <- OpenStats:::ic50(df, "values", "conc", "name", islog_x = TRUE, FALSE)
-res_df <- lapply(res, function(x) {
-  if (inherits(x, "errorClass")) {
-    return(NULL)
-  }
-  return(x[[1]])
-})
-res_df <- res_df[!is.null(res_df)]
-res_df <- res_df[!sapply(res_df, is.null)]
-res_df <- Reduce(rbind, res_df)
-env_import_export_dose_response_V1_2$dose_response_to_json(
-  imported$id, imported$request_id, list(df), list(res_df),
-  "./development/result2.json")

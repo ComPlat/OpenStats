@@ -46,6 +46,11 @@ get_env_utils <- function(version = VERSION) {
     `1.2` = env_utils_V1_2
   )[[version]]
 }
+get_env_import_export_dose_response <- function(version = VERSION) {
+  list(
+    `1.2` = env_import_export_dose_response_V1_2
+  )[[version]]
+}
 
 # getter for engine classes
 # -----------------------------------------------------

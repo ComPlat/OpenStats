@@ -10,6 +10,7 @@ random_assign(
   block_col,
   strata_cols,
   randomization_method,
+  n_quantiles,
   seed
 )
 }
@@ -21,6 +22,7 @@ random_assign(
   \item{block_col}{In case the randomization_method is "block", or "balanced", you have to pass a character vector containing the column defining the blocks.}
   \item{strata_cols}{In case the randomization_method is "block_stratified", you have to pass a character vector containing the column(s) for which the assignment should be stratified}
   \item{randomization_method}{one of these options: "simple", "block", "block_stratified", or "balanced"}
+  \item{n_quantiles}{A full number defining how fine granulated you want to split up finite groups}
   \item{seed}{A seed number to initialize the Random Number Generator}
 }
 \description{

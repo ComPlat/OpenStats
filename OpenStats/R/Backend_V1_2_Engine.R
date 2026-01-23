@@ -1339,7 +1339,7 @@ dose_response_V1_2 <- R6::R6Class(
               if (inherits(err, "try-error")) {
                 stop(err)
               }
-              new("doseResponse", df = res_df, p = res_p,
+              new("doseResponse", input_df = df, df = res_df, p = res_p,
                 name_col = substance_names, formula = formula,
                 xTransform = is_xlog, yTransform = is_ylog,
                 current_page = 1L)
