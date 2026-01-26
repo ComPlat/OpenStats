@@ -48,12 +48,12 @@ test_rendering_formula_editor <- function(app, srv) {
     checks <<- c(checks, grepl('two_hot_binding', html))
     checks <<- c(checks, grepl('free', html))
 
-    ui_obj <- try(output[["FO-rhs"]], silent = TRUE)
-    checks <<- c(checks, inherits(ui_obj, "try-error")) # As rhs text field is not existing for this case
-    session$setInputs(`FO-model_type` = "LinearFormula")
-    session$flushReact()
-    ui_obj <- output[["FO-optim_predefined_equations"]]
-    checks <<- c(checks, class(ui_obj) == "NULL")
+     ui_obj <- try(output[["FO-rhs"]], silent = TRUE)
+     checks <<- c(checks, inherits(ui_obj, "try-error")) # As rhs text field is not existing for this case
+     session$setInputs(`FO-model_type` = "LinearFormula")
+     session$flushReact()
+     ui_obj <- output[["FO-optim_predefined_equations"]]
+     checks <<- c(checks, class(ui_obj) == "NULL")
 
     session$setInputs(`FO-model_type` = "Optimization Model")
     session$setInputs(`FO-PredefinedModels` = "linear")
@@ -106,7 +106,7 @@ test_rendering_formula_editor <- function(app, srv) {
     checks <<- c(checks, grepl('hotbind_kon', html))
     checks <<- c(checks, grepl('hotbind_bmax', html))
     checks <<- c(checks, grepl('hotbind_time', html))
-    
+
     session$setInputs(`FO-model_type` = "Generalised Linear Model")
     ui_obj <- output[["FO-glm_family_dropdown"]]
     html   <- htmltools::renderTags(ui_obj)$html
@@ -174,9 +174,10 @@ test_rendering_formula_editor <- function(app, srv) {
     checks <<- c(checks, grepl('sqrt', html))
 
     session$setInputs(`FO-model_type` = "Optimization Model")
+    session$flushReact()
     session$setInputs(`FO-PredefinedModels` = "linear")
     session$flushReact()
-    ui_obj <- output[["FO-optim_boundaries"]]
+    ui_obj <- output[["FO-optim_boundaries_and_method"]]
     html   <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('LowerBoundary', html))
     checks <<- c(checks, grepl('UpperBoundary', html))

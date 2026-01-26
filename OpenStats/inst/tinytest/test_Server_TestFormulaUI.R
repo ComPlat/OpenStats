@@ -21,6 +21,7 @@ test_optim_linear_formula <- function(app, srv) {
   shiny::testServer(srv, {
     DataModelState$df <- df
     session$setInputs(`FO-model_type` = "Optimization Model")
+    session$setInputs(`FO-optim_method` = "general purpose optimization")
     session$setInputs(`FO-PredefinedModels` = "linear")
     session$setInputs(`FO-linear_lhs_var` = "y")
     session$setInputs(`FO-linear_x` = "x")
@@ -47,6 +48,7 @@ test_optim_log_linear_formula <- function(app, srv) {
   shiny::testServer(srv, {
     DataModelState$df <- df
     session$setInputs(`FO-model_type` = "Optimization Model")
+    session$setInputs(`FO-optim_method` = "general purpose optimization")
     session$setInputs(`FO-PredefinedModels` = "log_linear")
     session$setInputs(`FO-log_linear_lhs_var` = "y")
     session$setInputs(`FO-log_linear_x` = "x")
@@ -74,6 +76,7 @@ test_optim_mm_formula <- function(app, srv) {
   shiny::testServer(srv, {
     DataModelState$df <- df
     session$setInputs(`FO-model_type` = "Optimization Model")
+    session$setInputs(`FO-optim_method` = "general purpose optimization")
     session$setInputs(`FO-PredefinedModels` = "michaelis_menten")
     session$setInputs(`FO-mm_lhs_var` = "y")
     session$setInputs(`FO-mm_x` = "x")
@@ -101,6 +104,7 @@ test_optim_one_site_formula <- function(app, srv) {
   shiny::testServer(srv, {
     DataModelState$df <- df
     session$setInputs(`FO-model_type` = "Optimization Model")
+    session$setInputs(`FO-optim_method` = "general purpose optimization")
     session$setInputs(`FO-PredefinedModels` = "one_site_binding")
     session$setInputs(`FO-binding_lhs_var` = "y")
     session$setInputs(`FO-binding_x` = "x")
@@ -133,6 +137,7 @@ test_optim_two_hot_binding_formula <- function(app, srv) {
   shiny::testServer(srv, {
     DataModelState$df <- df
     session$setInputs(`FO-model_type` = "Optimization Model")
+    session$setInputs(`FO-optim_method` = "general purpose optimization")
     session$setInputs(`FO-PredefinedModels` = "two_hot_binding")
     session$setInputs(`FO-hotbind_lhs_var` = "y")
     session$setInputs(`FO-hotbind_conc` = "conc")

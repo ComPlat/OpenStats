@@ -627,7 +627,7 @@ app <- function() {
           uploader(session, excelFile, new_name = input$user_filename)
         }
         else if (MethodState$method == "DoseResponse") {
-          jsonFile <- env_import_dose_response$dose_resonse_to_json(MethodState, ResultsState)
+          jsonFile <- try(env_import_dose_response$dose_response_to_json(MethodState, ResultsState$all_data))
           uploader(session, jsonFile, new_name = input$user_filename)
         }
       }

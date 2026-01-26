@@ -44,7 +44,8 @@ RUN install2.r --error --skipinstalled \
   equatiomatic \
   quarto \
   jsonlite \
-  emmeans
+  emmeans \
+  callr
 
 USER shiny
 COPY ./OpenStats/R /home/myapp

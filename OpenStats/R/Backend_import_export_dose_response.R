@@ -84,20 +84,18 @@ import_dose_response_json <- function(path, DataModelState, ResultsState, Method
 }
 env_import_export_dose_response_V1_2$import_dose_response_json <- import_dose_response_json
 
-dose_response_to_json <- function(MethodState, ResultsState) {
-  stopifnot("Lengths do not match between data_sets and results" = length(data_sets) == length(results))
+dose_response_to_json <- function(MethodState, all_data) {
   input_result_pairs <- list()
-  for (i in seq_along(ResultsState$all_data)) {
-    elem <- ResultsState$all_data[[i]]
+  for (i in seq_along(all_data)) {
+    elem <- all_data[[i]]
     if (inherits(elem, "doseResponse")) {
-      input_result_pairs <- c(input_result_pairs, list(input = elem@input_df, result = elem@df))
+      input_result_pairs[[length(input_result_pairs) + 1L]] <- list(input = elem@input_df, result = elem@df)
     }
   }
-  stopifnot("No results available which could be sent to ChemotionELN", length(input_result_pairs) >= 1L)
   output <- list(id = MethodState$id, request_id = MethodState$request_id, Output = input_result_pairs)
   output_json <- jsonlite::toJSON(output, pretty = TRUE)
   path <- tempfile(fileext = ".json")
   writeLines(output_json, con = path)
   return(path)
 }
-env_import_export_dose_response_V1_2$dose_response_to_json <- dose_response_to_json 
+env_import_export_dose_response_V1_2$dose_response_to_json <- dose_response_to_json
