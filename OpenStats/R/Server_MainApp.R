@@ -318,14 +318,24 @@ app <- function() {
           )
         }
       })
-      download_stuff <- div(
-        class = "var-box-output",
-        h3(strong("Results")),
-        p("The following list contains the results"),
-        actionButton("download", "Save"),
-        textInput("user_filename", "Set filename", value = "")
-      )
-      do.call(tagList, list(download_stuff, res_ui_list))
+      if (MethodState$method == "Default") {
+        download_stuff <- div(
+          class = "var-box-output",
+          h3(strong("Results")),
+          p("The following list contains the results"),
+          actionButton("download", "Save"),
+          textInput("user_filename", "Set filename", value = "")
+        )
+        do.call(tagList, list(download_stuff, res_ui_list))
+      } else if (MethodState$method == "DoseResponse") {
+        download_stuff <- div(
+          class = "var-box-output",
+          h3(strong("Results")),
+          p("The following list contains the results"),
+          actionButton("download", "Save")
+        )
+        do.call(tagList, list(download_stuff, res_ui_list))
+      }
     })
     # Show results
     observe({
@@ -586,16 +596,18 @@ app <- function() {
     # Download
     # ----------------------------------------------------------
     observeEvent(input$download, {
-      if (!env_utils$is_valid_filename(input$user_filename)) {
-        runjs("document.getElementById('user_filename').focus();")
-        print_noti(
-          env_utils$why_filename_invalid(input$user_filename)
+      if (MethodState$method == "Default") {
+        if (!env_utils$is_valid_filename(input$user_filename)) {
+          runjs("document.getElementById('user_filename').focus();")
+          print_noti(
+            env_utils$why_filename_invalid(input$user_filename)
+          )
+        }
+        print_req(
+          env_utils$is_valid_filename(input$user_filename),
+          "Defined filename is not valid"
         )
       }
-      print_req(
-        env_utils$is_valid_filename(input$user_filename),
-        "Defined filename is not valid"
-      )
       print_req(length(ResultsState$all_data) > 0, "No results to save")
       l <- ResultsState$all_data
       history_json <- jsonlite::toJSON(ResultsState$history, pretty = TRUE, auto_unbox = TRUE)
@@ -628,7 +640,7 @@ app <- function() {
         }
         else if (MethodState$method == "DoseResponse") {
           jsonFile <- try(env_import_dose_response$dose_response_to_json(MethodState, ResultsState$all_data))
-          uploader(session, jsonFile, new_name = input$user_filename)
+          uploader(session, jsonFile, new_name = "result.json")
         }
       }
       # Running OpenStats locally

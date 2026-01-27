@@ -94,7 +94,7 @@ Randomization::randomization_one_way_anova(
   predictors = predictors, primary_factor = "Treatment",
   groups = weights, group_type = "finite",
   cohens_f = 0.25, sig_level = 0.05, desired_power = 0.9,
-  randomization_method = "simple",
+  randomization_method = "simple", n_quantiles = 11L,
   seed = 42
 ) |> pl()
 ```
@@ -113,7 +113,7 @@ Randomization::randomization_one_way_anova(
   predictors = predictors, primary_factor = "Treatment",
   groups = weights, group_type = "finite",
   cohens_f = 0.25, sig_level = 0.05, desired_power = 0.9,
-  randomization_method = "block",
+  randomization_method = "block", n_quantiles = 11L,
   seed = 124
 ) |> pl()
 ```
@@ -131,7 +131,7 @@ Randomization::randomization_one_way_anova(
   predictors = predictors, primary_factor = "Treatment",
   groups = weights, group_type = "finite",
   cohens_f = 0.25, sig_level = 0.05, desired_power = 0.9,
-  randomization_method = "block_stratified",
+  randomization_method = "block_stratified", n_quantiles = 11L,
   strata_cols = c("cellLines", "Treatment"),
   seed = 123
 ) |> pl()

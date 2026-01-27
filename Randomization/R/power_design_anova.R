@@ -8,7 +8,7 @@ calc_n_block_one_way_anova <- function(n_levels, cohens_f, sig_level, desired_po
 randomization_one_way_anova <- function(predictors, primary_factor,
                                         groups, group_type, ratios,
                                         cohens_f, sig_level, desired_power,
-                                        randomization_method,
+                                        randomization_method, n_quantiles,
                                         strata_cols = NULL, seed) {
   stopifnot(
     is.list(predictors), length(predictors) >= 1L,
@@ -34,7 +34,8 @@ randomization_one_way_anova <- function(predictors, primary_factor,
   } else {
     stopifnot(
       is.numeric(groups), missing(ratios) || is.null(ratios),
-      nrow(df) <= length(groups)
+      nrow(df) <= length(groups),
+      is.numeric(n_quantiles)
     )
     ratios <- NULL
   }
@@ -54,13 +55,13 @@ randomization_one_way_anova <- function(predictors, primary_factor,
     random_assign(
       df = design, groups = groups, group_type = group_type,
       ratios = ratios, col = "random_group", block_col = NULL, strata_cols = NULL,
-      randomization_method = "simple", seed = seed
+      randomization_method = "simple", n_quantiles = n_quantiles, seed = seed
     )
   } else if (randomization_method == "block") {
     random_assign(
       df = design, groups = groups, group_type = group_type,
       ratios = ratios, col = "random_group", block_col = primary_factor, strata_cols = NULL,
-      randomization_method = "block", seed = seed
+      randomization_method = "block", n_quantiles = n_quantiles, seed = seed
     )
   } else if (randomization_method == "block_stratified") {
     stopifnot(!is.null(strata_cols))
@@ -68,7 +69,7 @@ randomization_one_way_anova <- function(predictors, primary_factor,
     random_assign(
       df = design, groups = groups, group_type = group_type,
       ratios = ratios, col = "random_group", block_col = primary_factor, strata_cols = strata_cols,
-      randomization_method = "block_stratified", seed = seed
+      randomization_method = "block_stratified", n_quantiles = n_quantiles, seed = seed
     )
   }
 }

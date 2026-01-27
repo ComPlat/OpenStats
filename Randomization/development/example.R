@@ -1,3 +1,4 @@
+set.seed(123)
 treatments <- c("control", "ibo")
 locations <- c("M", "C", "A")
 n <- 16L # per location treatment combination
@@ -35,8 +36,12 @@ with(df, table(treatments, cut(weights,
 experimental_blocks <- as.character(1L:8L)
 ratios <- rep(1, 8)
 df <- Randomization::random_assign(
-  df = df, groups = experimental_blocks, ratios = ratios, group_type = "infinite", col = "block", strata_cols = strata_cols,
+  df = df, groups = experimental_blocks, ratios = ratios, group_type = "infinite",
+  col = "block", strata_cols = strata_cols,
   randomization_method = randomization_method, seed = 1234
 )
 df
 split(df, df$block)
+
+# TODO: instead of weights use (weight, id) values
+# TODO: dependent finite groups: weights-bloodvalue

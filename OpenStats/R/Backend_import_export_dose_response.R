@@ -92,7 +92,7 @@ dose_response_to_json <- function(MethodState, all_data) {
       input_result_pairs[[length(input_result_pairs) + 1L]] <- list(input = elem@input_df, result = elem@df)
     }
   }
-  output <- list(id = MethodState$id, request_id = MethodState$request_id, Output = input_result_pairs)
+  output <- list(id = MethodState$storage_class@id, request_id = MethodState$storage_class@request_id, Output = input_result_pairs)
   output_json <- jsonlite::toJSON(output, pretty = TRUE)
   path <- tempfile(fileext = ".json")
   writeLines(output_json, con = path)
