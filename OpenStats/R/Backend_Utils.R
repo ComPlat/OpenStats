@@ -430,7 +430,7 @@ check_filename_for_serverless <- function(filename) {
 env_utils_V1_2$check_filename_for_serverless <- check_filename_for_serverless
 
 # Split list of plots into panels of 9 plots
-create_plot_pages <- function(plotList) { # TODO: probably not needed anymore. Remove!
+create_plot_pages <- function(plotList) { # probably not needed anymore. Remove!
   if (length(plotList) == 0) {
     plotList <- list(ggplot2::ggplot() +
       ggplot2::geom_point())

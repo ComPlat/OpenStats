@@ -640,7 +640,9 @@ app <- function() {
         }
         else if (MethodState$method == "DoseResponse") {
           jsonFile <- try(env_import_dose_response$dose_response_to_json(MethodState, ResultsState$all_data))
-          uploader(session, jsonFile, new_name = "result.json")
+          excelFile <- try(env_utils$create_excel_file(l))
+          zipFile <- zip("result.zip", c(jsonFile, excelFile))
+          uploader(session, zipFile, new_name = "result.zip")
         }
       }
       # Running OpenStats locally
