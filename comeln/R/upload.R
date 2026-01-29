@@ -19,12 +19,32 @@ upload <- function(session, filepath, new_name) {
   url <- paste0(ipaddress)
 
   url <- sub("0.0.0.0", "172.17.0.1", url) # Only for testing when running on local host
+  ext <- tools::file_ext(filepath)
+  mime <- if (tolower(ext) == "zip") "application/zip" else NULL
 
   file_extension <- tools::file_ext(filepath)
   request <- POST(
     url,
-    body = list(file = upload_file(filepath), attachmentName = new_name,
-                  fileType = file_extension) )
-  response <- content(request)
-  showNotification(response, duration = 0)
+    encode = "multipart",
+    body = list(
+      file = httr::upload_file(filepath, type = mime),
+      attachmentName = new_name,
+      fileType = ext
+    )
+  )
+  txt <- httr::content(request, as = "text", encoding = "UTF-8")
+
+  if (httr::http_error(request)) {
+    shiny::showNotification(
+      paste0("Upload failed (", httr::status_code(request), "): ", txt),
+      duration = 0
+    )
+    return(invisible(FALSE))
+  }
+
+  shiny::showNotification(
+    paste0("Upload OK (", httr::status_code(request), "): ", txt),
+    duration = 5
+  )
+  invisible(TRUE)
 }
