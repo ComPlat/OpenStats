@@ -637,12 +637,26 @@ app <- function() {
           )
           excelFile <- env_utils$create_excel_file(l)
           uploader(session, excelFile, new_name = input$user_filename)
+          unlink(excelFile)
         }
         else if (MethodState$method == "DoseResponse") {
           jsonFile <- try(env_import_dose_response$dose_response_to_json(MethodState, ResultsState$all_data))
           excelFile <- try(env_utils$create_excel_file(l))
-          zipFile <- zip("result.zip", c(jsonFile, excelFile))
-          uploader(session, zipFile, new_name = "result.zip")
+          if (!is.character(jsonFile) || length(jsonFile) != 1L || !file.exists(jsonFile)) {
+            print_err("Cannot convert results to json")
+          }
+          if (!is.character(excelFile) || length(excelFile) != 1L || !file.exists(excelFile)) {
+            print_err("Cannot store the results in an excelFile")
+          }
+          fn <- tempfile(fileext = ".zip")
+          zip(fn, c(jsonFile, excelFile))
+          if (!file.exists(fn) || file.info(fn)$size <= 0) {
+            print_err("Could not create the zip archive storing the final results")
+          }
+          uploader(session, fn, new_name = "result.zip")
+          unlink(fn)
+          unlink(excelFile)
+          unlink(jsonFile)
         }
       }
       # Running OpenStats locally
