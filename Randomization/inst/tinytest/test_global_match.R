@@ -1,4 +1,4 @@
-source("./Randomization/R/global_match_ast2ast.R")
+library(tinytest)
 # --------------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ test_1_finite_group_non_normal <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_1_finite_group_non_normal() # Works!
+test_1_finite_group_non_normal() |> expect_true()
 
 # 2 finite groups; linear independent
 # --------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ test_2_independent_groups <- function() {
   checks_outer[[1L]] <- correct(res)
   all(checks_outer)
 }
-test_2_independent_groups() # Works!
+test_2_independent_groups() |> expect_true()
 
 # 2 finite groups; linear dependent
 # --------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ test_2_dependent_groups <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_2_dependent_groups() # Works!
+test_2_dependent_groups() |> expect_true()
 
 # 1 finite groups
 # --------------------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ test_1_finite_group <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_1_finite_group() # Works!
+test_1_finite_group() |> expect_true()
 
 # No duplicates & no missing entries
 # --------------------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ test_perm_is_permutation <- function() {
   stopifnot(identical(sort(p), seq_len(nrow(groups))))
   TRUE
 }
-test_perm_is_permutation()
+test_perm_is_permutation() |> expect_true()
 
 # 2 finite groups which are of different size and linear independent
 # --------------------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ test_2_independent_groups_different_size <- function() {
   ok_spread <- all(apply(means, 1, function(x) (max(x) - min(x)) <= tol_spread))
   ok_totals && ok_means && ok_spread
 }
-test_2_independent_groups_different_size() # Works!
+test_2_independent_groups_different_size() |> expect_true()
 
 # 1 finite groups; but not a continous variable
 # --------------------------------------------------------------------------------------------
@@ -199,7 +199,7 @@ test_1_finite_factor_data_group <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_1_finite_factor_data_group() # Works!
+test_1_finite_factor_data_group() |> expect_true()
 
 # 1 finite groups; categorical / factor-like (batch IDs, cage IDs, plate IDs)
 # --------------------------------------------------------------------------------------------
@@ -222,7 +222,7 @@ test_1_finite_factor_data_group <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_1_finite_factor_data_group()
+test_1_finite_factor_data_group() |> expect_true()
 
 # 1 finite factor group; unbalanced category sizes
 # --------------------------------------------------------------------------------------------
@@ -265,7 +265,7 @@ test_1_finite_factor_unbalanced <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_1_finite_factor_unbalanced()
+test_1_finite_factor_unbalanced() |> expect_true()
 
 # 1 finite group, and one block but there is a surplus for the 
 # --------------------------------------------------------------------------------------------
@@ -286,4 +286,4 @@ test_1_finite_group_with_surplus <- function() {
   checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
   all(checks)
 }
-test_1_finite_group_with_surplus()
+test_1_finite_group_with_surplus() |> expect_true()
