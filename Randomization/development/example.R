@@ -45,3 +45,6 @@ split(df, df$block)
 
 # TODO: instead of weights use (weight, id) values
 # TODO: dependent finite groups: weights-bloodvalue
+
+
+

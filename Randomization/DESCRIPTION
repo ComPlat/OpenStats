@@ -11,6 +11,6 @@ Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
 Description: Randomization of Designs of Experimental Plans.
 License: GPL-3
 Depends: R (>= 4.1.0)
-Imports: pwr
+Imports: pwr, ast2ast
 Suggests: tinytest
 Encoding: UTF-8

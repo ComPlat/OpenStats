@@ -4,4 +4,7 @@
 .Ruserdata
 shinyproxy-3.0.1.jar
 *.tar.gz
+*.pdf
+Randomization/development/Global_Match_cache/
+Randomization/development/Global_Match_files/
 docs/shinylive/webr/packages/BH/BH_1.84.0-0.data

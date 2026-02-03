@@ -21,6 +21,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "simple",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -36,6 +37,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "simple",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -51,6 +53,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "simple",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -66,6 +69,7 @@ anova_error_trigger <- function() {
       sig_level = "Invalid",
       desired_power = 0.8,
       randomization_method = "simple",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -81,6 +85,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "invalid",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -96,6 +101,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "simple",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -111,6 +117,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "simple",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -126,6 +133,7 @@ anova_error_trigger <- function() {
       sig_level = 0.05,
       desired_power = 0.8,
       randomization_method = "block_stratified",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -142,6 +150,7 @@ anova_error_trigger <- function() {
       desired_power = 0.8,
       strata_cols = "Treatment",
       randomization_method = "block_stratified",
+      n_quantiles = 10L,
       seed = c(1, 2)
     )
   )
@@ -158,6 +167,7 @@ anova_error_trigger <- function() {
       desired_power = 0.8,
       strata_cols = "Treatment",
       randomization_method = "block_stratified",
+      n_quantiles = 10L,
       seed = 1
     )
   )
@@ -170,7 +180,7 @@ anova_simple_infinite <- function() {
     cellLines = c("HeLa", "Hek"),
     Treatment = LETTERS[1:4]
   )
-  res <- randomization_one_way_anova(
+  res <- Randomization::randomization_one_way_anova(
     predictors = predictors,
     primary_factor = "Treatment",
     groups = paste0("Day", 1:3),
@@ -180,6 +190,7 @@ anova_simple_infinite <- function() {
     sig_level = 0.05,
     desired_power = 0.8,
     randomization_method = "simple",
+    n_quantiles = 10L,
     seed = 42
   )
   checks <- logical(3)
@@ -195,7 +206,7 @@ anova_block_infinite <- function() {
     cellLines = c("HeLa", "Hek"),
     Treatment = LETTERS[1:4]
   )
-  res <- randomization_one_way_anova(
+  res <- Randomization::randomization_one_way_anova(
     predictors,
     primary_factor = "Treatment",
     groups = paste0("Day", 1:15),
@@ -205,6 +216,7 @@ anova_block_infinite <- function() {
     sig_level = 0.001,
     desired_power = 0.8,
     randomization_method = "block",
+    n_quantiles = 10L,
     seed = 1234
   )
   tab <- table(res$random_group, res$Treatment)
@@ -224,7 +236,7 @@ anova_block_finite <- function(seed1, seed2) {
   )
   set.seed(seed1)
   weights <- rnorm(500, 300, 25)
-  res <- randomization_one_way_anova(
+  res <- Randomization::randomization_one_way_anova(
     predictors,
     primary_factor = "Treatment",
     groups = weights,
@@ -234,13 +246,15 @@ anova_block_finite <- function(seed1, seed2) {
     sig_level = 0.05,
     desired_power = 0.8,
     randomization_method = "block",
+    n_quantiles = 10L,
     seed = seed2
   )
   subs <- split(res, res$Treatment)
   Fg <- ecdf(weights)
   xs <- sort(weights)
   Dvals <- vapply(subs, function(d) {
-    xb <- as.numeric(d$random_group)
+    values <- weights[as.integer(d$random_group)]
+    xb <- as.numeric(values)
     Fb <- ecdf(xb)
     max(abs(Fg(xs) - Fb(xs)))
   }, numeric(1))
@@ -263,7 +277,7 @@ anova_block_strat_infinite <- function() {
     cellLines = c("HeLa", "Hek"),
     Treatment = LETTERS[1:4]
   )
-  res <- randomization_one_way_anova(
+  res <- Randomization::randomization_one_way_anova(
     predictors,
     primary_factor = "Treatment",
     groups = paste0("Day", 1:3),
@@ -274,6 +288,7 @@ anova_block_strat_infinite <- function() {
     desired_power = 0.8,
     randomization_method = "block_stratified",
     strata_cols = c("cellLines"),
+    n_quantiles = 10L,
     seed = 123
   )
   checks <- logical(3)
@@ -289,17 +304,20 @@ anova_seed_reproducibility <- function() {
     cellLines = c("HeLa", "Hek"),
     Treatment = LETTERS[1:4]
   )
-  res1 <- randomization_one_way_anova(
+  res1 <- Randomization::randomization_one_way_anova(
     predictors, "Treatment",
     paste0("Day", 1:3), "infinite", c(1,1,1),
     0.25, 0.05, 0.8,
+    n_quantiles = 10L,
     "block", seed = 999
   )
-  res2 <- randomization_one_way_anova(
+  res2 <- Randomization::randomization_one_way_anova(
     predictors, "Treatment",
     paste0("Day", 1:3), "infinite", c(1,1,1),
     0.25, 0.05, 0.8,
-    "block", seed = 999
+    "block",
+    n_quantiles = 10L,
+    seed = 999
   )
   expect_equal(res1$random_group, res2$random_group)
 }

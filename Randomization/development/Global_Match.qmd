@@ -1,0 +1,170 @@
+---
+title: "Randomization Workflow for Finite Groups"
+format:
+  pdf:
+    number-sections: true
+    callout-appearance: simple
+fontsize: 11pt
+geometry: margin=1in
+---
+
+## Motivation and overview
+
+This document illustrates the **new finite-group randomization approach**
+using a realistic experimental setup with multiple blocking factors and continuous covariates.
+The goal is to assign a *finite set of animals*
+(each with measured properties such as weight and blood values)
+to a predefined experimental design (treatments × locations)
+such that the resulting groups are as **balanced as possible** with respect to these covariates.
+Unlike classical stratification-based randomization,
+the approach shown here does **not discretize** continuous variables.
+Instead, it performs a **global optimization over all possible assignments**,
+directly operating on the continuous data.
+
+\noindent\fbox{%
+  \parbox{\textwidth}{%
+  \textbf{Why is ast2ast important?}
+
+  \medskip
+  \textbf{ast2ast} is a key technical foundation for the sustainable development of
+  OpenStats and related scientific software. It automatically translates selected R code
+  into efficient compiled code, so users keep the familiar R interface while demanding
+  computations run much faster.
+
+  \medskip
+  The benchmark below illustrates this practical benefit: for a simple assignment problem
+  (48 experimental units allocated to three treatment groups using two covariates, weight and blood),
+  the compiled implementation runs about \textbf{10$\times$ faster} than the reference R version.
+  For larger and more complex designs the advantage is even more pronounced; however,
+  those cases can take tens of minutes in pure R and are therefore not included here.
+
+  \medskip
+  \begin{center}
+  \includegraphics[
+    width=0.95\linewidth,
+    height=0.55\textheight,
+    keepaspectratio
+  ]{benchmark.png}
+  \end{center}
+  }
+}
+
+\newpage
+
+## Experimental design and available animals
+
+We first define the **target design**.
+Each row corresponds to a concrete experimental slot defined by its treatment and location.
+
+```{r cache=TRUE}
+n_blocks <- data.frame(
+  treatment = rep(c("control", "one", "two"), each = 64L),
+  location  = rep(rep(c("A", "B", "C", "D"), each = 16L), 3L)
+)
+knitr::kable(table(n_blocks))
+```
+
+Next, we generate the available animals together with their measured covariates.
+Normally, these properties would be measured.
+
+```{r cache=TRUE, results="hide"}
+#| echo: false
+set.seed(3344)
+groups <- data.frame(
+  weights = rnorm(192, 300, 25),
+  blood   = rnorm(192, 100, 1)
+)
+temp <- stack(groups)
+library(ggplot2)
+ggplot(data = temp, aes(y = values)) +
+  geom_boxplot() +
+  facet_wrap(~ ind, scales = "free")
+```
+
+\newpage
+
+## Finite-group randomization by global optimization
+
+The core step is the call to `random_finite_assign()`.
+Conceptually, this function searches over permutations of animals and assigns each
+animal **exactly once** to one slot in the design, minimizing
+imbalance across all covariates and block factors simultaneously.
+
+```{r cache=TRUE, results="hide"}
+res <- Randomization::random_finite_assign(
+  seed = 1234,
+  groups = groups,
+  design = n_blocks,
+  max_iter = 1000L
+)
+```
+
+## Numerical assessment of balance
+
+As a first sanity check, we summarize means and standard deviations
+of the covariates by treatment and by location.
+
+```{r}
+#| echo: false
+df <- res$assigned
+df$treatment <- n_blocks$treatment
+df$location  <- n_blocks$location
+t <- aggregate(cbind(weights, blood) ~ treatment, df,
+               \(x) c(mean = mean(x), sd = sd(x)))
+l <- aggregate(cbind(weights, blood) ~ location, df,
+               \(x) c(mean = mean(x), sd = sd(x)))
+
+knitr::kable(as.matrix(t))
+knitr::kable(as.matrix(l))
+```
+
+\newpage
+
+## Visual assessment using joint distributions
+
+Because balancing marginal means alone can be misleading,
+we also inspect the **joint distribution** of `weights` and `blood`.
+
+```{r}
+#| echo: false
+library(ggplot2)
+
+ggplot(df, aes(x = weights, y = blood)) +
+  geom_density_2d() +
+  facet_grid(location ~ treatment)
+
+ggplot(df, aes(x = weights, y = blood)) +
+  geom_point(alpha = 0.3) +
+  geom_density_2d() +
+  facet_wrap(~ treatment)
+
+ggplot(df, aes(x = weights, y = blood)) +
+  geom_point(alpha = 0.3) +
+  geom_density_2d() +
+  facet_wrap(~ location)
+```
+
+\newpage
+
+## How this differs from the previous stratification-based approach
+
+The previous workflow relied on:
+- discretizing continuous covariates into quantiles,
+- defining strata based on these bins,
+- and randomizing within each stratum.
+
+While effective for simple cases, this approach becomes problematic when:
+- No large surplus of experimental units relative to the number of experiments slots
+- multiple continuous covariates are involved,
+- interactions between blocking factors matter,
+- or the design is unbalanced.
+
+The **finite-group approach shown here differs fundamentally**:
+- No discretization of covariates is required.
+- Balance is evaluated directly on the continuous scale.
+- The assignment is optimized **globally**, not stratum by stratum.
+- Interactions between factors (e.g. treatment × location) are handled naturally.
+
+In short, instead of asking
+*“How do we randomize within bins?”*,
+we ask *“Given this exact design and these exact animals, what is the best possible assignment?”*

@@ -7,86 +7,106 @@ error_trigger <- function() {
   )
   design <- Randomization:::completely_randomised_design(predictors, 10)
   groups <- paste0("Day", 1:4)
-  checks <- logical(13)
+  checks <- logical(14)
 
-  checks[[1]] <- expect_error(Randomization::random_assign(
-    c(1, 2, 3), groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "df is not a data.frame")
+  checks[[1]] <- expect_error(
+    Randomization::random_assign(
+      c(1, 2, 3), groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "df is not a data.frame")
 
-  checks[[2]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "invalid",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "invalid group_type")
+  checks[[2]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "invalid",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "invalid group_type")
 
-  checks[[3]] <- expect_error(Randomization::random_assign(
-    design, groups = character(), group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "group length is 0")
+  checks[[3]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = character(), group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "group length is 0")
 
-  checks[[4]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c("Bla", "Bla", "Bla", "Bla"), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "ratios not numeric")
+  checks[[4]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c("Bla", "Bla", "Bla", "Bla"), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "ratios not numeric")
 
-  checks[[5]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1), 3.14, randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "col not character")
+  checks[[5]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1), 3.14, randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "col not character")
 
-  checks[[6]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1), names(design)[1], randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "Invalid col name as already in use")
+  checks[[6]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1), names(design)[1], randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "Invalid col name as already in use")
 
-  checks[[7]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "Invalid",
-    seed = 1234
-  ), class = "error", info = "Invalid randomization_method")
+  checks[[7]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "Invalid",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "Invalid randomization_method")
 
-  checks[[8]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = "Invalid seed"
-  ), class = "error", info = "Invalid seed")
+  checks[[8]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = "Invalid seed")
+    , class = "error", info = "Invalid seed")
 
-  checks[[9]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = c(1, 2)
-  ), class = "error", info = "Invalid seed")
+  checks[[9]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = c(1, 2))
+    , class = "error", info = "Invalid seed")
 
-  checks[[10]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "finite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "finite requires numeric groups!")
+  checks[[10]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "finite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "finite requires numeric groups!")
 
-  checks[[11]] <- expect_error(Randomization::random_assign(
-    design, groups = c(1, 2, 3, 4), group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "infinite requires character type for groups")
+  checks[[11]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = c(1, 2, 3, 4), group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "infinite requires character type for groups")
 
-  checks[[12]] <- expect_error(Randomization::random_assign(
-    design,
-    groups = paste0("Day", 1:(nrow(design) + 1L)), group_type = "infinite",
-    c(1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "infinite requires nrow(design) <= length(groups)")
+  checks[[12]] <- expect_error(
+    Randomization::random_assign(
+      design,
+      groups = paste0("Day", 1:(nrow(design) + 1L)), group_type = "infinite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "infinite requires nrow(design) <= length(groups)")
 
-  checks[[13]] <- expect_error(Randomization::random_assign(
-    design, groups = groups, group_type = "infinite",
-    c(1, 1, 1, 1, 1), "Group", randomization_method = "simple",
-    seed = 1234
-  ), class = "error", info = "infinite requires length(groups) == length(ratios)")
+  checks[[13]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "infinite",
+      c(1, 1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = 10L, seed = 1234)
+    , class = "error", info = "infinite requires length(groups) == length(ratios)")
+
+  checks[[14]] <- expect_error(
+    Randomization::random_assign(
+      design, groups = groups, group_type = "finite",
+      c(1, 1, 1, 1), "Group", randomization_method = "simple",
+      n_quantiles = "bla", seed = 1234)
+    , class = "error", info = "infinite requires length(groups) == length(ratios)")
 
   expect_true(all(checks))
 }
@@ -137,7 +157,8 @@ simple_finite <- function() {
   res <- Randomization::random_assign(
     design, groups = groups,
     group_type = "finite", ratios = NULL, "Group",
-    randomization_method = "simple", seed = 1234
+    randomization_method = "simple",
+    n_quantiles = 10L, seed = 1234
   )
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
@@ -196,7 +217,7 @@ block_finite <- function(seed1, seed2) {
     group_type = "finite", ratios = NULL,
     "Group", block_col = "Treatment",
     randomization_method = "block",
-    seed = seed2
+    n_quantiles = 10L, seed = seed2
   )
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
@@ -206,27 +227,26 @@ block_finite <- function(seed1, seed2) {
   xs_global <- sort(groups)
 
   D_vals <- vapply(subs, function(d) {
-    x_block <- as.numeric(d$Group)
+    x_block <- as.numeric(groups[as.integer(d$Group)])
     F_block <- ecdf(x_block)
     xs <- sort(unique(c(xs_global, x_block)))
     max(abs(F_global(xs) - F_block(xs)))
   }, numeric(1L))
 
-   checks[[3]] <- expect_true(D_vals["A"] < 0.25)
-   checks[[4]] <- expect_true(D_vals["B"] < 0.25)
-   checks[[5]] <- expect_true(D_vals["C"] < 0.25)
-   checks[[6]] <- expect_true(D_vals["D"] < 0.25)
-   checks[[7]] <- expect_equal(
-     length(unique(res$Group)),
-     length(res$Group)
-   )
+  checks[[3]] <- expect_true(D_vals["A"] < 0.25)
+  checks[[4]] <- expect_true(D_vals["B"] < 0.25)
+  checks[[5]] <- expect_true(D_vals["C"] < 0.25)
+  checks[[6]] <- expect_true(D_vals["D"] < 0.25)
+  checks[[7]] <- expect_equal(
+    length(unique(res$Group)),
+    length(res$Group)
+  )
 
   expect_true(all(checks))
 }
 block_finite(1234, 42)
 block_finite(454, 4235)
 block_finite(235246, 12335)
-
 
 stratum_block_infinite <- function() {
   predictors <- list(
@@ -243,7 +263,7 @@ stratum_block_infinite <- function() {
     c(1, 1, 1, 1),
     col = "Group", strata_cols = c("Treatment", "cellLines"),
     randomization_method = "block_stratified",
-    seed = 1234
+    n_quantiles = 10L, seed = 1234
   )
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
@@ -278,7 +298,7 @@ stratum_block_finite <- function(seed1, seed2) {
     group_type = "finite", ratios = NULL,
     "Group", strata_cols = c("Treatment", "cellLines"),
     randomization_method = "block_stratified",
-    seed = seed2
+    n_quantiles = 10L, seed = seed2
   )
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
@@ -288,21 +308,142 @@ stratum_block_finite <- function(seed1, seed2) {
   xs_global <- sort(groups)
 
   D_vals <- vapply(subs, function(d) {
-    x_block <- as.numeric(d$Group)
+    x_block <- as.numeric(groups[as.integer(d$Group)])
     F_block <- ecdf(x_block)
     xs <- sort(unique(c(xs_global, x_block)))
     max(abs(F_global(xs) - F_block(xs)))
   }, numeric(1L))
 
-   checks[[3]] <- expect_true(D_vals["A"] < 0.25)
-   checks[[4]] <- expect_true(D_vals["B"] < 0.25)
-   checks[[5]] <- expect_true(D_vals["C"] < 0.25)
-   checks[[6]] <- expect_true(D_vals["D"] < 0.25)
-   checks[[7]] <- expect_equal(
-     length(unique(res$Group)),
-     length(res$Group)
-   )
+  checks[[3]] <- expect_true(D_vals["A"] < 0.25)
+  checks[[4]] <- expect_true(D_vals["B"] < 0.25)
+  checks[[5]] <- expect_true(D_vals["C"] < 0.25)
+  checks[[6]] <- expect_true(D_vals["D"] < 0.25)
+  checks[[7]] <- expect_equal(
+    length(unique(res$Group)),
+    length(res$Group)
+  )
 
   expect_true(all(checks))
 }
 stratum_block_finite(1234, 42)
+
+simple_finite_3D <- function(seed1, seed2) {
+  set.seed(seed1)
+  groups <- data.frame(
+    weight = rnorm(150, 300, 25),
+    blood  = rnorm(150, 15, 1.2),
+    xyz = rnorm(150, 12.0, 1.2)
+  )
+  group_type <- "finite_nd"
+  df <- data.frame(pos = 1:32, treatment = rep(c("bla","control"), each = 16))
+  checks <- logical(2L)
+  res <- Randomization::random_assign(
+    df = df, groups = groups, group_type = group_type,
+    ratios = NULL, col = "block",
+    block_col = "treatment", strata_cols = NULL,
+    randomization_method = "simple", n_quantiles = c(10L, 10L, 10L),
+    seed = seed2
+  )
+  subs <- split(res, res$treatment)
+  checks[[1]] <- expect_equal(nrow(res), nrow(df))
+  checks[[2]] <- expect_equal(ncol(res), (ncol(df) + 1L))
+  expect_true(all(checks))
+}
+simple_finite_3D(1234, 1234)
+
+block_finite_2D <- function(seed1, seed2) {
+  set.seed(seed1)
+  groups <- data.frame(
+    weight = rnorm(64, 100, 25),
+    blood  = rnorm(64, 100, 12)
+  )
+  group_type <- "finite_nd"
+  df <- data.frame(pos = 1:32, treatment = rep(c("bla","control"), each = 16))
+  checks <- logical(4L)
+  res <- Randomization::random_assign(
+    df = df, groups = groups, group_type = group_type,
+    ratios = NULL, col = "block",
+    block_col = "treatment", strata_cols = NULL,
+    randomization_method = "block", n_quantiles = c(10L, 10L),
+    seed = seed2
+  )
+  checks[[1]] <- expect_equal(nrow(res), nrow(df))
+  checks[[2]] <- expect_equal(ncol(res), (ncol(df) + 1L))
+
+  df <- cbind(
+    treatment = res$treatment, groups[res$block, ]
+  )
+  qq_scaled <- function(d, colname, probs = seq(0, 1, 0.1)) {
+    x1 <- d[d$treatment == "bla", colname]
+    x2 <- d[d$treatment == "control", colname]
+    sp <- sqrt((sd(x1, na.rm = TRUE)^2 + sd(x2, na.rm = TRUE)^2) / 2)
+    if (!is.finite(sp) || sp == 0) return(0)
+    q1 <- quantile(x1, probs = probs, na.rm = TRUE, type = 7)
+    q2 <- quantile(x2, probs = probs, na.rm = TRUE, type = 7)
+    max(abs(q1 - q2)) / sp
+  }
+  checks[[3L]] <- qq_scaled(df, "weight") < 2.0
+  checks[[4L]] <- qq_scaled(df, "blood") < 2.0
+  expect_true(all(checks))
+}
+block_finite_2D(1234, 1234)
+block_finite_2D(43, 2323)
+block_finite_2D(123, 1232345)
+
+block_stratified_finite_2D <- function(seed1, seed2) {
+  set.seed(seed1)
+  checks <- logical(7L)
+  groups <- data.frame(
+    weight = rnorm(128, 100, 20),
+    blood  = rnorm(128, 100, 12)
+  )
+
+  df <- data.frame(
+    pos = 1:32,
+    location = rep(rep(c("A", "B"), each = 8), 2),
+    treatment = rep(c("bla","control"), each = 16)
+  )
+
+  res <- Randomization::random_assign(
+    df = df, groups = groups, group_type = "finite_nd",
+    ratios = NULL, col = "block",
+    block_col = "treatment", strata_cols = c("treatment", "location"),
+    randomization_method = "block_stratified", n_quantiles = c(10L, 10L),
+    seed = seed2
+  )
+
+  checks[[1L]] <- nrow(res) == nrow(df)
+  checks[[2L]] <- ncol(res) == ncol(df) + 1L
+  checks[[3L]] <- length(res$block) == nrow(df)
+
+  df2 <- cbind(
+    location = res$location,
+    treatment = res$treatment,
+    groups[res$block, , drop = FALSE]
+  )
+
+  qq_scaled <- function(d, colname, probs = seq(0, 1, 0.1)) {
+    x1 <- d[d$treatment == "bla", colname]
+    x2 <- d[d$treatment == "control", colname]
+    sp <- sqrt((sd(x1, na.rm = TRUE)^2 + sd(x2, na.rm = TRUE)^2) / 2)
+    if (!is.finite(sp) || sp == 0) return(0)
+    q1 <- quantile(x1, probs = probs, na.rm = TRUE, type = 7)
+    q2 <- quantile(x2, probs = probs, na.rm = TRUE, type = 7)
+    max(abs(q1 - q2)) / sp
+  }
+
+  counter <- 4L
+  for (loc in c("A", "B")) {
+    dloc <- df2[df2$location == loc, , drop = FALSE]
+    qq_scaled_weight <- qq_scaled(dloc, "weight")
+    qq_scaled_blood <- qq_scaled(dloc, "blood")
+    checks[[counter]] <- qq_scaled_weight < 2
+    counter <- counter + 1L
+    checks[[counter]] <- qq_scaled_blood  < 2
+    counter <- counter + 1L
+  }
+  expect_true(all(checks))
+}
+block_stratified_finite_2D(1234, 1234)
+block_stratified_finite_2D(43, 2323)
+block_stratified_finite_2D(123, 1232345)
