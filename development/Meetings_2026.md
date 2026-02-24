@@ -1,3 +1,16 @@
+## 13.02.2026
+
+- User has to define a measurement type in case method is set to "DoseResponse"
+- This has to be set before conducting MTT assay is pressed:
+  * choices: ANY, Absorbance, Fluorescence
+- I get send the metadata from each generic element (Discuss with Ali how the json data layout changes)
+  * within this metadata the choices of measurements are defined
+  * and I also get the information which generic element has send the data
+- Update generic Dose Response element.
+  * add a Metadata layer and add here the measurement method
+  * Christoph and I decided that the user should choose the assay (e.g. MTT).
+    Moreover, the user should be capable to choose one or multiple the measurement methods (e.g. Absorbance)
+
 ## 09.01.2026
 
 --> Until: 16.01

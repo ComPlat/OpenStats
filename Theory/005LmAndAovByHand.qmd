@@ -1,0 +1,158 @@
+---
+title: "Linear Model and ANOVA by Hand (CO2 Example)"
+format:
+  html:
+    toc: true
+    number-sections: true
+execute:
+  echo: true
+---
+
+## Goal
+
+This document explains what `Theory/lm_and_aov_by_hand.R` does.
+The script manually recreates core outputs of `summary(lm(...))` and `summary(aov(...))` for a linear model with an interaction term.
+
+The fitted model is:
+
+$$
+\text{uptake}_i = \beta_0 + \beta_1 \cdot \text{conc}_i + \beta_2 \cdot \text{Treatment}_i + \beta_3 \cdot (\text{conc}_i \cdot \text{Treatment}_i) + \epsilon_i
+$$
+
+with normally distributed errors.
+
+## 1. Data Preparation
+
+The script uses the built-in `CO2` dataset:
+
+- `predictor1`: `conc` (numeric concentration)
+- `predictor2`: `Treatment` converted to 0/1 (`0 = nonchilled`, `1 = chilled`)
+- `response`: `uptake`
+
+```{r}
+predictor1 <- CO2[["conc"]]
+temp <- CO2[["Treatment"]]
+predictor2 <- numeric(length(temp))
+predictor2[temp == "chilled"] <- 1
+response <- CO2[["uptake"]]
+
+n <- length(response)
+df_residual <- n - 4  # 4 coefficients: intercept, conc, treatment, interaction
+c(n = n, df_residual = df_residual)
+```
+
+## 2. Fit the Model by Maximizing Log-Likelihood
+
+The script defines a log-likelihood under a Gaussian error model and uses `optim(..., method = "BFGS")` to estimate coefficients.
+
+```{r}
+ll <- function(bs) {
+  sum(
+    dnorm(
+      response,
+      mean = bs[1] + bs[2] * predictor1 + bs[3] * predictor2 + bs[4] * (predictor1 * predictor2),
+      log = TRUE
+    )
+  )
+}
+
+op <- optim(
+  par = c(1, 0.1, 0.1, 0.01),
+  fn = ll,
+  method = "BFGS",
+  control = list(fnscale = -1, reltol = 1e-12),
+  hessian = TRUE
+)
+
+Estimate <- op$par
+Estimate
+```
+
+## 3. Residuals and Coefficient Inference
+
+After obtaining coefficients, the script computes:
+
+- fitted values and residuals
+- variance-covariance matrix from the Hessian
+- residual variance scaling (important because the Hessian corresponds to unit variance)
+- standard errors, t-values, and p-values
+
+```{r}
+predicted <- Estimate[1] + Estimate[2] * predictor1 + Estimate[3] * predictor2 + Estimate[4] * (predictor1 * predictor2)
+residuals <- response - predicted
+
+var_covar_mat <- solve(-op$hessian)
+sigma2_hat <- sum(residuals^2) / df_residual
+var_covar_mat_scaled <- sigma2_hat * var_covar_mat
+std_error <- sqrt(diag(var_covar_mat_scaled))
+
+t_values <- Estimate / std_error
+p_values <- 2 * pt(-abs(t_values), df = df_residual)
+
+Coefficients <- do.call(cbind, list(Estimate, std_error, t_values, p_values)) |> as.data.frame()
+names(Coefficients) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+row.names(Coefficients) <- c("Intercept", "conc", "Treatment", "conc:Treatment")
+knitr::kable(Coefficients, digits = 4, caption = "Manual coefficient table")
+```
+
+Interpretation:
+
+- Large absolute t-values indicate stronger evidence against $H_0:\beta_j=0$.
+- Small p-values indicate terms that contribute to explaining `uptake`.
+
+## 4. Model Fit Metrics
+
+The script then recreates key model-level diagnostics:
+
+- residual standard error
+- $R^2$ and adjusted $R^2$
+- overall F-test for whether predictors improve fit over intercept-only model
+
+```{r}
+residual_standard_error <- sqrt(sum(residuals^2) / df_residual)
+
+sum_sq_total <- sum((response - mean(response))^2)
+sum_sq_res <- sum(residuals^2)
+r_squared <- 1 - sum_sq_res / sum_sq_total
+adj_r_squared <- 1 - (1 - r_squared) * ((n - 1) / df_residual)
+
+df_model <- 3  # conc, Treatment, interaction
+ms_model <- (sum_sq_total - sum_sq_res) / df_model
+ms_res <- sum_sq_res / df_residual
+f_statistic <- ms_model / ms_res
+f_p_value <- pf(f_statistic, df_model, df_residual, lower.tail = FALSE)
+
+fit_summary <- data.frame(
+  Metric = c("Residual standard error", "R-squared", "Adjusted R-squared", "F-statistic", "F-test p-value"),
+  Value = c(residual_standard_error, r_squared, adj_r_squared, f_statistic, f_p_value)
+)
+knitr::kable(fit_summary, digits = 5, caption = "Manual model-level statistics")
+```
+
+## 5. Cross-Check with `lm()` and `aov()`
+
+Finally, the script compares manual calculations to built-in R model summaries.
+
+```{r}
+model <- lm(uptake ~ conc * Treatment, data = CO2)
+summary(model)
+summary(aov(model))
+```
+
+These outputs should align with the manually computed coefficients, uncertainty estimates, and overall F-test (up to small numerical differences).
+
+## 6. ANOVA Logic Repeated Explicitly
+
+The last block in the script repeats ANOVA quantities directly from sums of squares:
+
+$$
+SS_{Total} = SS_{Model} + SS_{Residual}
+$$
+
+with:
+
+- $MS_{Model} = SS_{Model}/df_{Model}$
+- $MS_{Residual} = SS_{Residual}/df_{Residual}$
+- $F = MS_{Model}/MS_{Residual}$
+
+This makes clear how ANOVA and linear regression summaries are connected for Gaussian linear models.

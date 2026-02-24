@@ -16,10 +16,20 @@ test_1_finite_group_non_normal <- function() {
     attr(tbl, "class") <- NULL
     identical(tbl, matrix(9L, 3L, 3L))
   }
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks) |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- n_blocks$treatment
+    means <- tapply(df, df$groups, function(sub) mean(sub$blood))
+    sd(means) == 0
+  }
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+
   all(checks)
 }
 test_1_finite_group_non_normal() |> expect_true()
@@ -36,7 +46,7 @@ test_2_independent_groups <- function() {
     weights = c(rep(325, 36L), rep(300, 36L), rep(275, 36L)),
     blood = rnorm(108, mean = 10, sd = 1)
   )
-  checks_outer <- logical(1L)
+  checks_outer <- logical(2L)
   correct <- function(res) {
     checks <- logical(3L)
     df <- res$assigned
@@ -54,8 +64,17 @@ test_2_independent_groups <- function() {
     checks[[3L]] <- sum(abs(b[, 2L] - rep(1, 3L))) < 0.25
     all(checks)
   }
-  res <- random_finite_assign(42, groups, n_blocks)
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- interaction(n_blocks$treatment, n_blocks$location)
+    means_weights <- tapply(df, df$groups, function(sub) mean(sub$weights))
+    means_blood <- tapply(df, df$groups, function(sub) mean(sub$blood))
+    sd(means_blood) == 0 && sd(means_weights) == 0
+  }
+  res <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default")
   checks_outer[[1L]] <- correct(res)
+  res <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis")
+  checks_outer[[2L]] <- correct(res)
   all(checks_outer)
 }
 test_2_independent_groups() |> expect_true()
@@ -82,12 +101,22 @@ test_2_dependent_groups <- function() {
     attr(tbl_blood, "class") <- NULL
     identical(tbl_weights, matrix(12L, 3L, 3L)) && identical(tbl_blood, matrix(12L, 3L, 3L))
   }
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- interaction(n_blocks$treatment, n_blocks$location)
+    means_weights <- tapply(df, df$groups, function(sub) mean(sub$weights))
+    means_blood <- tapply(df, df$groups, function(sub) mean(sub$blood))
+    sd(means_blood) == 0 && sd(means_weights) == 0
+  }
   # But the linear dependency has to be confirmed when setting this method!
   # But if they are linear dependent one could assign animals based on one variable
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks) |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
   all(checks)
 }
 test_2_dependent_groups() |> expect_true()
@@ -105,10 +134,19 @@ test_1_finite_group <- function() {
     attr(tbl, "class") <- NULL
     identical(tbl, matrix(9L, 3L, 3L))
   }
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks) |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- n_blocks$treatment
+    means <- tapply(df, df$groups, function(sub) mean(sub$weights))
+    sd(means) == 0
+  }
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
   all(checks)
 }
 test_1_finite_group() |> expect_true()
@@ -118,7 +156,7 @@ test_1_finite_group() |> expect_true()
 test_perm_is_permutation <- function() {
   blocks <- data.frame(bla = factor(rep(1:3, each = 10)))
   groups <- data.frame(x = rnorm(30), y = rnorm(30))
-  res <- random_finite_assign(1, groups, blocks)
+  res <- Randomization::random_finite_assign(1, groups, blocks)
   p <- res$perm
   stopifnot(length(p) == nrow(groups))
   stopifnot(identical(sort(p), seq_len(nrow(groups))))
@@ -142,39 +180,42 @@ test_2_independent_groups_different_size <- function() {
     weights = c(rep(325, 37L), rep(300, 37L), rep(275, 37L)),
     blood   = rnorm(111, mean = 10, sd = 1)
   )
-  res <- random_finite_assign(42, groups, n_blocks, 150L)
-  df <- res$assigned
-  df$treatment <- n_blocks$treatment
-  df$location  <- n_blocks$location
-  #
-  tbl <- with(df, table(interaction(treatment, location), weights))
-  tbl <- as.data.frame(tbl)
-  tbl$treatment <- sub("\\..*$", "", tbl$Var1)
-  tbl$location  <- sub("^.*\\.", "", tbl$Var1)
-  tbl$weights <- as.numeric(as.character(tbl$weights))
-  tbl$Freq    <- as.integer(tbl$Freq)
-  wmean <- function(sub) {
-    sum(sub$Freq * sub$weights) / sum(sub$Freq)
-  }
-  totals <- tapply(tbl$Freq, tbl$location, sum)
-  ok_totals <- identical(unname(as.integer(totals[c("A","B","C","D")])),
-                         c(30L, 33L, 21L, 27L))
-  target <- 300
-  locs <- c("A","B","C","D")
-  trts <- c("control","one","two")
-  means <- matrix(NA_real_, nrow = length(locs), ncol = length(trts),
-                  dimnames = list(locs, trts))
-  for (L in locs) {
-    for (T in trts) {
-      sub <- tbl[tbl$location == L & tbl$treatment == T, , drop = FALSE]
-      means[L, T] <- wmean(sub)
+  res <- Randomization::random_finite_assign(42, groups, n_blocks, 150L, loss_function = "Default")
+  check_res <- function(res) {
+    df <- res$assigned
+    df$treatment <- n_blocks$treatment
+    df$location  <- n_blocks$location
+    #
+    tbl <- with(df, table(interaction(treatment, location), weights))
+    tbl <- as.data.frame(tbl)
+    tbl$treatment <- sub("\\..*$", "", tbl$Var1)
+    tbl$location  <- sub("^.*\\.", "", tbl$Var1)
+    tbl$weights <- as.numeric(as.character(tbl$weights))
+    tbl$Freq    <- as.integer(tbl$Freq)
+    wmean <- function(sub) {
+      sum(sub$Freq * sub$weights) / sum(sub$Freq)
     }
+    totals <- tapply(tbl$Freq, tbl$location, sum)
+    ok_totals <- identical(unname(as.integer(totals[c("A","B","C","D")])),
+      c(30L, 33L, 21L, 27L))
+    target <- 300
+    locs <- c("A","B","C","D")
+    trts <- c("control","one","two")
+    means <- matrix(NA_real_, nrow = length(locs), ncol = length(trts),
+      dimnames = list(locs, trts))
+    for (L in locs) {
+      for (T in trts) {
+        sub <- tbl[tbl$location == L & tbl$treatment == T, , drop = FALSE]
+        means[L, T] <- wmean(sub)
+      }
+    }
+    tol_mean <- 8
+    ok_means <- all(abs(means - target) <= tol_mean)
+    tol_spread <- 8
+    ok_spread <- all(apply(means, 1, function(x) (max(x) - min(x)) <= tol_spread))
+    ok_totals && ok_means && ok_spread
   }
-  tol_mean <- 8
-  ok_means <- all(abs(means - target) <= tol_mean)
-  tol_spread <- 8
-  ok_spread <- all(apply(means, 1, function(x) (max(x) - min(x)) <= tol_spread))
-  ok_totals && ok_means && ok_spread
+  check_res(res)
 }
 test_2_independent_groups_different_size() |> expect_true()
 
@@ -193,10 +234,19 @@ test_1_finite_factor_data_group <- function() {
     attr(tbl, "class") <- NULL
     identical(tbl, matrix(9L, 3L, 3L))
   }
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks) |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- n_blocks$treatment
+    means <- tapply(df, df$groups, function(sub) mean(sub$experimental_blocks))
+    sd(means) == 0
+  }
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
   all(checks)
 }
 test_1_finite_factor_data_group() |> expect_true()
@@ -216,10 +266,19 @@ test_1_finite_factor_data_group <- function() {
     attr(tbl, "class") <- NULL
     identical(tbl, matrix(9L, 3L, 3L))
   }
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks) |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- n_blocks$treatment
+    means <- tapply(df, df$groups, function(sub) mean(sub$experimental_blocks))
+    sd(means) == 0
+  }
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
   all(checks)
 }
 test_1_finite_factor_data_group() |> expect_true()
@@ -241,7 +300,6 @@ test_1_finite_factor_unbalanced <- function() {
       c(min = base, max = base + 1L)
     }
   }
-
   correct <- function(res) {
     df <- res$assigned
     df$treatment <- n_blocks$treatment
@@ -259,15 +317,25 @@ test_1_finite_factor_unbalanced <- function() {
     ok <- ok && identical(as.integer(rowSums(tbl)), rep(27L, 3L))
     ok
   }
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks)   |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- n_blocks$treatment
+    means <- tapply(df, df$groups, function(sub) mean(sub$experimental_blocks))
+    TOL <- 1e-2
+    sd(as.vector(scale(means, center = FALSE))) < TOL
+  }
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
   all(checks)
 }
 test_1_finite_factor_unbalanced() |> expect_true()
 
-# 1 finite group, and one block but there is a surplus for the 
+# 1 finite group, and one block but there is a surplus for the
 # --------------------------------------------------------------------------------------------
 test_1_finite_group_with_surplus <- function() {
   n_blocks <- data.frame(treatment = rep(c("control", "one", "two"), each = 9L))
@@ -280,10 +348,19 @@ test_1_finite_group_with_surplus <- function() {
     attr(tbl, "class") <- NULL
     identical(tbl, matrix(3L, 3L, 3L))
   }
-  checks <- logical(3L)
-  checks[[1L]] <- random_finite_assign(42, groups, n_blocks) |> correct()
-  checks[[2L]] <- random_finite_assign(1234, groups, n_blocks) |> correct()
-  checks[[3L]] <- random_finite_assign(3344, groups, n_blocks) |> correct()
+  correct_mahalanobis <- function(df) {
+    df <- df$assigned
+    df$groups <- n_blocks$treatment
+    means <- tapply(df, df$groups, function(sub) mean(sub$weights))
+    sd(means) == 0
+  }
+  checks <- logical(6L)
+  checks[[1L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[2L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[3L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Default") |> correct()
+  checks[[4L]] <- Randomization::random_finite_assign(42, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[5L]] <- Randomization::random_finite_assign(1234, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
+  checks[[6L]] <- Randomization::random_finite_assign(3344, groups, n_blocks, loss_function = "Mahalanobis") |> correct_mahalanobis()
   all(checks)
 }
 test_1_finite_group_with_surplus() |> expect_true()
