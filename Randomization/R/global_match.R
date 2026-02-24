@@ -568,12 +568,13 @@ greedy_optimize <- function(groups_inp, blocks, perm_init,
   )
 }
 
-random_finite_assign <- function(seed, groups, design, max_iter = 50L, ridge = 1e-8, loss_function = "Default", verbose = TRUE) {
+random_finite_assign <- function(seed, groups, design, max_iter = 50L, ridge = 1e-8, loss_function = "Default", verbose = TRUE, ids = NULL) {
   stopifnot(
     is.numeric(seed), length(seed) == 1L,
     is.data.frame(groups),
     is.data.frame(design),
     is.numeric(max_iter), length(max_iter) == 1L,
+    is.null(ids) || (length(ids) == nrow(groups)),
     is.numeric(ridge), length(ridge) == 1L,
     loss_function %in% c("Default", "Mahalanobis")
   )
@@ -598,10 +599,25 @@ random_finite_assign <- function(seed, groups, design, max_iter = 50L, ridge = 1
   res <- greedy_optimize(groups, blocks, perm_init,
     max_iter = max_iter, tol = 1e-12, verbose = verbose, ridge = ridge, loss_ast, loss_function)
 
+  res$unit_index <- res$perm
+  if (!is.null(ids)) {
+    res$unit_id <- ids[res$perm]
+  }
+
+  res$assigned$unit_index <- res$unit_index
+  if (!is.null(ids)) {
+    res$assigned$unit_id <- res$unit_id
+  }
+
   keep <- which(blocks != "UNUSED")
-  res$perm <- res$perm[keep]
   res$UNUSED <- res$assigned[which(blocks == "UNUSED"), , drop = FALSE]
+
+  res$perm <- res$perm[keep]
+  res$unit_index <- res$unit_index[keep]
+  if (!is.null(ids)) res$unit_id <- res$unit_id[keep]
+
   res$assigned <- res$assigned[keep, , drop = FALSE]
   res$blocks <- res$blocks[keep]
+
   res
 }

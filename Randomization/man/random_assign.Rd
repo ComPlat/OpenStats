@@ -30,20 +30,21 @@ random_assign(
 }
 \examples{
 \donttest{
-design <- agricolae::design.rcbd(
-  trt = c("ctrl", "A", "B", "C"), r = 5
-)$book
-groups <- c("Day1", "Day2")
-ratios <- c(1, 1)
-col <- "Group"
-Randomization::random_assign(
-  design,
-  groups,
-  "infinite",
-  ratios,
-  col,
-  randomization_method = "simple",
-  seed = 1234
-)
+
+  predictors <- list(
+    cellLines = c("HeLa", "Hek"),
+    Treatment = LETTERS[1:4]
+  )
+  design <- Randomization:::completely_randomised_design(predictors, 10)
+  groups <- paste0("Day", 1:4)
+  checks <- logical(6L)
+  res <- Randomization::random_assign(
+    design,
+    groups = groups,
+    c(1, 1, 1, 1),
+    "Group",
+    randomization_method = "simple",
+    seed = 1234
+  )
 }
 }

@@ -123,13 +123,11 @@ simple_infinite <- function() {
   res <- Randomization::random_assign(
     design,
     groups = groups,
-    group_type = "infinite",
     c(1, 1, 1, 1),
     "Group",
     randomization_method = "simple",
     seed = 1234
   )
-  res
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
   subs <- split(res, res$Group)
@@ -144,28 +142,6 @@ simple_infinite <- function() {
 }
 simple_infinite()
 
-simple_finite <- function() {
-  predictors <- list(
-    cellLines = c("HeLa", "Hek"),
-    Treatment = LETTERS[1:4]
-  )
-  design <- Randomization:::completely_randomised_design(predictors, 10)
-  set.seed(42)
-  design <- design[sample(1:nrow(design), nrow(design) * 0.75), ]
-  groups <- rnorm(200, 300, 25)
-  checks <- logical(2L)
-  res <- Randomization::random_assign(
-    design, groups = groups,
-    group_type = "finite", ratios = NULL, "Group",
-    randomization_method = "simple",
-    n_quantiles = 10L, seed = 1234
-  )
-  checks[[1]] <- expect_equal(nrow(res), nrow(design))
-  checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
-  expect_true(all(checks))
-}
-simple_finite()
-
 block_infinite <- function() {
   predictors <- list(
     cellLines = c("HeLa", "Hek"),
@@ -177,7 +153,6 @@ block_infinite <- function() {
   res <- Randomization::random_assign(
     design,
     groups = groups,
-    group_type = "infinite",
     c(1, 1, 1, 1),
     "Group", block_col = "Treatment",
     randomization_method = "block",
@@ -200,54 +175,6 @@ block_infinite <- function() {
 }
 block_infinite()
 
-block_finite <- function(seed1, seed2) {
-  predictors <- list(
-    cellLines = c("HeLa", "Hek"),
-    Treatment = LETTERS[1:4]
-  )
-  design <- Randomization:::completely_randomised_design(predictors, 10)
-  set.seed(seed1)
-  design <- design[sample(1:nrow(design), nrow(design) * 0.75), ]
-  groups <- rnorm(200, 300, 25)
-  checks <- logical(7L)
-
-  res <- Randomization::random_assign(
-    design,
-    groups = groups,
-    group_type = "finite", ratios = NULL,
-    "Group", block_col = "Treatment",
-    randomization_method = "block",
-    n_quantiles = 10L, seed = seed2
-  )
-  checks[[1]] <- expect_equal(nrow(res), nrow(design))
-  checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
-
-  subs <- split(res, res$Treatment)
-  F_global <- ecdf(groups)
-  xs_global <- sort(groups)
-
-  D_vals <- vapply(subs, function(d) {
-    x_block <- as.numeric(groups[as.integer(d$Group)])
-    F_block <- ecdf(x_block)
-    xs <- sort(unique(c(xs_global, x_block)))
-    max(abs(F_global(xs) - F_block(xs)))
-  }, numeric(1L))
-
-  checks[[3]] <- expect_true(D_vals["A"] < 0.25)
-  checks[[4]] <- expect_true(D_vals["B"] < 0.25)
-  checks[[5]] <- expect_true(D_vals["C"] < 0.25)
-  checks[[6]] <- expect_true(D_vals["D"] < 0.25)
-  checks[[7]] <- expect_equal(
-    length(unique(res$Group)),
-    length(res$Group)
-  )
-
-  expect_true(all(checks))
-}
-block_finite(1234, 42)
-block_finite(454, 4235)
-block_finite(235246, 12335)
-
 stratum_block_infinite <- function() {
   predictors <- list(
     cellLines = c("HeLa", "Hek"),
@@ -259,7 +186,6 @@ stratum_block_infinite <- function() {
   res <- Randomization::random_assign(
     design,
     groups = groups,
-    group_type = "infinite",
     c(1, 1, 1, 1),
     col = "Group", strata_cols = c("Treatment", "cellLines"),
     randomization_method = "block_stratified",
@@ -281,169 +207,3 @@ stratum_block_infinite <- function() {
   expect_true(all(checks))
 }
 stratum_block_infinite()
-
-stratum_block_finite <- function(seed1, seed2) {
-  predictors <- list(
-    cellLines = c("HeLa", "Hek"),
-    Treatment = LETTERS[1:4]
-  )
-  design <- Randomization:::completely_randomised_design(predictors, 10)
-  set.seed(seed1)
-  groups <- rnorm(200, 300, 25)
-  checks <- logical(7L)
-
-  res <- Randomization::random_assign(
-    design,
-    groups = groups,
-    group_type = "finite", ratios = NULL,
-    "Group", strata_cols = c("Treatment", "cellLines"),
-    randomization_method = "block_stratified",
-    n_quantiles = 10L, seed = seed2
-  )
-  checks[[1]] <- expect_equal(nrow(res), nrow(design))
-  checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
-
-  subs <- split(res, res$Treatment)
-  F_global <- ecdf(groups)
-  xs_global <- sort(groups)
-
-  D_vals <- vapply(subs, function(d) {
-    x_block <- as.numeric(groups[as.integer(d$Group)])
-    F_block <- ecdf(x_block)
-    xs <- sort(unique(c(xs_global, x_block)))
-    max(abs(F_global(xs) - F_block(xs)))
-  }, numeric(1L))
-
-  checks[[3]] <- expect_true(D_vals["A"] < 0.25)
-  checks[[4]] <- expect_true(D_vals["B"] < 0.25)
-  checks[[5]] <- expect_true(D_vals["C"] < 0.25)
-  checks[[6]] <- expect_true(D_vals["D"] < 0.25)
-  checks[[7]] <- expect_equal(
-    length(unique(res$Group)),
-    length(res$Group)
-  )
-
-  expect_true(all(checks))
-}
-stratum_block_finite(1234, 42)
-
-simple_finite_3D <- function(seed1, seed2) {
-  set.seed(seed1)
-  groups <- data.frame(
-    weight = rnorm(150, 300, 25),
-    blood  = rnorm(150, 15, 1.2),
-    xyz = rnorm(150, 12.0, 1.2)
-  )
-  group_type <- "finite_nd"
-  df <- data.frame(pos = 1:32, treatment = rep(c("bla","control"), each = 16))
-  checks <- logical(2L)
-  res <- Randomization::random_assign(
-    df = df, groups = groups, group_type = group_type,
-    ratios = NULL, col = "block",
-    block_col = "treatment", strata_cols = NULL,
-    randomization_method = "simple", n_quantiles = c(10L, 10L, 10L),
-    seed = seed2
-  )
-  subs <- split(res, res$treatment)
-  checks[[1]] <- expect_equal(nrow(res), nrow(df))
-  checks[[2]] <- expect_equal(ncol(res), (ncol(df) + 1L))
-  expect_true(all(checks))
-}
-simple_finite_3D(1234, 1234)
-
-block_finite_2D <- function(seed1, seed2) {
-  set.seed(seed1)
-  groups <- data.frame(
-    weight = rnorm(64, 100, 25),
-    blood  = rnorm(64, 100, 12)
-  )
-  group_type <- "finite_nd"
-  df <- data.frame(pos = 1:32, treatment = rep(c("bla","control"), each = 16))
-  checks <- logical(4L)
-  res <- Randomization::random_assign(
-    df = df, groups = groups, group_type = group_type,
-    ratios = NULL, col = "block",
-    block_col = "treatment", strata_cols = NULL,
-    randomization_method = "block", n_quantiles = c(10L, 10L),
-    seed = seed2
-  )
-  checks[[1]] <- expect_equal(nrow(res), nrow(df))
-  checks[[2]] <- expect_equal(ncol(res), (ncol(df) + 1L))
-
-  df <- cbind(
-    treatment = res$treatment, groups[res$block, ]
-  )
-  qq_scaled <- function(d, colname, probs = seq(0, 1, 0.1)) {
-    x1 <- d[d$treatment == "bla", colname]
-    x2 <- d[d$treatment == "control", colname]
-    sp <- sqrt((sd(x1, na.rm = TRUE)^2 + sd(x2, na.rm = TRUE)^2) / 2)
-    if (!is.finite(sp) || sp == 0) return(0)
-    q1 <- quantile(x1, probs = probs, na.rm = TRUE, type = 7)
-    q2 <- quantile(x2, probs = probs, na.rm = TRUE, type = 7)
-    max(abs(q1 - q2)) / sp
-  }
-  checks[[3L]] <- qq_scaled(df, "weight") < 2.0
-  checks[[4L]] <- qq_scaled(df, "blood") < 2.0
-  expect_true(all(checks))
-}
-block_finite_2D(1234, 1234)
-block_finite_2D(43, 2323)
-block_finite_2D(123, 1232345)
-
-block_stratified_finite_2D <- function(seed1, seed2) {
-  set.seed(seed1)
-  checks <- logical(7L)
-  groups <- data.frame(
-    weight = rnorm(128, 100, 20),
-    blood  = rnorm(128, 100, 12)
-  )
-
-  df <- data.frame(
-    pos = 1:32,
-    location = rep(rep(c("A", "B"), each = 8), 2),
-    treatment = rep(c("bla","control"), each = 16)
-  )
-
-  res <- Randomization::random_assign(
-    df = df, groups = groups, group_type = "finite_nd",
-    ratios = NULL, col = "block",
-    block_col = "treatment", strata_cols = c("treatment", "location"),
-    randomization_method = "block_stratified", n_quantiles = c(10L, 10L),
-    seed = seed2
-  )
-
-  checks[[1L]] <- nrow(res) == nrow(df)
-  checks[[2L]] <- ncol(res) == ncol(df) + 1L
-  checks[[3L]] <- length(res$block) == nrow(df)
-
-  df2 <- cbind(
-    location = res$location,
-    treatment = res$treatment,
-    groups[res$block, , drop = FALSE]
-  )
-
-  qq_scaled <- function(d, colname, probs = seq(0, 1, 0.1)) {
-    x1 <- d[d$treatment == "bla", colname]
-    x2 <- d[d$treatment == "control", colname]
-    sp <- sqrt((sd(x1, na.rm = TRUE)^2 + sd(x2, na.rm = TRUE)^2) / 2)
-    if (!is.finite(sp) || sp == 0) return(0)
-    q1 <- quantile(x1, probs = probs, na.rm = TRUE, type = 7)
-    q2 <- quantile(x2, probs = probs, na.rm = TRUE, type = 7)
-    max(abs(q1 - q2)) / sp
-  }
-
-  counter <- 4L
-  for (loc in c("A", "B")) {
-    dloc <- df2[df2$location == loc, , drop = FALSE]
-    qq_scaled_weight <- qq_scaled(dloc, "weight")
-    qq_scaled_blood <- qq_scaled(dloc, "blood")
-    checks[[counter]] <- qq_scaled_weight < 2
-    counter <- counter + 1L
-    checks[[counter]] <- qq_scaled_blood  < 2
-    counter <- counter + 1L
-  }
-  expect_true(all(checks))
-}
-block_stratified_finite_2D(1234, 1234)
-block_stratified_finite_2D(43, 2323)
-block_stratified_finite_2D(123, 1232345)

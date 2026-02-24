@@ -1,4 +1,4 @@
-export(randomization_one_way_anova)
+export(calc_n_one_way_anova)
 export(random_assign)
 export(random_finite_assign)
 importFrom("pwr", "pwr.anova.test")
