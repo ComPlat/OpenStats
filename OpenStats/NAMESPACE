@@ -1,6 +1,5 @@
 export(open_stats)
 
-import(shiny, except = c(renderDataTable, dataTableOutput, runExample))
 import(DT)
 import(bslib, except = c(bootstrap))
 import(broom)

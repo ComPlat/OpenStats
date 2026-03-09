@@ -13,7 +13,7 @@ corrServer <- function(id, DataModelState, ResultsState) {
         sliderInput("CORR-conflevel", "Confidence level of the interval",
           min = 0, max = 1, value = 0.95
         ),
-        selectInput(
+        shiny::selectInput(
           "CORR-alt", "Alternative hypothesis",
           c(
             "Two sided" = "two.sided",

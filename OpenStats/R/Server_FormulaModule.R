@@ -91,13 +91,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       tooltip <- "Select the dependent variable for your statistical model. This is the outcome you want to predict based on the independent variables."
       htmltools::div(
         class = "boxed-output",
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("FO-colnames-dropdown_", DataModelState$counter_id),
           label = "Dependent Variable",
           choices = colnames[1:length(colnames)],
@@ -109,7 +109,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     # Predefined models
     output[["optim_predefined_equations"]] <- shiny::renderUI({
       if (input$model_type == "Optimization Model") {
-        selectInput(inputId = "FO-PredefinedModels", "Available functions",
+        shiny::selectInput(inputId = "FO-PredefinedModels", "Available functions",
           choices = c(
             "Linear" = "linear",
             "Log-linear" = "log_linear",
@@ -130,14 +130,14 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         htmltools::div(
           hr(),
-          textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
+          shiny::textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
         )
       } else if (input$model_type == "Optimization Model") {
         shiny::req(input$PredefinedModels)
         if(input$PredefinedModels == "free") {
           htmltools::div(
             hr(),
-            textAreaInput("FO-editable_code", "formula terms:", value = "", rows = 12)
+            shiny::textAreaInput("FO-editable_code", "formula terms:", value = "", rows = 12)
           )
         }
       }
@@ -161,10 +161,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             ),
             htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              selectInput("FO-linear_lhs_var", label = "y", choices = colnames, width = "125px"),
-              textInput("FO-linear_slope", label = "Slope", value = "Slope", width = "100px"),
-              selectInput("FO-linear_x", label = "x", choices = colnames, width = "125px"),
-              textInput("FO-linear_intercept", label = "Intercept", value = "Intercept", width = "125px")
+              shiny::selectInput("FO-linear_lhs_var", label = "y", choices = colnames, width = "125px"),
+              shiny::textInput("FO-linear_slope", label = "Slope", value = "Slope", width = "100px"),
+              shiny::selectInput("FO-linear_x", label = "x", choices = colnames, width = "125px"),
+              shiny::textInput("FO-linear_intercept", label = "Intercept", value = "Intercept", width = "125px")
             )
           )
         } else if (input$PredefinedModels == "log_linear") {
@@ -176,10 +176,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             ),
             htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              selectInput("FO-log_linear_lhs_var", label = "y", choices = colnames, width = "125px"),
-              textInput("FO-log_linear_slope", label = "Slope", value = "Slope", width = "100px"),
-              selectInput("FO-log_linear_x", label = "x", choices = colnames, width = "125px"),
-              textInput("FO-log_linear_intercept", label = "Intercept", value = "Intercept", width = "125px")
+              shiny::selectInput("FO-log_linear_lhs_var", label = "y", choices = colnames, width = "125px"),
+              shiny::textInput("FO-log_linear_slope", label = "Slope", value = "Slope", width = "100px"),
+              shiny::selectInput("FO-log_linear_x", label = "x", choices = colnames, width = "125px"),
+              shiny::textInput("FO-log_linear_intercept", label = "Intercept", value = "Intercept", width = "125px")
             )
           )
         } else if (input$PredefinedModels == "michaelis_menten") {
@@ -191,10 +191,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             ),
             htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              selectInput("FO-mm_lhs_var", label = "y", choices = colnames, width = "125px"),
-              textInput("FO-mm_vmax", label = "Vmax", value = "Vmax", width = "100px"),
-              selectInput("FO-mm_x", label = "conc. of (s)", choices = colnames, width = "125px"),
-              textInput("FO-mm_km", label = "Km", value = "Km", width = "100px")
+              shiny::selectInput("FO-mm_lhs_var", label = "y", choices = colnames, width = "125px"),
+              shiny::textInput("FO-mm_vmax", label = "Vmax", value = "Vmax", width = "100px"),
+              shiny::selectInput("FO-mm_x", label = "conc. of (s)", choices = colnames, width = "125px"),
+              shiny::textInput("FO-mm_km", label = "Km", value = "Km", width = "100px")
             )
           )
         } else if (input$PredefinedModels == "one_site_binding") {
@@ -206,10 +206,10 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             ),
             htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              selectInput("FO-binding_lhs_var", label = "y", choices = colnames, width = "125px"),
-              textInput("FO-binding_bmax", label = "Bmax", value = "Bmax", width = "100px"),
-              selectInput("FO-binding_x", label = "conc", choices = colnames, width = "125px"),
-              textInput("FO-binding_kd", label = "Kd", value = "Kd", width = "100px")
+              shiny::selectInput("FO-binding_lhs_var", label = "y", choices = colnames, width = "125px"),
+              shiny::textInput("FO-binding_bmax", label = "Bmax", value = "Bmax", width = "100px"),
+              shiny::selectInput("FO-binding_x", label = "conc", choices = colnames, width = "125px"),
+              shiny::textInput("FO-binding_kd", label = "Kd", value = "Kd", width = "100px")
             )
           )
         }  else if (input$PredefinedModels == "two_hot_binding") {
@@ -221,12 +221,12 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             ),
             htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              selectInput("FO-hotbind_lhs_var", label = "y", choices = colnames, width = "125px"),
-              selectInput("FO-hotbind_conc", label = "conc", choices = colnames, width = "125px"),
-              textInput("FO-hotbind_koff", label = "Koff", value = "koff", width = "80px"),
-              textInput("FO-hotbind_kon", label = "Kon", value = "kon", width = "80px"),
-              textInput("FO-hotbind_bmax", label = "Bmax", value = "Bmax", width = "100px"),
-              selectInput("FO-hotbind_time", label = "Time", choices = colnames, width = "125px")
+              shiny::selectInput("FO-hotbind_lhs_var", label = "y", choices = colnames, width = "125px"),
+              shiny::selectInput("FO-hotbind_conc", label = "conc", choices = colnames, width = "125px"),
+              shiny::textInput("FO-hotbind_koff", label = "Koff", value = "koff", width = "80px"),
+              shiny::textInput("FO-hotbind_kon", label = "Kon", value = "kon", width = "80px"),
+              shiny::textInput("FO-hotbind_bmax", label = "Bmax", value = "Bmax", width = "100px"),
+              shiny::selectInput("FO-hotbind_time", label = "Time", choices = colnames, width = "125px")
             )
           )
         }
@@ -241,7 +241,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     # If glm is choosen create family
     output[["glm_family_dropdown"]] <- shiny::renderUI({
       if (input$model_type == "Generalised Linear Model") {
-        selectInput(inputId = "FO-Family", "The distribution family which describes the residuals",
+        shiny::selectInput(inputId = "FO-Family", "The distribution family which describes the residuals",
           c(
             "binomial" = "binomial",
             "gaussian" = "gaussian",
@@ -261,7 +261,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       shiny::req(input$Family)
       if (input$model_type == "Generalised Linear Model") {
         if (input[["Family"]] == "binomial") {
-          selectInput("FO-Link_function", "The link function",
+          shiny::selectInput("FO-Link_function", "The link function",
             c(
               "logit" = "logit",
               "probit" = "probit",
@@ -270,7 +270,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             selectize = FALSE
           )
         } else if (input[["Family"]] %in% c("gaussian", "Gamma")) {
-          selectInput("FO-Link_function", "The link function",
+          shiny::selectInput("FO-Link_function", "The link function",
             c(
               "identity" = "identity",
               "log" = "log",
@@ -279,7 +279,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             selectize = FALSE
           )
         } else if (input[["Family"]] == "inverse.gaussian") {
-          selectInput("FO-Link_function", "The link function",
+          shiny::selectInput("FO-Link_function", "The link function",
             c(
               "identity" = "identity",
               "log" = "log",
@@ -289,7 +289,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             selectize = FALSE
           )
         } else if (input[["Family"]] == "poisson") {
-          selectInput("FO-Link_function", "The link function",
+          shiny::selectInput("FO-Link_function", "The link function",
             c(
               "identity" = "identity",
               "log" = "log",
@@ -298,7 +298,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             selectize = FALSE
           )
         } else if (input[["Family"]] %in% c("quasi", "quasibinomial", "quasipoisson")) {
-          selectInput("FO-Link_function", "The link function",
+          shiny::selectInput("FO-Link_function", "The link function",
             c(
               "identity" = "identity",
               "inverse" = "inverse",
@@ -320,7 +320,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         NULL
       } else if (input$model_type == "Optimization Model") {
         htmltools::div(
-          selectInput(
+          shiny::selectInput(
             "FO-optim_method", "Optimization method",
             c(
               "general purpose optimization" = "general purpose optimization",
@@ -328,9 +328,9 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             ),
             selectize = FALSE
           ),
-          numericInput("FO-LowerBoundary", "Lower boundary of parameters", value = 0),
-          numericInput("FO-UpperBoundary", "Upper boundary of parameters", value = 100),
-          numericInput("FO-Seed", "Seed (start value for random number generation)", value = sample(1:10^6, 1))
+          shiny::numericInput("FO-LowerBoundary", "Lower boundary of parameters", value = 0),
+          shiny::numericInput("FO-UpperBoundary", "Upper boundary of parameters", value = 100),
+          shiny::numericInput("FO-Seed", "Seed (start value for random number generation)", value = sample(1:10^6, 1))
         )
       }
     })

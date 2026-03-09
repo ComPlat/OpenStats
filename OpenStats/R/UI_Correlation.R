@@ -1,8 +1,8 @@
 # nocov start ui-scaffold
 corrSidebarUI <- function(id) {
-  tabPanel(
+  shiny::tabPanel(
     "Correlation",
-    uiOutput(NS(id, "CorrelationUI"))
+    shiny::uiOutput(shiny::NS(id, "CorrelationUI"))
   )
 }
 

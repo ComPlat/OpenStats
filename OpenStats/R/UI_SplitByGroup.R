@@ -1,21 +1,21 @@
 # nocov start ui-scaffold
 SplitByGroupUI <- function(id) {
-  ui <- fluidPage(
+  ui <- shiny::fluidPage(
     shiny::fluidRow(
       htmltools::div(
         shiny::actionButton(
-          NS(id, "split_docu"),
+          shiny::NS(id, "split_docu"),
           label = NULL,
           icon = shiny::icon("question-circle")
         ),
-        uiOutput(NS(id, "colnames_dropdown")),
+        shiny::uiOutput(shiny::NS(id, "colnames_dropdown")),
         class = "boxed-output"
       ),
       htmltools::div(
-        uiOutput(NS(id, "levels_dropdown")),
+        shiny::uiOutput(shiny::NS(id, "levels_dropdown")),
         class = "boxed-output"
       ),
-      shiny::actionButton(NS(id, "split_data"), "Split data")
+      shiny::actionButton(shiny::NS(id, "split_data"), "Split data")
     )
   )
 }

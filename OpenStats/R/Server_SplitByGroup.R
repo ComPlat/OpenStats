@@ -17,13 +17,13 @@ SplitByGroupServer <- function(id, DataModelState, ResultsState) {
       colnames <- names(SplitByGroupState$df)
       tooltip <- "Select the column by name which you want to split by"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("SG-colnames-dropdown_"),
           label = "Variable",
           choices = colnames[1:length(colnames)],
@@ -44,13 +44,13 @@ SplitByGroupServer <- function(id, DataModelState, ResultsState) {
       vals <- unique(SplitByGroupState$df[, selected_col])
       tooltip <- "Select the level (group) by name which you want to use"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Variable levels",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("SG-levels-dropdown_"),
           label = "Variable levels",
           choices = vals[1:length(vals)],

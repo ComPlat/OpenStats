@@ -1,14 +1,14 @@
 assSidebarUI <- function(id) {
-  tabPanel(
+  shiny::tabPanel(
     "Assumption",
-    tags$hr(),
-    uiOutput(NS(id, "shapiroUI")),
-    tags$hr(),
-    uiOutput(NS(id, "shapiroResidualsUI")),
-    tags$hr(),
-    uiOutput(NS(id, "LeveneUI")),
-    tags$hr(),
-    uiOutput(NS(id, "DiagnosticPlotUI"))
+    shiny::tags$hr(),
+    shiny::uiOutput(shiny::NS(id, "shapiroUI")),
+    shiny::tags$hr(),
+    shiny::uiOutput(shiny::NS(id, "shapiroResidualsUI")),
+    shiny::tags$hr(),
+    shiny::uiOutput(shiny::NS(id, "LeveneUI")),
+    shiny::tags$hr(),
+    shiny::uiOutput(shiny::NS(id, "DiagnosticPlotUI"))
   )
 }
 

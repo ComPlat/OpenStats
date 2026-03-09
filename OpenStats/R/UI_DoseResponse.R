@@ -1,8 +1,8 @@
 DoseResponseSidebarUI <- function(id) {
-  tabPanel(
+  shiny::tabPanel(
     "Dose Response analysis",
-    uiOutput(NS(id, "substanceNamesUI")),
-    uiOutput(NS(id, "DoseResponseUI"))
+    shiny::uiOutput(shiny::NS(id, "substanceNamesUI")),
+    shiny::uiOutput(shiny::NS(id, "DoseResponseUI"))
   )
 }
 

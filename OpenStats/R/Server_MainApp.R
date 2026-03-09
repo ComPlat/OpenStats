@@ -197,13 +197,13 @@ app <- function() {
       tooltip <- "Select the active dataset (the dataset with which you can work)"
       htmltools::div(
         class = "boxed-output",
-        tags$label(
+        shiny::tags$label(
           "active dataset",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = "tables-dropdown",
           label = "active dataset",
           choices = names,
@@ -256,7 +256,7 @@ app <- function() {
               class = "var-box-name",
               name
             ),
-            verbatimTextOutput(paste0("res_", name)),
+            shiny::verbatimTextOutput(paste0("res_", name)),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (is.data.frame(temp)) {
@@ -313,7 +313,7 @@ app <- function() {
               class = "var-box-name",
               name
             ),
-            verbatimTextOutput(paste0("res_", name)),
+            shiny::verbatimTextOutput(paste0("res_", name)),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         }
@@ -324,7 +324,7 @@ app <- function() {
           htmltools::h3(htmltools::strong("Results")),
           htmltools::p("The following list contains the results"),
           shiny::actionButton("download", "Save"),
-          textInput("user_filename", "Set filename", value = "")
+          shiny::textInput("user_filename", "Set filename", value = "")
         )
         do.call(htmltools::tagList, list(download_stuff, res_ui_list))
       } else if (MethodState$method == "DoseResponse") {

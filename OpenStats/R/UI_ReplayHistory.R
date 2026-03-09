@@ -1,8 +1,8 @@
 HistorySidebarUI <- function(id) {
-  ui <-tabPanel(
+  ui <-shiny::tabPanel(
     "History",
     htmltools::div(
-      uiOutput(NS(id, "ReplayHistory")),
+      shiny::uiOutput(shiny::NS(id, "ReplayHistory")),
       class = "boxed-output"
     )
   )
@@ -10,9 +10,9 @@ HistorySidebarUI <- function(id) {
 
 # nocov start ui-scaffold
 HistoryEditorUI <- function(id) {
-  ui <- fluidPage(
+  ui <- shiny::fluidPage(
     htmltools::div(
-      textAreaInput(NS(id, "history_string"), "History-JSON:", value = "", rows = 12),
+      shiny::textAreaInput(shiny::NS(id, "history_string"), "History-JSON:", value = "", rows = 12),
       class = "boxed-output"
     )
   )

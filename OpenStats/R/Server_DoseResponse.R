@@ -37,13 +37,13 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
       colnames <- names(DataModelState$df)
       tooltip <- "Select the column which contains the names of the different substances"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("DOSERESPONSE-substanceNames"),
           label = "Column containing the names",
           choices = colnames[1:length(colnames)],

@@ -112,8 +112,8 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
             title = paste0("This is the variable ", name,
             ". You can use it by entering: ", name, " within the Operation text field."),
             class = "add-button"),
-          verbatimTextOutput(NS(id, paste0("iv_", name))),
-          shiny::actionButton(NS(id, paste0("remove_iv_", name)), "Remove", class = "btn-danger")
+          shiny::verbatimTextOutput(shiny::NS(id, paste0("iv_", name))),
+          shiny::actionButton(shiny::NS(id, paste0("remove_iv_", name)), "Remove", class = "btn-danger")
         )
       })
       do.call(htmltools::tagList, iv_ui)

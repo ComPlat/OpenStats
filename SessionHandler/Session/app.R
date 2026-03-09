@@ -14,7 +14,7 @@ args <- check_args(args)
 run_app <- function(port) {
   app <- shinyApp(
     ui = bootstrapPage(
-      numericInput('n', 'Number of obs', 100),
+      shiny::numericInput('n', 'Number of obs', 100),
       plotOutput('plot')
     ),
     server = function(input, output) {

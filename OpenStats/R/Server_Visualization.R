@@ -127,20 +127,20 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       }
     })
-    # Render x and y selectInput
+    # Render x and y shiny::selectInput
     output[["yVarUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       colnames <- names(DataModelState$df)
       tooltip <- "Select the value of the Y variable"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("VIS-yVar"),
           label = "Y Variable",
           choices = colnames[1:length(colnames)],
@@ -160,13 +160,13 @@ visServer <- function(id, DataModelState, ResultsState) {
       colnames <- names(DataModelState$df)
       tooltip <- "Select the value of the X variable"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("VIS-xVar"),
           label = "X Variable",
           choices = colnames[1:length(colnames)],
@@ -180,13 +180,13 @@ visServer <- function(id, DataModelState, ResultsState) {
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Select a variable  for the colour variable. By chosing this groups are formed based on the unique entries in this column. Thereby, each entry gets its own colour to distinguish the groups. Dependent on the plot type either the lines, dots or the frame of the boxes are labelled"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("VIS-col"),
           label = "Colour Variable",
           choices = colnames[1:length(colnames)],
@@ -200,13 +200,13 @@ visServer <- function(id, DataModelState, ResultsState) {
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Select a variable  for the fill variable. By chosing this groups are formed based on the unique entries in this column. Thereby, each entry gets its own colour to distinguish the groups."
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("VIS-fill"),
           label = "Fill Variable",
           choices = colnames[1:length(colnames)],
@@ -220,13 +220,13 @@ visServer <- function(id, DataModelState, ResultsState) {
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Split plot in panels based on which variable"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        selectInput(
+        shiny::selectInput(
           inputId = paste0("VIS-facetBy"),
           label = "Split Variable",
           choices = colnames[1:length(colnames)],
@@ -241,13 +241,13 @@ visServer <- function(id, DataModelState, ResultsState) {
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Do you want to scale the Y axis"
       htmltools::div(
-        tags$label(
+        shiny::tags$label(
           "Dependent Variable",
           class = "tooltip",
           title = tooltip,
           `data-toggle` = "tooltip"
         ),
-        radioButtons(
+        shiny::radioButtons(
           "VIS-facetScales",
           "Scaling of y axis",
           choices = c(

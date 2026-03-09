@@ -2,9 +2,9 @@
 main_app_ui <- function() {
   upload_ui_field <- function() {
     if (Sys.getenv("RUN_MODE") != "SERVER") {
-      res <- conditionalPanel(
+      res <- shiny::conditionalPanel(
         condition = "input.conditionedPanels == 'Data'",
-        fileInput("file", "Choose CSV File",
+        shiny::fileInput("file", "Choose CSV File",
           accept = c(
             "text/csv",
             "text/comma-separated-values,text/plain",
@@ -17,19 +17,19 @@ main_app_ui <- function() {
     }
   }
   uploadUIField <- upload_ui_field()
-  fluidPage(
+  shiny::fluidPage(
     useShinyjs(),
     htmltools::tagList(
-      includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
-      includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
-      includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
-      includeScript(system.file("www/download.js", package = "OpenStats"))
+      shiny::includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
+      shiny::includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
+      shiny::includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
+      shiny::includeScript(system.file("www/download.js", package = "OpenStats"))
     ),
-    tags$head(
-      includeCSS(system.file("www/styles.css", package = "OpenStats"))
+    shiny::tags$head(
+      shiny::includeCSS(system.file("www/styles.css", package = "OpenStats"))
     ),
-    sidebarLayout(
-      sidebarPanel(
+    shiny::sidebarLayout(
+      shiny::sidebarPanel(
         htmltools::div(
           style = "display: flex; align-items: center; gap: 6px;",
           shiny::actionButton(
@@ -37,90 +37,90 @@ main_app_ui <- function() {
             label = NULL,
             icon = shiny::icon("question-circle")
           ),
-          uiOutput("running_status") # TODO: when an error ocurred it does not vanish
+          shiny::uiOutput("running_status") # TODO: when an error ocurred it does not vanish
         ),
-        uiOutput("open_formula_editor_main"),
-        uiOutput("formulaUI"),
+        shiny::uiOutput("open_formula_editor_main"),
+        shiny::uiOutput("formulaUI"),
         htmltools::br(),
-        uiOutput("open_split_by_groupUI"),
-        uiOutput("data_splitted"),
-        verbatimTextOutput("applied_filter"),
+        shiny::uiOutput("open_split_by_groupUI"),
+        shiny::uiOutput("data_splitted"),
+        shiny::verbatimTextOutput("applied_filter"),
         htmltools::br(),
-        uiOutput("active_df"),
+        shiny::uiOutput("active_df"),
         htmltools::br(),
         htmltools::div(
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Data'",
             uploadUIField,
-            tags$hr()
+            shiny::tags$hr()
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'DataWrangling'",
             OperatorEditorSidebar("OP")
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Visualisation'",
             visSidebarUI("VIS")
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Assumption'",
             assSidebarUI("ASS")
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Correlation'",
             corrSidebarUI("CORR")
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Tests'",
             testsSidebarUI("TESTS")
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Dose Response analysis'",
             DoseResponseSidebarUI("DOSERESPONSE")
           ),
-          conditionalPanel(
+          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'History'",
             HistorySidebarUI("HISTORY")
           )
         )
       ),
-      mainPanel(
-        tabsetPanel(
-          tabPanel(
+      shiny::mainPanel(
+        shiny::tabsetPanel(
+          shiny::tabPanel(
             "Data",
             DTOutput("df")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "DataWrangling",
             OperatorEditorUI("OP")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Visualisation",
             visUI("VIS")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Assumption",
             assUI("ASS")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Correlation",
             corrUI("CORR")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Tests",
             testsUI("TESTS")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "Dose Response analysis",
             DoseResponseUI("DOSERESPONSE")
           ),
-          tabPanel(
+          shiny::tabPanel(
             "History",
             HistoryEditorUI("HISTORY")
           ),
           id = "conditionedPanels"
         ),
-        uiOutput("Results")
+        shiny::uiOutput("Results")
       )
     )
   )

@@ -22,7 +22,7 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
         easyClose = FALSE,
         footer = htmltools::tagList(
           shiny::modalButton("Cancel"),
-          shiny::actionButton(NS(id, "confirm_replay"), "Yes, overwrite everything", class = "btn-danger")
+          shiny::actionButton(shiny::NS(id, "confirm_replay"), "Yes, overwrite everything", class = "btn-danger")
         )
       ))
     })

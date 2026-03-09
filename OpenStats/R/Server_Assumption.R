@@ -47,8 +47,8 @@ assServer <- function(id, DataModelState, ResultsState) {
               "Test of variance homogenity"
             )
           ),
-          shiny::actionButton(NS(id, "levene"), "Levene test"), # NOTE: using ASS-levene is in this case wrong dont know why?
-          selectInput(NS(id, "center"), "Data center of each group: mean or median", # The same is true for center
+          shiny::actionButton(shiny::NS(id, "levene"), "Levene test"), # NOTE: using ASS-levene is in this case wrong dont know why?
+          shiny::selectInput(shiny::NS(id, "center"), "Data center of each group: mean or median", # The same is true for center
             c(
               "Mean" = "mean",
               "Median" = "median"
