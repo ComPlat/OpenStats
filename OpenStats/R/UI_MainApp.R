@@ -18,7 +18,7 @@ main_app_ui <- function() {
   }
   uploadUIField <- upload_ui_field()
   shiny::fluidPage(
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     htmltools::tagList(
       shiny::includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
       shiny::includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
