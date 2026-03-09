@@ -2,8 +2,7 @@ HistorySidebarUI <- function(id) {
   ui <-tabPanel(
     "History",
     div(
-      actionButton(NS(id, "replay_history"), "Replay history", class = "add-button",
-        title = "Copy the history (json format) into the text field and apply it to the current data set"),
+      uiOutput(NS(id, "ReplayHistory")),
       class = "boxed-output"
     )
   )

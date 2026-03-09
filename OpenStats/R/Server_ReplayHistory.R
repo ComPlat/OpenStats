@@ -1,6 +1,15 @@
 HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
   moduleServer(id, function(input, output, session) {
 
+    output[["ReplayHistory"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
+      actionButton("HISTORY-replay_history", "Replay history", class = "add-button",
+        title = "Copy the history (json format) into the text field and apply it to the current data set")
+    })
+
     # nocov start ui-scaffold
     observeEvent(input$replay_history, {
       print_req(is.data.frame(DataWranglingState$df), "The dataset is missing")

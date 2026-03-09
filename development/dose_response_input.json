@@ -1,0 +1,2871 @@
+{
+  "id": "24",
+  "request_id": "MTT-20260123-112547-ce90b1",
+  "wellplates": [
+    {
+      "id": "95",
+      "wells": [
+        {
+          "id": 6087,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "id": 6086,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.9"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6088,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.9"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6089,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6090,
+          "sample": {
+            "id": 199729,
+            "conc": 10,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.5"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6091,
+          "sample": {
+            "id": 199729,
+            "conc": 10,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.5"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6092,
+          "sample": {
+            "id": 199729,
+            "conc": 10,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.45"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6093,
+          "sample": {
+            "id": 199729,
+            "conc": 30,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6094,
+          "sample": {
+            "id": 199729,
+            "conc": 30,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.11"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6095,
+          "sample": {
+            "id": 199729,
+            "conc": 30,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6096,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6097,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6098,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6099,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6100,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6101,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6102,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6103,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6104,
+          "sample": {
+            "id": 199729,
+            "conc": 15,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.25"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6105,
+          "sample": {
+            "id": 199729,
+            "conc": 15,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.24"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6106,
+          "sample": {
+            "id": 199729,
+            "conc": 15,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.24"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6107,
+          "sample": {
+            "id": 199729,
+            "conc": 50,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.01"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6108,
+          "sample": {
+            "id": 199729,
+            "conc": 50,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.01"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6109,
+          "sample": {
+            "id": 199729,
+            "conc": 50,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.01"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6107,
+          "position": {
+            "x": 10,
+            "y": 2
+          }
+        },
+        {
+          "id": 6108,
+          "position": {
+            "x": 11,
+            "y": 2
+          }
+        },
+        {
+          "id": 6109,
+          "position": {
+            "x": 12,
+            "y": 2
+          }
+        },
+        {
+          "id": 6110,
+          "position": {
+            "x": 1,
+            "y": 3
+          }
+        },
+        {
+          "id": 6111,
+          "position": {
+            "x": 2,
+            "y": 3
+          }
+        },
+        {
+          "id": 6112,
+          "sample": {
+            "id": 199730,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "id": 6113,
+          "position": {
+            "x": 4,
+            "y": 3
+          }
+        },
+        {
+          "id": 6114,
+          "position": {
+            "x": 5,
+            "y": 3
+          }
+        },
+        {
+          "id": 6115,
+          "position": {
+            "x": 6,
+            "y": 3
+          }
+        },
+        {
+          "id": 6116,
+          "position": {
+            "x": 7,
+            "y": 3
+          }
+        },
+        {
+          "id": 6117,
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "id": 6118,
+          "position": {
+            "x": 9,
+            "y": 3
+          }
+        },
+        {
+          "id": 6119,
+          "position": {
+            "x": 10,
+            "y": 3
+          }
+        },
+        {
+          "id": 6120,
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "id": 6121,
+          "position": {
+            "x": 12,
+            "y": 3
+          }
+        },
+        {
+          "id": 6122,
+          "position": {
+            "x": 1,
+            "y": 4
+          }
+        },
+        {
+          "id": 6123,
+          "sample": {
+            "id": 199731,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 2,
+            "y": 4
+          }
+        },
+        {
+          "id": 6124,
+          "position": {
+            "x": 3,
+            "y": 4
+          }
+        },
+        {
+          "id": 6125,
+          "position": {
+            "x": 4,
+            "y": 4
+          }
+        },
+        {
+          "id": 6126,
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "id": 6127,
+          "position": {
+            "x": 6,
+            "y": 4
+          }
+        },
+        {
+          "id": 6128,
+          "position": {
+            "x": 7,
+            "y": 4
+          }
+        },
+        {
+          "id": 6129,
+          "position": {
+            "x": 8,
+            "y": 4
+          }
+        },
+        {
+          "id": 6130,
+          "position": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "id": 6131,
+          "position": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "id": 6132,
+          "position": {
+            "x": 11,
+            "y": 4
+          }
+        },
+        {
+          "id": 6133,
+          "position": {
+            "x": 12,
+            "y": 4
+          }
+        },
+        {
+          "id": 6134,
+          "position": {
+            "x": 1,
+            "y": 5
+          }
+        },
+        {
+          "id": 6135,
+          "position": {
+            "x": 2,
+            "y": 5
+          }
+        },
+        {
+          "id": 6136,
+          "position": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "id": 6137,
+          "sample": {
+            "id": 199732,
+            "conc": 0.001,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 4,
+            "y": 5
+          }
+        },
+        {
+          "id": 6138,
+          "position": {
+            "x": 5,
+            "y": 5
+          }
+        },
+        {
+          "id": 6139,
+          "position": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "id": 6140,
+          "position": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "id": 6141,
+          "position": {
+            "x": 8,
+            "y": 5
+          }
+        },
+        {
+          "id": 6142,
+          "position": {
+            "x": 9,
+            "y": 5
+          }
+        },
+        {
+          "id": 6143,
+          "position": {
+            "x": 10,
+            "y": 5
+          }
+        },
+        {
+          "id": 6144,
+          "position": {
+            "x": 11,
+            "y": 5
+          }
+        },
+        {
+          "id": 6145,
+          "position": {
+            "x": 12,
+            "y": 5
+          }
+        },
+        {
+          "id": 6146,
+          "position": {
+            "x": 1,
+            "y": 6
+          }
+        },
+        {
+          "id": 6147,
+          "position": {
+            "x": 2,
+            "y": 6
+          }
+        },
+        {
+          "id": 6148,
+          "position": {
+            "x": 3,
+            "y": 6
+          }
+        },
+        {
+          "id": 6149,
+          "position": {
+            "x": 4,
+            "y": 6
+          }
+        },
+        {
+          "id": 6150,
+          "position": {
+            "x": 5,
+            "y": 6
+          }
+        },
+        {
+          "id": 6151,
+          "position": {
+            "x": 6,
+            "y": 6
+          }
+        },
+        {
+          "id": 6152,
+          "position": {
+            "x": 7,
+            "y": 6
+          }
+        },
+        {
+          "id": 6153,
+          "position": {
+            "x": 8,
+            "y": 6
+          }
+        },
+        {
+          "id": 6154,
+          "position": {
+            "x": 9,
+            "y": 6
+          }
+        },
+        {
+          "id": 6155,
+          "position": {
+            "x": 10,
+            "y": 6
+          }
+        },
+        {
+          "id": 6156,
+          "position": {
+            "x": 11,
+            "y": 6
+          }
+        },
+        {
+          "id": 6157,
+          "position": {
+            "x": 12,
+            "y": 6
+          }
+        },
+        {
+          "id": 6158,
+          "position": {
+            "x": 1,
+            "y": 7
+          }
+        },
+        {
+          "id": 6159,
+          "position": {
+            "x": 2,
+            "y": 7
+          }
+        },
+        {
+          "id": 6160,
+          "position": {
+            "x": 3,
+            "y": 7
+          }
+        },
+        {
+          "id": 6161,
+          "position": {
+            "x": 4,
+            "y": 7
+          }
+        },
+        {
+          "id": 6162,
+          "position": {
+            "x": 5,
+            "y": 7
+          }
+        },
+        {
+          "id": 6163,
+          "position": {
+            "x": 6,
+            "y": 7
+          }
+        },
+        {
+          "id": 6164,
+          "position": {
+            "x": 7,
+            "y": 7
+          }
+        },
+        {
+          "id": 6165,
+          "position": {
+            "x": 8,
+            "y": 7
+          }
+        },
+        {
+          "id": 6166,
+          "position": {
+            "x": 9,
+            "y": 7
+          }
+        },
+        {
+          "id": 6167,
+          "position": {
+            "x": 10,
+            "y": 7
+          }
+        },
+        {
+          "id": 6168,
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "id": 6169,
+          "position": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "id": 6170,
+          "position": {
+            "x": 1,
+            "y": 8
+          }
+        },
+        {
+          "id": 6171,
+          "position": {
+            "x": 2,
+            "y": 8
+          }
+        },
+        {
+          "id": 6172,
+          "position": {
+            "x": 3,
+            "y": 8
+          }
+        },
+        {
+          "id": 6173,
+          "position": {
+            "x": 4,
+            "y": 8
+          }
+        },
+        {
+          "id": 6174,
+          "position": {
+            "x": 5,
+            "y": 8
+          }
+        },
+        {
+          "id": 6175,
+          "position": {
+            "x": 6,
+            "y": 8
+          }
+        },
+        {
+          "id": 6176,
+          "position": {
+            "x": 7,
+            "y": 8
+          }
+        },
+        {
+          "id": 6177,
+          "position": {
+            "x": 8,
+            "y": 8
+          }
+        },
+        {
+          "id": 6178,
+          "position": {
+            "x": 9,
+            "y": 8
+          }
+        },
+        {
+          "id": 6179,
+          "position": {
+            "x": 10,
+            "y": 8
+          }
+        },
+        {
+          "id": 6180,
+          "position": {
+            "x": 11,
+            "y": 8
+          }
+        },
+        {
+          "id": 6181,
+          "position": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "readoutTitles": [
+        "Readout",
+        "Readout 2"
+      ]
+    },
+    {
+      "id": "95",
+      "wells": [
+        {
+          "id": 6087,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "4"
+            }
+          ]
+        },
+        {
+          "id": 6086,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.9"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6088,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.9"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6089,
+          "sample": {
+            "id": 199729,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6090,
+          "sample": {
+            "id": 199729,
+            "conc": 10,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.5"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6091,
+          "sample": {
+            "id": 199729,
+            "conc": 10,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.5"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6092,
+          "sample": {
+            "id": 199729,
+            "conc": 10,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.45"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6093,
+          "sample": {
+            "id": 199729,
+            "conc": 30,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6094,
+          "sample": {
+            "id": 199729,
+            "conc": 30,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.11"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6095,
+          "sample": {
+            "id": 199729,
+            "conc": 30,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6096,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6097,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6098,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6099,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.85"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6100,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6101,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6102,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6103,
+          "sample": {
+            "id": 199729,
+            "conc": 0.05,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.95"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6104,
+          "sample": {
+            "id": 199729,
+            "conc": 15,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.25"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6105,
+          "sample": {
+            "id": 199729,
+            "conc": 15,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.24"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6106,
+          "sample": {
+            "id": 199729,
+            "conc": 15,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.24"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6107,
+          "sample": {
+            "id": 199729,
+            "conc": 50,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.01"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6108,
+          "sample": {
+            "id": 199729,
+            "conc": 50,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.01"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6109,
+          "sample": {
+            "id": 199729,
+            "conc": 50,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0.01"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 6107,
+          "position": {
+            "x": 10,
+            "y": 2
+          }
+        },
+        {
+          "id": 6108,
+          "position": {
+            "x": 11,
+            "y": 2
+          }
+        },
+        {
+          "id": 6109,
+          "position": {
+            "x": 12,
+            "y": 2
+          }
+        },
+        {
+          "id": 6110,
+          "position": {
+            "x": 1,
+            "y": 3
+          }
+        },
+        {
+          "id": 6111,
+          "position": {
+            "x": 2,
+            "y": 3
+          }
+        },
+        {
+          "id": 6112,
+          "sample": {
+            "id": 199730,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "id": 6113,
+          "position": {
+            "x": 4,
+            "y": 3
+          }
+        },
+        {
+          "id": 6114,
+          "position": {
+            "x": 5,
+            "y": 3
+          }
+        },
+        {
+          "id": 6115,
+          "position": {
+            "x": 6,
+            "y": 3
+          }
+        },
+        {
+          "id": 6116,
+          "position": {
+            "x": 7,
+            "y": 3
+          }
+        },
+        {
+          "id": 6117,
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "id": 6118,
+          "position": {
+            "x": 9,
+            "y": 3
+          }
+        },
+        {
+          "id": 6119,
+          "position": {
+            "x": 10,
+            "y": 3
+          }
+        },
+        {
+          "id": 6120,
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "id": 6121,
+          "position": {
+            "x": 12,
+            "y": 3
+          }
+        },
+        {
+          "id": 6122,
+          "position": {
+            "x": 1,
+            "y": 4
+          }
+        },
+        {
+          "id": 6123,
+          "sample": {
+            "id": 199731,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 2,
+            "y": 4
+          }
+        },
+        {
+          "id": 6124,
+          "position": {
+            "x": 3,
+            "y": 4
+          }
+        },
+        {
+          "id": 6125,
+          "position": {
+            "x": 4,
+            "y": 4
+          }
+        },
+        {
+          "id": 6126,
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "id": 6127,
+          "position": {
+            "x": 6,
+            "y": 4
+          }
+        },
+        {
+          "id": 6128,
+          "position": {
+            "x": 7,
+            "y": 4
+          }
+        },
+        {
+          "id": 6129,
+          "position": {
+            "x": 8,
+            "y": 4
+          }
+        },
+        {
+          "id": 6130,
+          "position": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "id": 6131,
+          "position": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "id": 6132,
+          "position": {
+            "x": 11,
+            "y": 4
+          }
+        },
+        {
+          "id": 6133,
+          "position": {
+            "x": 12,
+            "y": 4
+          }
+        },
+        {
+          "id": 6134,
+          "position": {
+            "x": 1,
+            "y": 5
+          }
+        },
+        {
+          "id": 6135,
+          "position": {
+            "x": 2,
+            "y": 5
+          }
+        },
+        {
+          "id": 6136,
+          "position": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "id": 6137,
+          "sample": {
+            "id": 199732,
+            "conc": 0.001,
+            "short_label": "CHI-1234"
+          },
+          "position": {
+            "x": 4,
+            "y": 5
+          }
+        },
+        {
+          "id": 6138,
+          "position": {
+            "x": 5,
+            "y": 5
+          }
+        },
+        {
+          "id": 6139,
+          "position": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "id": 6140,
+          "position": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "id": 6141,
+          "position": {
+            "x": 8,
+            "y": 5
+          }
+        },
+        {
+          "id": 6142,
+          "position": {
+            "x": 9,
+            "y": 5
+          }
+        },
+        {
+          "id": 6143,
+          "position": {
+            "x": 10,
+            "y": 5
+          }
+        },
+        {
+          "id": 6144,
+          "position": {
+            "x": 11,
+            "y": 5
+          }
+        },
+        {
+          "id": 6145,
+          "position": {
+            "x": 12,
+            "y": 5
+          }
+        },
+        {
+          "id": 6146,
+          "position": {
+            "x": 1,
+            "y": 6
+          }
+        },
+        {
+          "id": 6147,
+          "position": {
+            "x": 2,
+            "y": 6
+          }
+        },
+        {
+          "id": 6148,
+          "position": {
+            "x": 3,
+            "y": 6
+          }
+        },
+        {
+          "id": 6149,
+          "position": {
+            "x": 4,
+            "y": 6
+          }
+        },
+        {
+          "id": 6150,
+          "position": {
+            "x": 5,
+            "y": 6
+          }
+        },
+        {
+          "id": 6151,
+          "position": {
+            "x": 6,
+            "y": 6
+          }
+        },
+        {
+          "id": 6152,
+          "position": {
+            "x": 7,
+            "y": 6
+          }
+        },
+        {
+          "id": 6153,
+          "position": {
+            "x": 8,
+            "y": 6
+          }
+        },
+        {
+          "id": 6154,
+          "position": {
+            "x": 9,
+            "y": 6
+          }
+        },
+        {
+          "id": 6155,
+          "position": {
+            "x": 10,
+            "y": 6
+          }
+        },
+        {
+          "id": 6156,
+          "position": {
+            "x": 11,
+            "y": 6
+          }
+        },
+        {
+          "id": 6157,
+          "position": {
+            "x": 12,
+            "y": 6
+          }
+        },
+        {
+          "id": 6158,
+          "position": {
+            "x": 1,
+            "y": 7
+          }
+        },
+        {
+          "id": 6159,
+          "position": {
+            "x": 2,
+            "y": 7
+          }
+        },
+        {
+          "id": 6160,
+          "position": {
+            "x": 3,
+            "y": 7
+          }
+        },
+        {
+          "id": 6161,
+          "position": {
+            "x": 4,
+            "y": 7
+          }
+        },
+        {
+          "id": 6162,
+          "position": {
+            "x": 5,
+            "y": 7
+          }
+        },
+        {
+          "id": 6163,
+          "position": {
+            "x": 6,
+            "y": 7
+          }
+        },
+        {
+          "id": 6164,
+          "position": {
+            "x": 7,
+            "y": 7
+          }
+        },
+        {
+          "id": 6165,
+          "position": {
+            "x": 8,
+            "y": 7
+          }
+        },
+        {
+          "id": 6166,
+          "position": {
+            "x": 9,
+            "y": 7
+          }
+        },
+        {
+          "id": 6167,
+          "position": {
+            "x": 10,
+            "y": 7
+          }
+        },
+        {
+          "id": 6168,
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "id": 6169,
+          "position": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "id": 6170,
+          "position": {
+            "x": 1,
+            "y": 8
+          }
+        },
+        {
+          "id": 6171,
+          "position": {
+            "x": 2,
+            "y": 8
+          }
+        },
+        {
+          "id": 6172,
+          "position": {
+            "x": 3,
+            "y": 8
+          }
+        },
+        {
+          "id": 6173,
+          "position": {
+            "x": 4,
+            "y": 8
+          }
+        },
+        {
+          "id": 6174,
+          "position": {
+            "x": 5,
+            "y": 8
+          }
+        },
+        {
+          "id": 6175,
+          "position": {
+            "x": 6,
+            "y": 8
+          }
+        },
+        {
+          "id": 6176,
+          "position": {
+            "x": 7,
+            "y": 8
+          }
+        },
+        {
+          "id": 6177,
+          "position": {
+            "x": 8,
+            "y": 8
+          }
+        },
+        {
+          "id": 6178,
+          "position": {
+            "x": 9,
+            "y": 8
+          }
+        },
+        {
+          "id": 6179,
+          "position": {
+            "x": 10,
+            "y": 8
+          }
+        },
+        {
+          "id": 6180,
+          "position": {
+            "x": 11,
+            "y": 8
+          }
+        },
+        {
+          "id": 6181,
+          "position": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "readoutTitles": [
+        "Readout",
+        "Readout 2"
+      ]
+    },
+    {
+      "id": "129",
+      "wells": [
+        {
+          "id": 9350,
+          "sample": {
+            "id": 260015,
+            "conc": 30,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "N",
+              "value": "0.15"
+            },
+            {
+              "unit": "N",
+              "value": "12"
+            }
+          ]
+        },
+        {
+          "id": 9351,
+          "position": {
+            "x": 2,
+            "y": 1
+          }
+        },
+        {
+          "id": 9352,
+          "position": {
+            "x": 3,
+            "y": 1
+          }
+        },
+        {
+          "id": 9353,
+          "position": {
+            "x": 4,
+            "y": 1
+          }
+        },
+        {
+          "id": 9354,
+          "position": {
+            "x": 5,
+            "y": 1
+          }
+        },
+        {
+          "id": 9355,
+          "position": {
+            "x": 6,
+            "y": 1
+          }
+        },
+        {
+          "id": 9356,
+          "position": {
+            "x": 7,
+            "y": 1
+          }
+        },
+        {
+          "id": 9357,
+          "position": {
+            "x": 8,
+            "y": 1
+          }
+        },
+        {
+          "id": 9358,
+          "position": {
+            "x": 9,
+            "y": 1
+          }
+        },
+        {
+          "id": 9359,
+          "position": {
+            "x": 10,
+            "y": 1
+          }
+        },
+        {
+          "id": 9360,
+          "position": {
+            "x": 11,
+            "y": 1
+          }
+        },
+        {
+          "id": 9361,
+          "position": {
+            "x": 12,
+            "y": 1
+          }
+        },
+        {
+          "id": 9363,
+          "position": {
+            "x": 2,
+            "y": 2
+          }
+        },
+        {
+          "id": 9364,
+          "position": {
+            "x": 3,
+            "y": 2
+          }
+        },
+        {
+          "id": 9365,
+          "position": {
+            "x": 4,
+            "y": 2
+          }
+        },
+        {
+          "id": 9366,
+          "position": {
+            "x": 5,
+            "y": 2
+          }
+        },
+        {
+          "id": 9367,
+          "position": {
+            "x": 6,
+            "y": 2
+          }
+        },
+        {
+          "id": 9368,
+          "position": {
+            "x": 7,
+            "y": 2
+          }
+        },
+        {
+          "id": 9369,
+          "position": {
+            "x": 8,
+            "y": 2
+          }
+        },
+        {
+          "id": 9370,
+          "position": {
+            "x": 9,
+            "y": 2
+          }
+        },
+        {
+          "id": 9371,
+          "position": {
+            "x": 10,
+            "y": 2
+          }
+        },
+        {
+          "id": 9372,
+          "position": {
+            "x": 11,
+            "y": 2
+          }
+        },
+        {
+          "id": 9373,
+          "position": {
+            "x": 12,
+            "y": 2
+          }
+        },
+        {
+          "id": 9374,
+          "position": {
+            "x": 1,
+            "y": 3
+          }
+        },
+        {
+          "id": 9375,
+          "position": {
+            "x": 2,
+            "y": 3
+          }
+        },
+        {
+          "id": 9376,
+          "position": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "id": 9377,
+          "position": {
+            "x": 4,
+            "y": 3
+          }
+        },
+        {
+          "id": 9378,
+          "position": {
+            "x": 5,
+            "y": 3
+          }
+        },
+        {
+          "id": 9379,
+          "position": {
+            "x": 6,
+            "y": 3
+          }
+        },
+        {
+          "id": 9380,
+          "position": {
+            "x": 7,
+            "y": 3
+          }
+        },
+        {
+          "id": 9381,
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "id": 9382,
+          "position": {
+            "x": 9,
+            "y": 3
+          }
+        },
+        {
+          "id": 9383,
+          "position": {
+            "x": 10,
+            "y": 3
+          }
+        },
+        {
+          "id": 9384,
+          "position": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "id": 9385,
+          "position": {
+            "x": 12,
+            "y": 3
+          }
+        },
+        {
+          "id": 9386,
+          "position": {
+            "x": 1,
+            "y": 4
+          }
+        },
+        {
+          "id": 9387,
+          "position": {
+            "x": 2,
+            "y": 4
+          }
+        },
+        {
+          "id": 9388,
+          "position": {
+            "x": 3,
+            "y": 4
+          }
+        },
+        {
+          "id": 9389,
+          "position": {
+            "x": 4,
+            "y": 4
+          }
+        },
+        {
+          "id": 9390,
+          "position": {
+            "x": 5,
+            "y": 4
+          }
+        },
+        {
+          "id": 9391,
+          "position": {
+            "x": 6,
+            "y": 4
+          }
+        },
+        {
+          "id": 9392,
+          "position": {
+            "x": 7,
+            "y": 4
+          }
+        },
+        {
+          "id": 9393,
+          "position": {
+            "x": 8,
+            "y": 4
+          }
+        },
+        {
+          "id": 9394,
+          "position": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "id": 9395,
+          "position": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "id": 9396,
+          "position": {
+            "x": 11,
+            "y": 4
+          }
+        },
+        {
+          "id": 9397,
+          "position": {
+            "x": 12,
+            "y": 4
+          }
+        },
+        {
+          "id": 9398,
+          "position": {
+            "x": 1,
+            "y": 5
+          }
+        },
+        {
+          "id": 9399,
+          "position": {
+            "x": 2,
+            "y": 5
+          }
+        },
+        {
+          "id": 9400,
+          "position": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "id": 9401,
+          "position": {
+            "x": 4,
+            "y": 5
+          }
+        },
+        {
+          "id": 9402,
+          "position": {
+            "x": 5,
+            "y": 5
+          }
+        },
+        {
+          "id": 9403,
+          "position": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "id": 9404,
+          "position": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "id": 9405,
+          "position": {
+            "x": 8,
+            "y": 5
+          }
+        },
+        {
+          "id": 9406,
+          "position": {
+            "x": 9,
+            "y": 5
+          }
+        },
+        {
+          "id": 9407,
+          "position": {
+            "x": 10,
+            "y": 5
+          }
+        },
+        {
+          "id": 9408,
+          "position": {
+            "x": 11,
+            "y": 5
+          }
+        },
+        {
+          "id": 9409,
+          "position": {
+            "x": 12,
+            "y": 5
+          }
+        },
+        {
+          "id": 9410,
+          "position": {
+            "x": 1,
+            "y": 6
+          }
+        },
+        {
+          "id": 9411,
+          "position": {
+            "x": 2,
+            "y": 6
+          }
+        },
+        {
+          "id": 9412,
+          "position": {
+            "x": 3,
+            "y": 6
+          }
+        },
+        {
+          "id": 9413,
+          "position": {
+            "x": 4,
+            "y": 6
+          }
+        },
+        {
+          "id": 9414,
+          "position": {
+            "x": 5,
+            "y": 6
+          }
+        },
+        {
+          "id": 9415,
+          "position": {
+            "x": 6,
+            "y": 6
+          }
+        },
+        {
+          "id": 9416,
+          "position": {
+            "x": 7,
+            "y": 6
+          }
+        },
+        {
+          "id": 9417,
+          "position": {
+            "x": 8,
+            "y": 6
+          }
+        },
+        {
+          "id": 9418,
+          "position": {
+            "x": 9,
+            "y": 6
+          }
+        },
+        {
+          "id": 9419,
+          "position": {
+            "x": 10,
+            "y": 6
+          }
+        },
+        {
+          "id": 9420,
+          "position": {
+            "x": 11,
+            "y": 6
+          }
+        },
+        {
+          "id": 9421,
+          "position": {
+            "x": 12,
+            "y": 6
+          }
+        },
+        {
+          "id": 9422,
+          "position": {
+            "x": 1,
+            "y": 7
+          }
+        },
+        {
+          "id": 9423,
+          "position": {
+            "x": 2,
+            "y": 7
+          }
+        },
+        {
+          "id": 9424,
+          "position": {
+            "x": 3,
+            "y": 7
+          }
+        },
+        {
+          "id": 9425,
+          "position": {
+            "x": 4,
+            "y": 7
+          }
+        },
+        {
+          "id": 9426,
+          "position": {
+            "x": 5,
+            "y": 7
+          }
+        },
+        {
+          "id": 9427,
+          "position": {
+            "x": 6,
+            "y": 7
+          }
+        },
+        {
+          "id": 9428,
+          "position": {
+            "x": 7,
+            "y": 7
+          }
+        },
+        {
+          "id": 9429,
+          "position": {
+            "x": 8,
+            "y": 7
+          }
+        },
+        {
+          "id": 9430,
+          "position": {
+            "x": 9,
+            "y": 7
+          }
+        },
+        {
+          "id": 9431,
+          "position": {
+            "x": 10,
+            "y": 7
+          }
+        },
+        {
+          "id": 9432,
+          "position": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "id": 9433,
+          "position": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "id": 9434,
+          "position": {
+            "x": 1,
+            "y": 8
+          }
+        },
+        {
+          "id": 9435,
+          "position": {
+            "x": 2,
+            "y": 8
+          }
+        },
+        {
+          "id": 9436,
+          "position": {
+            "x": 3,
+            "y": 8
+          }
+        },
+        {
+          "id": 9437,
+          "position": {
+            "x": 4,
+            "y": 8
+          }
+        },
+        {
+          "id": 9438,
+          "position": {
+            "x": 5,
+            "y": 8
+          }
+        },
+        {
+          "id": 9439,
+          "position": {
+            "x": 6,
+            "y": 8
+          }
+        },
+        {
+          "id": 9440,
+          "position": {
+            "x": 7,
+            "y": 8
+          }
+        },
+        {
+          "id": 9441,
+          "position": {
+            "x": 8,
+            "y": 8
+          }
+        },
+        {
+          "id": 9442,
+          "position": {
+            "x": 9,
+            "y": 8
+          }
+        },
+        {
+          "id": 9443,
+          "position": {
+            "x": 10,
+            "y": 8
+          }
+        },
+        {
+          "id": 9444,
+          "position": {
+            "x": 11,
+            "y": 8
+          }
+        },
+        {
+          "id": 9445,
+          "position": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "id": 9362,
+          "sample": {
+            "id": 260024,
+            "conc": 10,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "N",
+              "value": "0.55"
+            },
+            {
+              "unit": "N",
+              "value": "22"
+            }
+          ]
+        }
+      ],
+      "readoutTitles": [
+        "Readout 1",
+        "Readout 2"
+      ]
+    }
+  ]
+}

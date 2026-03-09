@@ -55,7 +55,7 @@ app <- function() {
     })
     # Show running_status
     output$running_status <- renderUI({
-      invalidateLater(750)
+      invalidateLater(250)
       status <- ResultsState$bgp$running_status
       if ((status == "Running...") && !ResultsState$bgp$cancel_clicked) {
         return(

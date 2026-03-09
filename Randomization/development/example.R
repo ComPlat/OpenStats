@@ -1,4 +1,9 @@
-set.seed(123)
+# random_assign <- function(df, groups, ratios, col, block_col, strata_cols, randomization_method, n_quantiles = 10L, seed)
+
+# -------------------------------------------------------------
+# ------- Create design matrix --------------------------------
+# -------------------------------------------------------------
+set.seed(1234)
 treatments <- c("control", "ibo")
 locations <- c("M", "C", "A")
 n <- 16L # per location treatment combination
@@ -11,40 +16,37 @@ df <- Randomization:::completely_randomised_design(
   predictors = list(treatments = treatments, locations = locations),
   n_per_level = n
 )
+
 # Split the df based on locations
 dfs <- split(df, df$locations)
 # Lets proceed with Mannheim
 df <- dfs[[3L]]
-# Assign the animals based on their weights
-weights <- rnorm(n_per_location, 300, 25)
-randomization_method <- "block_stratified"
-strata_cols <- "treatments"
-df <- Randomization::random_assign(
-  df = df, groups = weights, ratios = NULL, group_type = "finite", col = "weights", strata_cols = strata_cols,
-  randomization_method = randomization_method, n_quantiles = 3L, seed = 1234
-)
-df$weights <- as.numeric(df$weights)
-# Control
-with(df, tapply(weights, treatments, mean))
-with(df, tapply(weights, treatments, sd))
-with(df, table(treatments, cut(weights,
-  quantile(weights, probs = 0:3/3),
-  include.lowest = TRUE
-)))
 
-# Assign the experimental blocks
+# -------------------------------------------------------------
+# ------ Assign animals ---------------------------------------
+# -------------------------------------------------------------
+groups <- data.frame(
+  weights = rnorm(n_per_location, 300, 25),
+  blood_value = rnorm(n_per_location, 10, 1)
+)
+result <- Randomization::random_finite_assign(1234, groups, df)
+df$weights <- result$assigned$weights
+df$blood_value <- result$assigned$blood_value
+df$animal_ids <- result$assigned$unit_index
+head(df)
+boxplot(df$weights ~ df$treatments)
+boxplot(df$blood_value ~ df$treatments)
+
+# -------------------------------------------------------------
+# ------ Assign experimental blocks ---------------------------
+# -------------------------------------------------------------
 experimental_blocks <- as.character(1L:8L)
 ratios <- rep(1, 8)
 df <- Randomization::random_assign(
-  df = df, groups = experimental_blocks, ratios = ratios, group_type = "infinite",
-  col = "block", strata_cols = strata_cols,
-  randomization_method = randomization_method, seed = 1234
+  df = df, groups = experimental_blocks, ratios = ratios,
+  col = "block", strata_cols = c("treatments", "locations"),
+  randomization_method = "block_stratified", seed = 1234
 )
 df
-split(df, df$block)
-
-# TODO: instead of weights use (weight, id) values
-# TODO: dependent finite groups: weights-bloodvalue
-
-
-
+boxplot(df$weights ~ df$block)
+boxplot(df$blood_value ~ df$block)

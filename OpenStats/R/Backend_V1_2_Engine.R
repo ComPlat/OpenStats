@@ -1420,7 +1420,7 @@ t_test_V1_2 <- R6::R6Class(
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
-            in_background = TRUE, ResultsState
+            in_background = FALSE, ResultsState
           )
         },
         warning = function(warn) {
@@ -1544,7 +1544,7 @@ statistical_tests_V1_2 <- R6::R6Class(
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
-            in_background = TRUE, ResultsState
+            in_background = FALSE, ResultsState
           )
         }
       )
@@ -1592,7 +1592,7 @@ statistical_tests_V1_2 <- R6::R6Class(
             args = list( formula = self$formula, df = self$df, method = method),
               promise_result_name = new_name,
               promise_history_entry = promise_history_entry,
-              in_background = TRUE, ResultsState
+              in_background = FALSE, ResultsState
           )
         })
     },

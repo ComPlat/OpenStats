@@ -1,0 +1,43 @@
+---
+title: "Moments loss function"
+author: "Konrad Krämer"
+format:
+  html:
+    toc: true
+    number-sections: true
+  pdf: default
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+### Mahalanobis distance loss function
+
+This loss uses the Mahalanobis distance between treatment group centroids:
+
+\begin{equation}
+L_{\mathrm{mahal}}
+\;=\;
+\sum_{\substack{g=1 \\ g \neq \mathrm{UNUSED}}}^{G}
+\left(\mu_g - \mu_{\cdot}\right)^{\top} P \left(\mu_g - \mu_{\cdot}\right).
+\end{equation}
+
+\begin{equation}
+P \;=\; \Sigma^{-1},
+\end{equation}
+
+\begin{equation}
+\Sigma
+=
+\frac{1}{N-1}
+\sum_{i=1}^{N}
+\left(x_i - \mu_{\cdot}\right)
+\left(x_i - \mu_{\cdot}\right)^{\top}.
+\end{equation}
+
+Properties:
+
+- Accounts for covariance structure
+- Scale invariant
+- Particularly useful when covariates are correlated

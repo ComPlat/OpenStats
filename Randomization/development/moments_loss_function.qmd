@@ -1,0 +1,116 @@
+---
+title: "Moments loss function"
+author: "Konrad Krämer"
+format:
+  html:
+    toc: true
+    number-sections: true
+  pdf: default
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+### Moments
+
+#### First Moment: the mean
+
+\begin{equation}
+E[X] = \bar{x} = \frac{1}{N}\sum_{i=1}^{N}x_i
+\end{equation}
+
+####  Raw second Moment
+
+\begin{equation}
+E[X^2] = \frac{1}{N}\sum_{j=1}^{N}x_{i}^{2}
+\end{equation}
+
+#### Centered second Moment
+
+\begin{equation}
+E[(X - \mu)^2] = Var(X) = E[X^2] - (E[X])^2
+\end{equation}
+
+\begin{equation}
+L \;=\;
+\sum_g
+\left[
+\text{mean imbalance}
+\;+\;
+\lambda_{m2}\,\text{second moment imbalance}
+\;+\;
+\lambda_{\mathrm{cov}}\,\text{cross-moment imbalance}
+\right]
+\end{equation}
+
+\begin{equation}
+L \;=\;
+\sum_{\substack{g=1 \\ g \neq \mathrm{UNUSED}}}^{G}
+
+\left[
+
+\sum_{j=1}^{C}
+\left(\bar{x}_{g j}-\bar{x}_{\cdot j}\right)^2
+
+\;+\;
+\lambda_{m2}\sum_{j=1}^{C}
+\left(\overline{x^{2}}_{g j}-\overline{x^{2}}_{\cdot j}\right)^2
+
+\;+\;
+\lambda_{\mathrm{cov}}\sum_{(a,b)\in{P}}
+\left(\overline{x_a x_b}_{\,g}-\overline{x_a x_b}_{\,\cdot}\right)^2
+
+\right].
+
+\end{equation}
+
+where:
+
+* g = groups (Treatment, Control, etc.)
+* G = total number of groups
+* C = number of covariates (For instance: weights)
+* P = number of pairs
+
+\begin{equation}
+P = \{(a,b) \mid 1 \le a < b \le p\},
+\qquad
+|P| = \binom{p}{2} = \frac{p(p-1)}{2}.
+\end{equation}
+
+\paragraph{Definition of the cross-moment terms}
+
+For two covariates $a$ and $b$, the group-specific second cross-moment is defined as
+
+\begin{equation}
+\overline{x_a x_b}_{\,g}
+=
+\frac{1}{n_g}
+\sum_{i \in g}
+x_{i a}\, x_{i b},
+\end{equation}
+
+where $x_{i a}$ denotes the value of covariate $a$ for individual $i$,
+and $n_g$ is the number of individuals in group $g$.
+
+The corresponding overall (pooled) cross-moment is
+
+\begin{equation}
+\overline{x_a x_b}_{\,\cdot}
+=
+\frac{1}{N}
+\sum_{i=1}^{N}
+x_{i a}\, x_{i b},
+\end{equation}
+
+where $N$ is the total number of individuals across all groups.
+
+The term
+\begin{equation}
+\left(
+\overline{x_a x_b}_{\,g}
+-
+\overline{x_a x_b}_{\,\cdot}
+\right)^2
+\end{equation}
+

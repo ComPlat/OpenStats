@@ -76,19 +76,19 @@ visUI <- function(id) {
       tabPanel(
         "Boxplot",
         br(),
-        actionButton(NS(id, "CreatePlotBox"), "Create plot"),
+        uiOutput(NS(id, "CreatePlotBoxUI")),
         uiOutput(NS(id, "CreateModelBoxUI"))
       ),
       tabPanel(
         "Scatterplot",
         br(),
-        actionButton(NS(id, "CreatePlotScatter"), "Create plot"),
+        uiOutput(NS(id, "CreatePlotScatterUI")),
         uiOutput(NS(id, "CreateModelScatterUI"))
       ),
       tabPanel(
         "Lineplot",
         br(),
-        actionButton(NS(id, "CreatePlotLine"), "Create plot"),
+        uiOutput(NS(id, "CreatePlotLineUI")),
         uiOutput(NS(id, "CreateModelLineUI"))
       ),
       id = "VisConditionedPanels"

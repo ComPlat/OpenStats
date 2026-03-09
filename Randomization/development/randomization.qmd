@@ -1,0 +1,155 @@
+
+---
+title: "Randomization Strategies in Experimental Design"
+author: "Konrad Krämer"
+format:
+  html:
+    toc: true
+    number-sections: true
+  pdf: default
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Introduction
+
+This document demonstrates currently implemented randomization approaches in the `Randomization` package:
+
+1. Generation of a completely randomized factorial design  
+2. Finite assignment using loss minimization  
+3. Block-stratified randomization  
+4. Diagnostics via graphical inspection  
+
+We further discuss the theoretical foundation of the implemented loss functions.
+
+---
+
+# Experimental Design Matrix
+
+We consider a 2 × 3 factorial design:
+
+- Treatments: control vs ibo
+- Locations: Mannheim, Karlsruhe, Aachen
+- 16 animals per treatment × location combination
+
+```{r}
+#| echo: false
+library(Randomization)
+set.seed(1234)
+treatments <- c("control", "Compound1", "Compound2")
+locations <- c("Mannheim", "Karlsruhe", "Aachen")
+n <- 16L
+n_per_location <- n * length(treatments)
+df <- Randomization:::completely_randomised_design(
+  predictors = list(treatments = treatments, locations = locations), n_per_level = n
+)
+knitr::kable(table(df$treatments, df$locations))
+dfs <- split(df, df$locations)
+df <- dfs[[3L]]
+```
+
+---
+
+# Finite Assignment via Loss Minimization
+
+We generate animals with two covariates:
+
+- Weight
+- Blood value
+
+```{r}
+set.seed(1234)
+groups <- data.frame(
+  weights = rnorm(n_per_location, 300, 40),
+  blood_value = rnorm(n_per_location, 10, 2.5)
+)
+result <- Randomization::random_finite_assign(seed = 1234, groups = groups, design = df, verbose = FALSE)
+df$weights <- result$assigned$weights
+df$blood_value <- result$assigned$blood_value
+df$animal_ids <- result$assigned$unit_index
+```
+
+## Diagnostic Plots
+
+```{r}
+#| echo: false
+library(ggplot2)
+l <- length(groups$weights)
+d <- data.frame(
+  treatments = rep(df$treatments, 2L),
+  weights = c(df$weights, groups$weights),
+  groups = c(rep("Optimized", l), rep("Original", l))
+)
+p1 <- ggplot(data = d,
+  aes(x = treatments, y = weights, shape = groups, fill = groups, groups = groups)) +
+  geom_boxplot() +
+  stat_summary(
+    fun = mean, geom = "point", position = position_dodge(width = 0.8),
+    size = 2, color = "black"
+  ) +
+  stat_summary(
+    fun = mean, geom = "line", aes(group = groups, linetype = groups),
+    position = position_dodge(width = 0.8), color = "black"
+  )
+d <- data.frame(
+  treatments = rep(df$treatments, 2L),
+  blood_value = c(df$blood_value, groups$blood_value),
+  groups = c(rep("Optimized", l), rep("Original", l))
+)
+p1
+p2 <- ggplot(data = d,
+  aes(x = treatments, y = blood_value,
+      shape = groups, fill = groups, groups = groups)) +
+  geom_boxplot() +
+  stat_summary(
+    fun = mean, geom = "point", position = position_dodge(width = 0.8),
+    size = 2, color = "black"
+  ) +
+  stat_summary(
+    data = d, aes(group = groups, linetype = groups),
+    fun = mean, geom = "line",
+    position = position_dodge(width = 0.8), color = "black"
+  )
+p2
+```
+
+---
+
+# Block-Stratified Randomization
+
+We now assign experimental blocks (8 blocks per location).
+
+```{r}
+experimental_blocks <- paste0("block_", 1:8)
+ratios <- rep(1, 8)
+
+df <- Randomization::random_assign(
+  df = df, groups = experimental_blocks, ratios = ratios,
+  col = "block", strata_cols = c("treatments", "locations"),
+  randomization_method = "block_stratified", seed = 1234
+)
+```
+
+## Block Diagnostics
+
+```{r}
+#| echo: false
+res <- as.data.frame.matrix(table(df$treatments, df$block))
+knitr::kable(res)
+```
+
+---
+
+# Theoretical Foundation of Loss Functions
+
+{{< include moments_loss_function.qmd >}}
+
+---
+
+
+
+{{< include mahalanobis_distance_loss_function.qmd >}}
+
+

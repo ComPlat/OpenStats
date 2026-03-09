@@ -1,0 +1,1008 @@
+{
+  "id": "1",
+  "request_id": "2",
+  "Output": [
+    {
+      "id": "0",
+      "items": [
+        {
+          "id": "1",
+          "input": [
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 1,
+              "readout_id": 1,
+              "well_id": 6087,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6086,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6088,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6089,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-1234",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6090,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-1234",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6091,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-1234",
+              "values": 0.45,
+              "readout_id": 1,
+              "well_id": 6092,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-1234",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6093,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-1234",
+              "values": 0.11,
+              "readout_id": 1,
+              "well_id": 6094,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-1234",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6095,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6096,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6097,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6098,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6099,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6100,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6101,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6102,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6103,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-1234",
+              "values": 0.25,
+              "readout_id": 1,
+              "well_id": 6104,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-1234",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6105,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-1234",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6106,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-1234",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6107,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-1234",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6108,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-1234",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6109,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            }
+          ],
+          "result": [
+            {
+              "name": "CHI-1234",
+              "Response_lowestdose_predicted": 0.9373,
+              "Response_highestdose_predicted": -0,
+              "HillCoefficient": 1.1383,
+              "asymptote_one": -0.1776,
+              "asymptote_two": 0.9373,
+              "IC50_relative": 11.5957,
+              "IC50_relative_lower": 7.8762,
+              "IC50_relative_higher": 15.3151,
+              "pIC50": -1.0643,
+              "RSE": 0.0392,
+              "p_value": 0,
+              "Problems": "",
+              "_row": "Prediction1"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "input": [
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 1,
+              "readout_id": 1,
+              "well_id": 6087,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6086,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6088,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6089,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6090,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6091,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.45,
+              "readout_id": 1,
+              "well_id": 6092,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6093,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.11,
+              "readout_id": 1,
+              "well_id": 6094,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6095,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6096,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6097,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6098,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6099,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6100,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6101,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6102,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6103,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-352",
+              "values": 0.25,
+              "readout_id": 1,
+              "well_id": 6104,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-352",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6105,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-352",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6106,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-352",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6107,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-352",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6108,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-352",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6109,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.15,
+              "readout_id": 1,
+              "well_id": 9350,
+              "sample_id": 260015,
+              "wellplate_id": "129"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.55,
+              "readout_id": 1,
+              "well_id": 9362,
+              "sample_id": 260024,
+              "wellplate_id": "129"
+            }
+          ],
+          "result": [
+            {
+              "name": "CHI-352",
+              "Response_lowestdose_predicted": 0.9335,
+              "Response_highestdose_predicted": 0.0021,
+              "HillCoefficient": 1.2001,
+              "asymptote_one": -0.1694,
+              "asymptote_two": 0.9335,
+              "IC50_relative": 12.2101,
+              "IC50_relative_lower": 7.2156,
+              "IC50_relative_higher": 17.2047,
+              "pIC50": -1.0867,
+              "RSE": 0.0453,
+              "p_value": 0,
+              "Problems": "",
+              "_row": "Prediction"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "items": [
+        {
+          "id": "1",
+          "input": [
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 1,
+              "readout_id": 1,
+              "well_id": 6087,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6086,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6088,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6089,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-1234",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6090,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-1234",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6091,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-1234",
+              "values": 0.45,
+              "readout_id": 1,
+              "well_id": 6092,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-1234",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6093,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-1234",
+              "values": 0.11,
+              "readout_id": 1,
+              "well_id": 6094,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-1234",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6095,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6096,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6097,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6098,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-1234",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6099,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6100,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6101,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6102,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-1234",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6103,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-1234",
+              "values": 0.25,
+              "readout_id": 1,
+              "well_id": 6104,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-1234",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6105,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-1234",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6106,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-1234",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6107,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-1234",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6108,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-1234",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6109,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            }
+          ],
+          "result": [
+            {
+              "name": "CHI-1234",
+              "Response_lowestdose_predicted": 0.9373,
+              "Response_highestdose_predicted": -0,
+              "HillCoefficient": 1.1383,
+              "asymptote_one": -0.1776,
+              "asymptote_two": 0.9373,
+              "IC50_relative": 11.5957,
+              "IC50_relative_lower": 7.8762,
+              "IC50_relative_higher": 15.3151,
+              "pIC50": -1.0643,
+              "RSE": 0.0392,
+              "p_value": 0,
+              "Problems": "",
+              "_row": "Prediction1"
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "input": [
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 1,
+              "readout_id": 1,
+              "well_id": 6087,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6086,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 0.9,
+              "readout_id": 1,
+              "well_id": 6088,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.001,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6089,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6090,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.5,
+              "readout_id": 1,
+              "well_id": 6091,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.45,
+              "readout_id": 1,
+              "well_id": 6092,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6093,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.11,
+              "readout_id": 1,
+              "well_id": 6094,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.1,
+              "readout_id": 1,
+              "well_id": 6095,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6096,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6097,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6098,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 1,
+              "name": "CHI-352",
+              "values": 0.85,
+              "readout_id": 1,
+              "well_id": 6099,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6100,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6101,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6102,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 0.05,
+              "name": "CHI-352",
+              "values": 0.95,
+              "readout_id": 1,
+              "well_id": 6103,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-352",
+              "values": 0.25,
+              "readout_id": 1,
+              "well_id": 6104,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-352",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6105,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 15,
+              "name": "CHI-352",
+              "values": 0.24,
+              "readout_id": 1,
+              "well_id": 6106,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-352",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6107,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-352",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6108,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 50,
+              "name": "CHI-352",
+              "values": 0.01,
+              "readout_id": 1,
+              "well_id": 6109,
+              "sample_id": 199729,
+              "wellplate_id": "95"
+            },
+            {
+              "conc": 30,
+              "name": "CHI-352",
+              "values": 0.15,
+              "readout_id": 1,
+              "well_id": 9350,
+              "sample_id": 260015,
+              "wellplate_id": "129"
+            },
+            {
+              "conc": 10,
+              "name": "CHI-352",
+              "values": 0.55,
+              "readout_id": 1,
+              "well_id": 9362,
+              "sample_id": 260024,
+              "wellplate_id": "129"
+            }
+          ],
+          "result": [
+            {
+              "name": "CHI-352",
+              "Response_lowestdose_predicted": 0.9335,
+              "Response_highestdose_predicted": 0.0021,
+              "HillCoefficient": 1.2001,
+              "asymptote_one": -0.1694,
+              "asymptote_two": 0.9335,
+              "IC50_relative": 12.2101,
+              "IC50_relative_lower": 7.2156,
+              "IC50_relative_higher": 17.2047,
+              "pIC50": -1.0867,
+              "RSE": 0.0453,
+              "p_value": 0,
+              "Problems": "",
+              "_row": "Prediction"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,33 @@
 visServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
+    # Render plotting functions
+    output[["CreatePlotBoxUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
+      actionButton("VIS-CreatePlotBox", "Create plot")
+    })
+    output[["CreatePlotScatterUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
+      actionButton("VIS-CreatePlotScatter", "Create plot")
+    })
+    output[["CreatePlotLineUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
+      actionButton("VIS-CreatePlotLine", "Create plot")
+    })
     # Render model plots
     output[["CreateModelBoxUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
@@ -11,6 +37,10 @@ visServer <- function(id, DataModelState, ResultsState) {
       }
     })
     output[["CreateModelScatterUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
@@ -20,6 +50,10 @@ visServer <- function(id, DataModelState, ResultsState) {
       }
     })
     output[["CreateModelLineUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
       req(!is.null(DataModelState$df))
       req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {

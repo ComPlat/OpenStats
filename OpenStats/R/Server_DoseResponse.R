@@ -3,6 +3,10 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
 
     # Render sidebar
     output[["DoseResponseUI"]] <- renderUI({
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
       message <- check_dose_response(DataModelState)
       if (!is.null(message)) {
         return(

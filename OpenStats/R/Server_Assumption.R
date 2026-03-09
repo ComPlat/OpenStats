@@ -59,6 +59,11 @@ assServer <- function(id, DataModelState, ResultsState) {
       }
     })
     output[["DiagnosticPlotUI"]] <- renderUI({
+
+      invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status != "Idle") return(div())
+
       if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         div(
           div(

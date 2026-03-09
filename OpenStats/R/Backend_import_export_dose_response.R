@@ -85,15 +85,40 @@ import_dose_response_json <- function(path, DataModelState, ResultsState, Method
 env_import_export_dose_response_V1_2$import_dose_response_json <- import_dose_response_json
 
 dose_response_to_json <- function(MethodState, all_data) {
-  input_result_pairs <- list()
-  for (i in seq_along(all_data)) {
-    elem <- all_data[[i]]
-    if (inherits(elem, "doseResponse")) {
-      input_result_pairs[[length(input_result_pairs) + 1L]] <- list(input = elem@input_df, result = elem@df)
+  Output <- list()
+
+  for (k in seq_along(all_data)) {
+    elem <- all_data[[k]]
+
+    if (!inherits(elem, "doseResponse")) next
+
+    inp <- split(elem@input_df, elem@input_df$name)
+    res <- split(elem@df, elem@df$name)
+    u <- union(names(inp), names(res))
+
+    items <- vector("list", length(u))
+    for (j in seq_along(u)) {
+      nm <- u[[j]]
+      items[[j]] <- list(
+        id = as.character(j),
+        input = inp[[nm]],
+        result = res[[nm]]
+      )
     }
+
+    Output[[length(Output) + 1L]] <- list(
+      id = as.character(length(Output)),
+      items = items
+    )
   }
-  output <- list(id = MethodState$storage_class@id, request_id = MethodState$storage_class@request_id, Output = input_result_pairs)
-  output_json <- jsonlite::toJSON(output, pretty = TRUE)
+
+  out <- list(
+    id = as.character(MethodState$storage_class@id),
+    request_id = as.character(MethodState$storage_class@request_id),
+    Output = Output
+  )
+
+  output_json <- jsonlite::toJSON(out, pretty = TRUE, auto_unbox = TRUE, null = "null")
   path <- tempfile(fileext = ".json")
   writeLines(output_json, con = path)
   return(path)
