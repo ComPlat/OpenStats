@@ -7,6 +7,6 @@ corrSidebarUI <- function(id) {
 }
 
 corrUI <- function(id) {
-  fluidRow()
+  shiny::fluidRow()
 }
 # nocov end ui-scaffold

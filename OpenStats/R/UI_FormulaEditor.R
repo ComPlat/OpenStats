@@ -1,13 +1,13 @@
 # nocov start ui-scaffold
 FormulaEditorUI <- function(id) {
   ui <- fluidPage(
-    fluidRow(
+    shiny::fluidRow(
       uiOutput(NS(id, "model")),
       uiOutput(NS(id, "predefined_modelsUI")),
-      column(
+      shiny::column(
         width = 6,
         uiOutput(NS(id, "colnames_dropdown")),
-        div(
+        htmltools::div(
           selectInput(NS(id, "model_type"), "Change the model type (optional)",
             c(
               "Linear" = "Linear",
@@ -23,13 +23,13 @@ FormulaEditorUI <- function(id) {
           class = "boxed-output"
         )
       ),
-      column(
+      shiny::column(
         width = 6,
-        div(
+        htmltools::div(
           uiOutput(NS(id, "colnames_list")),
           uiOutput(NS(id, "buttons")),
           uiOutput(NS(id, "rhs")),
-          actionButton(NS(id, "create_formula"), "Create statistical model", class = "create_button"),
+          shiny::actionButton(NS(id, "create_formula"), "Create statistical model", class = "create_button"),
           class = "boxed-output"
         )
       )

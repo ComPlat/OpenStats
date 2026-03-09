@@ -9,17 +9,17 @@ app <- function() {
     bgp <- get_bg_process()$new()
 
     # States
-    MethodState <- reactiveValues(
+    MethodState <- shiny::reactiveValues(
       method = "Default", storage_class = NULL
     )
-    DataModelState <- reactiveValues(
+    DataModelState <- shiny::reactiveValues(
       df = NULL, formula = NULL,
       backup_df = NULL, filter_col = NULL, filter_group = NULL,
       active_df_name = NULL,
       rhs_string = NULL
     )
 
-    ResultsState <- reactiveValues(
+    ResultsState <- shiny::reactiveValues(
       all_data = list(),
       history = list(),
       counter = 0,
@@ -27,7 +27,7 @@ app <- function() {
       registered_pagers = character()
     )
 
-    DataWranglingState <- reactiveValues(
+    DataWranglingState <- shiny::reactiveValues(
       df = NULL, df_name = "df",
       current_page = 1, total_pages = 1,
       counter_id = 0,
@@ -36,34 +36,34 @@ app <- function() {
     )
     bgp$init(ResultsState, DataModelState, DataWranglingState) # NOTE: creates the polling observer
 
-    observeEvent(ResultsState$counter, { # For testing
+    shiny::observeEvent(ResultsState$counter, { # For testing
       session$userData$export <- ResultsState$all_data
     }, ignoreInit = TRUE)
-    observe({ # For testing; need to use the invalidate later pattern to gather the code_string
-      invalidateLater(500)
+    shiny::observe({ # For testing; need to use the invalidate later pattern to gather the code_string
+      shiny::invalidateLater(500)
       session$userData$export_iv <- DataWranglingState$intermediate_vars
       session$userData$export_code_string <- DataWranglingState$code_string
       session$userData$export_formula_rhs <- DataModelState$rhs_string
     })
-    exportTestValues(result_list = ResultsState$all_data)
+    shiny::exportTestValues(result_list = ResultsState$all_data)
 
     # Running status
     # ----------------------------------------------------------
     # React to press cancel
-    observeEvent(input$confirm_stop, {
+    shiny::observeEvent(input$confirm_stop, {
       ResultsState$bgp$cancel()
     })
     # Show running_status
-    output$running_status <- renderUI({
-      invalidateLater(250)
+    output$running_status <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
       if ((status == "Running...") && !ResultsState$bgp$cancel_clicked) {
         return(
-          div(
+          htmltools::div(
             style = "display: flex; align-items: center; gap: 6px;",
-            tags$p(status, style = "margin: 0;"),
-            icon("spinner", class = "fa-spin", style = "color: #007BFF;"),
-            actionButton("confirm_stop", "Stop process", class = "btn-danger")
+            htmltools::p(status, style = "margin: 0;"),
+            shiny::icon("spinner", class = "fa-spin", style = "color: #007BFF;"),
+            shiny::actionButton("confirm_stop", "Stop process", class = "btn-danger")
           )
         )
       } else {
@@ -116,7 +116,7 @@ app <- function() {
           print_err(paste("An error occurred: ", conditionMessage(err)))
         }
       )
-      req(is.data.frame(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
     })
 
     get_method <- reactive({
@@ -142,8 +142,8 @@ app <- function() {
     })
 
     if (Sys.getenv("RUN_MODE") == "SERVER") {
-      observe({
-        req(is.null(DataModelState$df))
+      shiny::observe({
+        shiny::req(is.null(DataModelState$df))
         e <- try(get_method(), silent = TRUE)
         if (inherits(e, "try-error")) {
           err <- conditionMessage(attr(e, "condition"))
@@ -156,7 +156,7 @@ app <- function() {
         }
       })
     } else {
-      observeEvent(input$file, {
+      shiny::observeEvent(input$file, {
         e <- try(env_import$read_data(input$file$datapath, DataModelState, ResultsState))
         if (inherits(e, "try-error")) {
           err <- conditionMessage(attr(e, "condition"))
@@ -167,27 +167,27 @@ app <- function() {
 
     # dataset
     # ----------------------------------------------------------
-    output$df <- renderDT({
-      req(DataModelState$df)
+    output$df <- DT::renderDT({
+      shiny::req(DataModelState$df)
       DT::datatable(DataModelState$df, options = list(pageLength = 10))
     })
-    observe({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    shiny::observe({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (length(ResultsState$history) == 0) {
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(type = "Version", Nr = get_current_version())
       }
-      output$df <- renderDT(
+      output$df <- DT::renderDT(
         DT::datatable(DataModelState$df, options = list(pageLength = 10))
       )
     })
     # Observe tables
-    output[["active_df"]] <- renderUI({
+    output[["active_df"]] <- shiny::renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
       }
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (length(ResultsState$all_data) == 0) {
         return(NULL)
       }
@@ -195,7 +195,7 @@ app <- function() {
       names <- names(ResultsState$all_data)
       names <- names[table_indices]
       tooltip <- "Select the active dataset (the dataset with which you can work)"
-      div(
+      htmltools::div(
         class = "boxed-output",
         tags$label(
           "active dataset",
@@ -211,10 +211,10 @@ app <- function() {
         )
       )
     })
-    observeEvent(input[["tables-dropdown"]], {
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
-      req(input[["tables-dropdown"]])
+    shiny::observeEvent(input[["tables-dropdown"]], {
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(input[["tables-dropdown"]])
       sat <- get_set_active_table()$new(input[["tables-dropdown"]])
       sat$eval(ResultsState, DataModelState)
     })
@@ -234,12 +234,12 @@ app <- function() {
     # Results
     # ----------------------------------------------------------
     # Render results list
-    output$Results <- renderUI({
+    output$Results <- shiny::renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return(
-          div(
+          htmltools::div(
             class = "var-box-output",
-            h3(strong("The results are displayed in the other tabs"))
+            htmltools::h3(htmltools::strong("The results are displayed in the other tabs"))
           )
         )
       }
@@ -250,95 +250,95 @@ app <- function() {
       res_ui_list <- lapply(names(res), function(name) {
         temp <- res[[name]]
         if (is.vector(temp)) {
-          div(
+          htmltools::div(
             class = "var-box-output",
-            div(
+            htmltools::div(
               class = "var-box-name",
               name
             ),
             verbatimTextOutput(paste0("res_", name)),
-            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (is.data.frame(temp)) {
-          div(
+          htmltools::div(
             class = "var-box-output",
-            div(
+            htmltools::div(
               class = "var-box-name",
               name
             ),
             DTOutput(paste0("res_", name)),
-            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (inherits(temp, "doseResponse")) {
-          div(
+          htmltools::div(
             class = "var-box-output",
-            div(
+            htmltools::div(
               class = "var-box-name",
               name
             ),
             plotOutput(paste0("res_dose_response_", name),
               width = "100%", height = "800px"
             ),
-            actionButton(paste0("res_previous_", name), "Previous plot"),
-            actionButton(paste0("res_next_", name), "Next plot"),
+            shiny::actionButton(paste0("res_previous_", name), "Previous plot"),
+            shiny::actionButton(paste0("res_next_", name), "Next plot"),
             DTOutput(paste0("res_dose_response_df_", name)),
-            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (inherits(temp, "plot")) {
-          div(
+          htmltools::div(
             class = "var-box-output",
-            div(
+            htmltools::div(
               class = "var-box-name",
               name
             ),
             plotOutput(paste0("res_", name), width = "100%", height = "800px"),
-            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (inherits(temp, "summaryModel")) {
-          div(
+          htmltools::div(
             class = "var-box-output",
-            div(
+            htmltools::div(
               class = "var-box-name",
               name
             ),
             plotOutput(paste0("res_plot_", name)),
             DTOutput(paste0("res_summary_", name)),
             DTOutput(paste0("res_information_criterion_", name)),
-            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else {
-          div(
+          htmltools::div(
             class = "var-box-output",
-            div(
+            htmltools::div(
               class = "var-box-name",
               name
             ),
             verbatimTextOutput(paste0("res_", name)),
-            actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         }
       })
       if (MethodState$method == "Default") {
-        download_stuff <- div(
+        download_stuff <- htmltools::div(
           class = "var-box-output",
-          h3(strong("Results")),
-          p("The following list contains the results"),
-          actionButton("download", "Save"),
+          htmltools::h3(htmltools::strong("Results")),
+          htmltools::p("The following list contains the results"),
+          shiny::actionButton("download", "Save"),
           textInput("user_filename", "Set filename", value = "")
         )
-        do.call(tagList, list(download_stuff, res_ui_list))
+        do.call(htmltools::tagList, list(download_stuff, res_ui_list))
       } else if (MethodState$method == "DoseResponse") {
-        download_stuff <- div(
+        download_stuff <- htmltools::div(
           class = "var-box-output",
-          h3(strong("Results")),
-          p("The following list contains the results"),
-          actionButton("download", "Save")
+          htmltools::h3(htmltools::strong("Results")),
+          htmltools::p("The following list contains the results"),
+          shiny::actionButton("download", "Save")
         )
-        do.call(tagList, list(download_stuff, res_ui_list))
+        do.call(htmltools::tagList, list(download_stuff, res_ui_list))
       }
     })
     # Show results
-    observe({
+    shiny::observe({
       if (length(ResultsState$all_data) == 0) {
         return()
       }
@@ -346,7 +346,7 @@ app <- function() {
       res_ui_list <- lapply(names(res), function(name) {
         rendered <- attributes(ResultsState$all_data[[name]])$rendered
         if (!is.null(rendered) && rendered) return()
-        observeEvent(res[[name]], {
+        shiny::observeEvent(res[[name]], {
           temp <- res[[name]]
           set_rendered <- if (inherits(temp, "doseResponse")) FALSE else TRUE
           if (is.vector(temp)) {
@@ -368,16 +368,16 @@ app <- function() {
           if (set_rendered) attr(ResultsState$all_data[[name]], "rendered") <- TRUE
         })
       })
-      do.call(tagList, res_ui_list)
+      do.call(htmltools::tagList, res_ui_list)
     })
     # Observe remove buttons
-    observe({
+    shiny::observe({
       if (length(ResultsState$all_data) == 0) {
         return()
       }
       current_list <- ResultsState$all_data
       lapply(names(current_list), function(name) {
-        observeEvent(input[[paste0("remove_res_", name)]],
+        shiny::observeEvent(input[[paste0("remove_res_", name)]],
           {
             e <- try({
               rr <- get_remove_results()$new(name)
@@ -393,14 +393,14 @@ app <- function() {
       })
     })
     # Handle previous & next buttons of dose response plots
-    observe({
+    shiny::observe({
       if (length(ResultsState$all_data) == 0) return()
       all_names <- names(ResultsState$all_data)
       already   <- ResultsState$registered_pagers
       to_add    <- setdiff(all_names, already)
       if (!length(to_add)) return()
       lapply(to_add, function(name) {
-        observeEvent(input[[paste0("res_previous_", name)]], ignoreInit = TRUE, {
+        shiny::observeEvent(input[[paste0("res_previous_", name)]], ignoreInit = TRUE, {
           obj <- ResultsState$all_data[[name]]
           if (is.null(obj)) return()
           if (obj@current_page >= 2L) {
@@ -408,7 +408,7 @@ app <- function() {
             ResultsState$all_data[[name]] <- obj
           }
         })
-        observeEvent(input[[paste0("res_next_", name)]], ignoreInit = TRUE, {
+        shiny::observeEvent(input[[paste0("res_next_", name)]], ignoreInit = TRUE, {
           obj <- ResultsState$all_data[[name]]
           if (is.null(obj)) return()
           n <- length(obj@p)
@@ -423,51 +423,51 @@ app <- function() {
 
     # Observe open formula editor
     # ----------------------------------------------------------
-    output$open_formula_editor_main <- renderUI({
+    output$open_formula_editor_main <- shiny::renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
       }
-      div(
+      htmltools::div(
         class = "boxed-output",
-        actionButton("open_formula_editor",
+        shiny::actionButton("open_formula_editor",
           "Open formula editor",
           title = "Open the formula editor to create or modify a formula"
         )
       )
     })
-    observeEvent(input[["open_formula_editor"]], {
+    shiny::observeEvent(input[["open_formula_editor"]], {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
-      showModal(modalDialog(
-        title = div(style = "display: flex; align-items: center; justify-content: space-between;",
-          span("FormulaEditor"),
-          actionButton("FO-formula_docu", label = NULL, icon = icon("question-circle"))
+      shiny::showModal(modalDialog(
+        title = htmltools::div(style = "display: flex; align-items: center; justify-content: space-between;",
+          htmltools::span("FormulaEditor"),
+          shiny::actionButton("FO-formula_docu", label = NULL, icon = shiny::icon("question-circle"))
         ),
         FormulaEditorUI("FO"),
         easyClose = TRUE,
         size = "l",
-        footer = tagList(
-          modalButton("Close")
+        footer = htmltools::tagList(
+          shiny::modalButton("Close")
         )
       ))
     })
     # display current formula
-    output[["formulaUI"]] <- renderUI({
+    output[["formulaUI"]] <- shiny::renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
       } else {
-        renderUI({
+        shiny::renderUI({
           if (inherits(DataModelState$formula, "LinearFormula")) {
-            div(
+            htmltools::div(
               class = "var-box-output",
-              fluidRow(
-                column(
+              shiny::fluidRow(
+                shiny::column(
                   width = 6,
-                  p("Linear model"),
+                  htmltools::p("Linear model"),
                   deparse(DataModelState$formula@formula),
                 )
-                # column(
+                # shiny::column(
                 #   width = 6,
-                #   actionButton(
+                #   shiny::actionButton(
                 #     "open_predictor_editor",
                 #     "Open the prediction editor",
                 #     title = "Open the prediction editor to apply a model to (new) data"
@@ -476,21 +476,21 @@ app <- function() {
               )
             )
           } else if (inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
-            div(
+            htmltools::div(
               class = "var-box-output",
-              fluidRow(
-                column(
+              shiny::fluidRow(
+                shiny::column(
                   width = 6,
-                  p("Generalised Linear Model"),
+                  htmltools::p("Generalised Linear Model"),
                   deparse(DataModelState$formula@formula),
-                  br(),
+                  htmltools::br(),
                   paste0("Family: ", deparse(DataModelState$formula@family)),
-                  br(),
+                  htmltools::br(),
                   paste0("Link fct.: ", deparse(DataModelState$formula@link_fct))
                 )
-                # column(
+                # shiny::column(
                 #   width = 6,
-                #   actionButton(
+                #   shiny::actionButton(
                 #     "open_predictor_editor",
                 #     "Open the prediction editor",
                 #     title = "Open the prediction editor to apply a model to (new) data"
@@ -499,24 +499,24 @@ app <- function() {
               )
             )
           } else if (inherits(DataModelState$formula, "OptimFormula")) {
-            div(
+            htmltools::div(
               class = "var-box-output",
-              fluidRow(
-                column(
+              shiny::fluidRow(
+                shiny::column(
                   width = 6,
-                  p("Optimization Model"),
+                  htmltools::p("Optimization Model"),
                   deparse(DataModelState$formula@formula),
-                  br(),
+                  htmltools::br(),
                   paste0("Optimization method: ", DataModelState$formula@method),
-                  br(),
+                  htmltools::br(),
                   paste0("Lower boundary: ", deparse(DataModelState$formula@lower)),
                   paste0("Upper boundary: ", deparse(DataModelState$formula@upper)),
-                  br(),
+                  htmltools::br(),
                   paste0("Seed: ", deparse(DataModelState$formula@seed))
                 )
-                # column(
+                # shiny::column(
                 #   width = 6,
-                #   actionButton(
+                #   shiny::actionButton(
                 #     "open_predictor_editor",
                 #     "Open the prediction editor",
                 #     title = "Open the prediction editor to apply a model to (new) data"
@@ -533,22 +533,22 @@ app <- function() {
 
     # Render split by group
     # ----------------------------------------------------------
-    output[["open_split_by_groupUI"]] <- renderUI({
+    output[["open_split_by_groupUI"]] <- shiny::renderUI({
       if (input$conditionedPanels == "DataWrangling") {
         return()
       }
       if (is.null(DataModelState$backup_df)) {
         return(
-          div(
+          htmltools::div(
             class = "boxed-output",
-            actionButton("open_split_by_group",
+            shiny::actionButton("open_split_by_group",
               "Open the split by group functionality",
               title = "Open the split by group helper window"
             ))
         )
       } else {
         return(
-          actionButton("remove_filter",
+          shiny::actionButton("remove_filter",
             "Remove the filter from the dataset",
             title = "remove the filter of the dataset",
             disabled = is.null(DataModelState$backup_df) || !is.data.frame(DataModelState$backup_df)
@@ -556,9 +556,9 @@ app <- function() {
         )
       }
     })
-    observeEvent(input[["open_split_by_group"]], {
+    shiny::observeEvent(input[["open_split_by_group"]], {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
-      showModal(modalDialog(
+      shiny::showModal(modalDialog(
         title = "SplitByGroup",
         SplitByGroupUI("SG"),
         easyClose = TRUE,
@@ -566,10 +566,10 @@ app <- function() {
         footer = NULL
       ))
     })
-    observe({
+    shiny::observe({
       output$applied_filter <- renderText(NULL)
-      req(!is.null(DataModelState$filter_col))
-      req(!is.null(DataModelState$filter_group))
+      shiny::req(!is.null(DataModelState$filter_col))
+      shiny::req(!is.null(DataModelState$filter_group))
       output$applied_filter <- renderText({
         paste(
           "The dataset is splitted by the variable(s): [",
@@ -581,7 +581,7 @@ app <- function() {
       })
     })
     # Remove filter
-    observeEvent(input[["remove_filter"]], {
+    shiny::observeEvent(input[["remove_filter"]], {
       e <- try({
         rf <- get_remove_filter()$new()
         rf$validate()
@@ -595,10 +595,10 @@ app <- function() {
 
     # Download
     # ----------------------------------------------------------
-    observeEvent(input$download, {
+    shiny::observeEvent(input$download, {
       if (MethodState$method == "Default") {
         if (!env_utils$is_valid_filename(input$user_filename)) {
-          runjs("document.getElementById('user_filename').focus();")
+          shinyjs::runjs("document.getElementById('user_filename').focus();")
           print_noti(
             env_utils$why_filename_invalid(input$user_filename)
           )

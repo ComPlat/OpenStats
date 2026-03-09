@@ -1,7 +1,7 @@
 testsSidebarUI <- function(id) {
   tabPanel(
     "Tests",
-    br(),
+    htmltools::br(),
     uiOutput(NS(id, "SidebarTestsUI")),
     uiOutput(NS(id, "padjUI"))
   )
@@ -9,7 +9,7 @@ testsSidebarUI <- function(id) {
 
 # nocov start ui-scaffold
 testsUI <- function(id) {
-  fluidRow(
+  shiny::fluidRow(
     uiOutput(NS(id, "tabs"))
   )
 }

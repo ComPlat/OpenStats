@@ -1,22 +1,22 @@
 SplitByGroupServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
     # Reactive values
-    SplitByGroupState <- reactiveValues(
+    SplitByGroupState <- shiny::reactiveValues(
       df = NULL,
       is_filtered = FALSE
     )
 
-    observe({
+    shiny::observe({
       SplitByGroupState$df <- DataModelState$df
     })
 
     # Create colnames dropdown
-    output[["colnames_dropdown"]] <- renderUI({
-      req(!is.null(SplitByGroupState$df))
-      req(is.data.frame(SplitByGroupState$df))
+    output[["colnames_dropdown"]] <- shiny::renderUI({
+      shiny::req(!is.null(SplitByGroupState$df))
+      shiny::req(is.data.frame(SplitByGroupState$df))
       colnames <- names(SplitByGroupState$df)
       tooltip <- "Select the column by name which you want to split by"
-      div(
+      htmltools::div(
         tags$label(
           "Variable",
           class = "tooltip",
@@ -34,16 +34,16 @@ SplitByGroupServer <- function(id, DataModelState, ResultsState) {
     })
 
     # Show levels based on column which is choosen
-    output[["levels_dropdown"]] <- renderUI({
-      req(!is.null(SplitByGroupState$df))
-      req(is.data.frame(SplitByGroupState$df))
+    output[["levels_dropdown"]] <- shiny::renderUI({
+      shiny::req(!is.null(SplitByGroupState$df))
+      shiny::req(is.data.frame(SplitByGroupState$df))
       selected_col <- input[[paste0("colnames-dropdown_")]]
       if (is.null(selected_col)) {
         return(NULL)
       }
       vals <- unique(SplitByGroupState$df[, selected_col])
       tooltip <- "Select the level (group) by name which you want to use"
-      div(
+      htmltools::div(
         tags$label(
           "Variable levels",
           class = "tooltip",
@@ -61,7 +61,7 @@ SplitByGroupServer <- function(id, DataModelState, ResultsState) {
     })
 
     # React to split data
-    observeEvent(input$split_data, {
+    shiny::observeEvent(input$split_data, {
       print_req(is.data.frame(SplitByGroupState$df), "The dataset is missing")
       selected_cols <- input[[paste0("colnames-dropdown_")]]
       selected_groups <- input[[paste0("levels-dropdown_")]]

@@ -1,15 +1,15 @@
 corrServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
-    output[["CorrelationUI"]] <- renderUI({
+    output[["CorrelationUI"]] <- shiny::renderUI({
       message <- check_correlation(DataModelState)
       if (!is.null(message)) {
         return(
           info_div(message)
         )
       }
-      div(
-        br(),
+      htmltools::div(
+        htmltools::br(),
         sliderInput("CORR-conflevel", "Confidence level of the interval",
           min = 0, max = 1, value = 0.95
         ),
@@ -21,15 +21,15 @@ corrServer <- function(id, DataModelState, ResultsState) {
             "Greater" = "greater"
           )
         ),
-        actionButton("CORR-pear", "Pearson correlation",
+        shiny::actionButton("CORR-pear", "Pearson correlation",
           title =
           "Measures the linear relationship between two continuous variables. Assumes normal distribution and equal variance."
         ),
-        actionButton("CORR-spear", "Spearman correlation",
+        shiny::actionButton("CORR-spear", "Spearman correlation",
           title =
           "Measures the monotonic relationship between two variables using ranks. Suitable for ordinal data or non-linear relationships."
         ),
-        actionButton("CORR-kendall", "Kendall correlation",
+        shiny::actionButton("CORR-kendall", "Kendall correlation",
           title =
           "Measures the strength of dependence between two variables based on rank concordance. Works well with small samples or tied ranks."
         )
@@ -53,15 +53,15 @@ corrServer <- function(id, DataModelState, ResultsState) {
       )
     }
 
-    observeEvent(input$pear, {
+    shiny::observeEvent(input$pear, {
       corr_fct("pearson")
     })
 
-    observeEvent(input$spear, {
+    shiny::observeEvent(input$spear, {
       corr_fct("spearman")
     })
 
-    observeEvent(input$kendall, {
+    shiny::observeEvent(input$kendall, {
       corr_fct("kendall")
     })
   })

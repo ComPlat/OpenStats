@@ -2,16 +2,16 @@ download <- function(session, folder) {
   ipaddress <- getURL(session)
   p <- session$clientData
   if(is.null(p)) {
-    showNotification("Slot clientData is not found. Is it a session object?", duration = 0)
+    shiny::showNotification("Slot clientData is not found. Is it a session object?", duration = 0)
     Sys.sleep(30)
   }
-  p <- tc(reactiveValuesToList(p), "Could not apply as.list to input")
+  p <- tc(shiny::reactiveValuesToList(p), "Could not apply as.list to input")
   p <- p$url_search
   if(is.null(p)) {
-    showNotification("Slot url_search is not found. Is it a session object?", duration = 0)
+    shiny::showNotification("Slot url_search is not found. Is it a session object?", duration = 0)
     Sys.sleep(30)
   } else if(p[[1]] == "") {
-    showNotification("Slot url_search is empty. Cannot download the file?", duration = 0)
+    shiny::showNotification("Slot url_search is empty. Cannot download the file?", duration = 0)
     Sys.sleep(30)
   }
 
@@ -25,7 +25,7 @@ download <- function(session, folder) {
       httr::GET(url)
     },
     error = function(e) {
-      showNotification(paste("Test GET failed:", e$message), duration = 0)
+      shiny::showNotification(paste("Test GET failed:", e$message), duration = 0)
       NULL
     }
   )
@@ -33,7 +33,7 @@ download <- function(session, folder) {
   response <- GET(url)
 
   if(status_code(response)[[1]] != 200) {
-    showNotification("File could not be downloaded from ELN", duration = 0)
+    shiny::showNotification("File could not be downloaded from ELN", duration = 0)
     Sys.sleep(30)
   }
   content <- content(response, as = "text")

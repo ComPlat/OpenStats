@@ -5,7 +5,7 @@ tc <- function(expr, error_message) {
       ret <- eval(expr)
     },
     error = function(e) {
-      showNotification(error_message, duration = 0)
+      shiny::showNotification(error_message, duration = 0)
       Sys.sleep(30)
     }
   )

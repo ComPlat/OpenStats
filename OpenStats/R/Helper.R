@@ -1,18 +1,18 @@
 # nocov start helper
 # divs
 info_div <- function(message) {
-  div(
+  htmltools::div(
     class = "info-box",
-    h3(strong(message))
+    htmltools::h3(htmltools::strong(message))
   )
 }
 
 render_df <- function(df, n_fixed_cols = 1) {
   small <- nrow(df) <= 20 && ncol(df) <= 8
   if (small) {
-    renderDT(df)
+    DT::renderDT(df)
   } else {
-    renderDT(
+    DT::renderDT(
       df,
       extensions = c("Buttons", "FixedColumns", "Scroller"),
       options = list(
@@ -30,51 +30,51 @@ render_df <- function(df, n_fixed_cols = 1) {
 
 # check and print warnings
 print_warn <- function(message) {
-  showNotification(message, type = "warning")
+  shiny::showNotification(message, type = "warning")
 }
 
 # check and print error
 print_err <- function(message) {
-  showNotification(message, type = "error")
+  shiny::showNotification(message, type = "error")
 }
 
 # check and print notifications
 print_req <- function(expr, message) {
   if (!expr) {
-    showNotification(message, type = "message")
+    shiny::showNotification(message, type = "message")
   }
-  req(expr)
+  shiny::req(expr)
 }
 
 # print notification without check
 print_noti <- function(message) {
-  showNotification(message, type = "message")
+  shiny::showNotification(message, type = "message")
 }
 
 # print success
 print_success <- function(message) {
-  showNotification(message)
+  shiny::showNotification(message)
 }
 
 # check formula and open modal window if no formula is set
 print_form <- function(formula) {
   if (is.null(formula)) {
-    showNotification("You have to set a formula",
-      action = tags$div(
-        showModal(modalDialog(
+    shiny::showNotification("You have to set a formula",
+      action = htmltools::div(
+        shiny::showModal(modalDialog(
           title = "FormulaEditor",
           FormulaEditorUI("FO"),
           easyClose = TRUE,
           size = "l",
-          footer = tagList(
-            modalButton("Close")
+          footer = htmltools::tagList(
+            shiny::modalButton("Close")
           )
         ))
       ),
       type = "message"
     )
   }
-  req(!is.null(formula))
+  shiny::req(!is.null(formula))
 }
 
 # check that result is only of allowed type

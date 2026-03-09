@@ -70,7 +70,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           ResultsState$bgp$running_status <- "Idle"
 
           if (!self$in_backend) {
-            exportTestValues(
+            shiny::exportTestValues(
               result_list = ResultsState$all_data
             )
           }
@@ -84,8 +84,8 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
 
     init = function(ResultsState, DataModelState, DataWranglingState) {
       # Polling loop
-      observe({
-        invalidateLater(250)
+      shiny::observe({
+        shiny::invalidateLater(250)
         self$tick(ResultsState, DataModelState, DataWranglingState)
       })
     },
@@ -97,7 +97,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
         ResultsState$counter <- ResultsState$counter + 1
         ResultsState$history[[length(ResultsState$history) + 1]] <- promise_history_entry
         if (!self$in_backend) {
-          exportTestValues(
+          shiny::exportTestValues(
             result_list = ResultsState$all_data
           )
         }
@@ -112,23 +112,23 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       # Therefore, default is NULL
       background <- getOption("OpenStats.background", TRUE)
       if (!in_background || !background) {
-        req(!is.null(ResultsState), "`ResultsState` must be provided when not running in background.")
+        shiny::req(!is.null(ResultsState), "`ResultsState` must be provided when not running in background.")
         self$start_direct(fun, args, promise_result_name, promise_history_entry, ResultsState)
         return()
       }
-      req(is.null(self$process) || !self$process$is_alive())
+      shiny::req(is.null(self$process) || !self$process$is_alive())
       self$promise_result_name <- promise_result_name
       self$promise_history_entry <- promise_history_entry
       self$is_running <- TRUE
       r6_args <- names(args)[sapply(args, function(x) inherits(x, "R6"))]
-      req(length(r6_args) == 0, paste("Cannot pass R6 objects to background process:", paste(r6_args, collapse = ", ")))
+      shiny::req(length(r6_args) == 0, paste("Cannot pass R6 objects to background process:", paste(r6_args, collapse = ", ")))
       self$result_val <- NULL
       self$process <- callr::r_bg(fun, args = args)
       self$running_status <- "Running..."
     },
 
     cancel = function() {
-      req(!is.null(self$process), self$process$is_alive())
+      shiny::req(!is.null(self$process), self$process$is_alive())
       self$running_status <- "Canceled"
       self$cancel_clicked <- TRUE
     },
@@ -1642,7 +1642,7 @@ statistical_tests_V1_2 <- R6::R6Class(
         HSD = {
           check_formula(self$formula@formula)
           bal <- self$balanced_design
-          req(bal)
+          shiny::req(bal)
           if (bal == "Balanced") {
             bal <- TRUE
           } else {

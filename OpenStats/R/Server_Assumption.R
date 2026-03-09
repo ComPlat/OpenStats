@@ -2,7 +2,7 @@ assServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
     # React to model type
-    output[["shapiroUI"]] <- renderUI({
+    output[["shapiroUI"]] <- shiny::renderUI({
       message <- check_assumptions(DataModelState)
       if (!is.null(message)) {
         return(
@@ -10,44 +10,44 @@ assServer <- function(id, DataModelState, ResultsState) {
         )
       }
       if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
-        div(
-          h4(strong("Test of normal distribution")),
+        htmltools::div(
+          htmltools::h4(htmltools::strong("Test of normal distribution")),
           hr(),
-          actionButton("ASS-shapiro",
+          shiny::actionButton("ASS-shapiro",
             "Shapiro test for individual groups",
             title =
             "Use this test if you have a formula like 'response ~ pred1 * pred2' (two-way ANOVA) to check normality of residuals within each group."
           ),
-          br()
+          htmltools::br()
         )
       }
     })
-    output[["shapiroResidualsUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
-      req(DataModelState$formula)
+    output[["shapiroResidualsUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(DataModelState$formula)
       if(inherits(DataModelState$formula, "LinearFormula")) {
-        actionButton("ASS-shapiroResiduals", "Shapiro test for residuals of linear model",
+        shiny::actionButton("ASS-shapiroResiduals", "Shapiro test for residuals of linear model",
           title =
           "Use this test if you have a formula like 'response ~ predictor1' to check normality of the residuals of the linear model."
         )
       }
     })
-    output[["LeveneUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
-      req(DataModelState$formula)
+    output[["LeveneUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(DataModelState$formula)
       if(inherits(DataModelState$formula, "LinearFormula")) {
-        div(
+        htmltools::div(
           hr(),
-          div(
+          htmltools::div(
             class = "header", checked = NA,
-            h4(
+            htmltools::h4(
               style = "font-weight: bold;",
               "Test of variance homogenity"
             )
           ),
-          actionButton(NS(id, "levene"), "Levene test"), # NOTE: using ASS-levene is in this case wrong dont know why?
+          shiny::actionButton(NS(id, "levene"), "Levene test"), # NOTE: using ASS-levene is in this case wrong dont know why?
           selectInput(NS(id, "center"), "Data center of each group: mean or median", # The same is true for center
             c(
               "Mean" = "mean",
@@ -58,19 +58,19 @@ assServer <- function(id, DataModelState, ResultsState) {
         )
       }
     })
-    output[["DiagnosticPlotUI"]] <- renderUI({
+    output[["DiagnosticPlotUI"]] <- shiny::renderUI({
 
-      invalidateLater(250)
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
       if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
-        div(
-          div(
+        htmltools::div(
+          htmltools::div(
             class = "header", checked = NA,
-            h4(style = "font-weight: bold;", "Visual tests")
+            htmltools::h4(style = "font-weight: bold;", "Visual tests")
           ),
-          actionButton("ASS-DiagnosticPlot", "diagnostic plots")
+          shiny::actionButton("ASS-DiagnosticPlot", "diagnostic plots")
         )
       }
     })
@@ -90,7 +90,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       }
     }
 
-    observeEvent(input$shapiro, {
+    shiny::observeEvent(input$shapiro, {
       runShapiro()
     })
 
@@ -109,7 +109,7 @@ assServer <- function(id, DataModelState, ResultsState) {
         print_err(err)
       }
     }
-    observeEvent(input$shapiroResiduals, {
+    shiny::observeEvent(input$shapiroResiduals, {
       runShapiroResiduals()
     })
 
@@ -127,7 +127,7 @@ assServer <- function(id, DataModelState, ResultsState) {
         print_err(err)
       }
     }
-    observeEvent(input$levene, {
+    shiny::observeEvent(input$levene, {
       runLevene()
     })
 
@@ -145,7 +145,7 @@ assServer <- function(id, DataModelState, ResultsState) {
         print_err(err)
       }
     }
-    observeEvent(input$DiagnosticPlot, {
+    shiny::observeEvent(input$DiagnosticPlot, {
       runDiagnosticPlot()
     })
   })

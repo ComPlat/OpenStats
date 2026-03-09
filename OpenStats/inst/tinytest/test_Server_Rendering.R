@@ -206,7 +206,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     session$flushReact()
     ui_obj <- output[["TESTS-SidebarTestsUI"]]
     html <- htmltools::renderTags(ui_obj)$html
-    html <- strsplit(html, "<div")[[1]]
+    html <- strsplit(html, "<htmltools::div")[[1]]
     checks <<- c(checks, grepl('confLevel', html[[3]]))
     checks <<- c(checks, grepl('data-from=\"0.95\"', html[[3]]))
     checks <<- c(checks, grepl('data-min=\"0\"', html[[3]]))

@@ -1,7 +1,7 @@
 HistorySidebarUI <- function(id) {
   ui <-tabPanel(
     "History",
-    div(
+    htmltools::div(
       uiOutput(NS(id, "ReplayHistory")),
       class = "boxed-output"
     )
@@ -11,7 +11,7 @@ HistorySidebarUI <- function(id) {
 # nocov start ui-scaffold
 HistoryEditorUI <- function(id) {
   ui <- fluidPage(
-    div(
+    htmltools::div(
       textAreaInput(NS(id, "history_string"), "History-JSON:", value = "", rows = 12),
       class = "boxed-output"
     )

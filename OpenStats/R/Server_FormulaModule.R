@@ -2,52 +2,52 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
     # Create buttons
-    output[["buttons"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["buttons"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (input$model_type == "Optimization Model") {
-        req(input$PredefinedModels)
+        shiny::req(input$PredefinedModels)
         if(input$PredefinedModels != "free") return(NULL)
       }
       button_list <- list(
-        actionButton("FO-add", "+",
+        shiny::actionButton("FO-add", "+",
           class = "add-button",
           title = "Include an additional predictor variable in the model"
         ),
-        actionButton("FO-minus", "-",
+        shiny::actionButton("FO-minus", "-",
           class = "add-button",
           title = "Removes an additional predictor variable in the model"
         ),
-        actionButton("FO-mul", "*",
+        shiny::actionButton("FO-mul", "*",
           class = "add-button",
           title = "Multiply variables to assess interactions in the model"
         )
       )
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
-        button_list[[length(button_list) + 1]] <- actionButton("FO-colon", ":",
+        button_list[[length(button_list) + 1]] <- shiny::actionButton("FO-colon", ":",
           class = "add-button",
           title = "Includes the interaction between two variables in the model"
         )
       } else if (input$model_type == "Optimization Model") {
-        button_list[[length(button_list) + 1]]  <- actionButton("FO-div", "/",
+        button_list[[length(button_list) + 1]]  <- shiny::actionButton("FO-htmltools::div", "/",
           class = "add-button",
           title = "Includes nested effects (both variable levels) in the model"
         )
       }
-      div(
-        div(
+      htmltools::div(
+        htmltools::div(
           hr(),
-          do.call(tagList, button_list)
+          do.call(htmltools::tagList, button_list)
         )
       )
     })
 
     # Create colnames buttons
-    output[["colnames_list"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["colnames_list"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (input$model_type == "Optimization Model") {
-        req(input$PredefinedModels)
+        shiny::req(input$PredefinedModels)
         if(input$PredefinedModels != "free") return(NULL)
       }
       colnames <- ""
@@ -58,27 +58,27 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         colnames <- names(DataModelState$df)[indices]
       }
       button_list <- lapply(colnames[1:length(colnames)], function(i) {
-        actionButton(
+        shiny::actionButton(
           inputId = paste0("FO-colnames_", i, "_", DataModelState$counter_id),
           label = paste(i),
           class = "add-button",
           title = paste("Select variable", i, "as a predictor for the model")
         )
       })
-      div(
-        div(
-          do.call(tagList, button_list),
-          br()
+      htmltools::div(
+        htmltools::div(
+          do.call(htmltools::tagList, button_list),
+          htmltools::br()
         )
       )
     })
 
     # Create colnames dropdown
-    output[["colnames_dropdown"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["colnames_dropdown"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (input$model_type == "Optimization Model") {
-        req(input$PredefinedModels)
+        shiny::req(input$PredefinedModels)
         if(input$PredefinedModels != "free") return(NULL)
       }
       colnames <- ""
@@ -89,7 +89,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         colnames <- names(DataModelState$df)[indices]
       }
       tooltip <- "Select the dependent variable for your statistical model. This is the outcome you want to predict based on the independent variables."
-      div(
+      htmltools::div(
         class = "boxed-output",
         tags$label(
           "Dependent Variable",
@@ -107,7 +107,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     })
 
     # Predefined models
-    output[["optim_predefined_equations"]] <- renderUI({
+    output[["optim_predefined_equations"]] <- shiny::renderUI({
       if (input$model_type == "Optimization Model") {
         selectInput(inputId = "FO-PredefinedModels", "Available functions",
           choices = c(
@@ -124,18 +124,18 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     })
 
     # Create right site
-    output[["rhs"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["rhs"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
-        div(
+        htmltools::div(
           hr(),
           textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
         )
       } else if (input$model_type == "Optimization Model") {
-        req(input$PredefinedModels)
+        shiny::req(input$PredefinedModels)
         if(input$PredefinedModels == "free") {
-          div(
+          htmltools::div(
             hr(),
             textAreaInput("FO-editable_code", "formula terms:", value = "", rows = 12)
           )
@@ -143,23 +143,23 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
     # Create predefined model UIs
-    output[["predefined_modelsUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["predefined_modelsUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (input$model_type == "Optimization Model") {
-        req(input$PredefinedModels)
+        shiny::req(input$PredefinedModels)
         if (input$PredefinedModels == "free") return()
         indices <- sapply(DataModelState$df, is.numeric) |> which()
         colnames <- names(DataModelState$df)[indices]
         element_list <- list()
         if (input$PredefinedModels == "linear") {
-          element_list[[length(element_list) + 1]] <- div(
+          element_list[[length(element_list) + 1]] <- htmltools::div(
             style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              span("y = Slope * x + Intercept")
+              htmltools::span("y = Slope * x + Intercept")
             ),
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
               selectInput("FO-linear_lhs_var", label = "y", choices = colnames, width = "125px"),
               textInput("FO-linear_slope", label = "Slope", value = "Slope", width = "100px"),
@@ -168,13 +168,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             )
           )
         } else if (input$PredefinedModels == "log_linear") {
-          element_list[[length(element_list) + 1]] <- div(
+          element_list[[length(element_list) + 1]] <- htmltools::div(
             style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              span("y = Slope * log(x) + Intercept")
+              htmltools::span("y = Slope * log(x) + Intercept")
             ),
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
               selectInput("FO-log_linear_lhs_var", label = "y", choices = colnames, width = "125px"),
               textInput("FO-log_linear_slope", label = "Slope", value = "Slope", width = "100px"),
@@ -183,13 +183,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             )
           )
         } else if (input$PredefinedModels == "michaelis_menten") {
-          element_list[[length(element_list) + 1]] <- div(
+          element_list[[length(element_list) + 1]] <- htmltools::div(
             style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              span("y = (Vmax * s) / (Km + s)")
+              htmltools::span("y = (Vmax * s) / (Km + s)")
             ),
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
               selectInput("FO-mm_lhs_var", label = "y", choices = colnames, width = "125px"),
               textInput("FO-mm_vmax", label = "Vmax", value = "Vmax", width = "100px"),
@@ -198,13 +198,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             )
           )
         } else if (input$PredefinedModels == "one_site_binding") {
-          element_list[[length(element_list) + 1]] <- div(
+          element_list[[length(element_list) + 1]] <- htmltools::div(
             style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              span("y = (Bmax * conc) / (Kd + conc)")
+              htmltools::span("y = (Bmax * conc) / (Kd + conc)")
             ),
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
               selectInput("FO-binding_lhs_var", label = "y", choices = colnames, width = "125px"),
               textInput("FO-binding_bmax", label = "Bmax", value = "Bmax", width = "100px"),
@@ -213,13 +213,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             )
           )
         }  else if (input$PredefinedModels == "two_hot_binding") {
-          element_list[[length(element_list) + 1]] <- div(
+          element_list[[length(element_list) + 1]] <- htmltools::div(
             style = "padding: 10px; border-radius: 8px; display: flex; flex-direction: column; align-items: flex-start;",
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
-              span("y = (conc * 1e-9) / (conc * 1e-9 + Koff / Kon) * Bmax * (1 - exp(-(Kon * conc * 1e-9 + Koff) * Time))")
+              htmltools::span("y = (conc * 1e-9) / (conc * 1e-9 + Koff / Kon) * Bmax * (1 - exp(-(Kon * conc * 1e-9 + Koff) * Time))")
             ),
-            div(
+            htmltools::div(
               style = "padding: 10px; border-radius: 8px; display: flex; align-items: center;",
               selectInput("FO-hotbind_lhs_var", label = "y", choices = colnames, width = "125px"),
               selectInput("FO-hotbind_conc", label = "conc", choices = colnames, width = "125px"),
@@ -230,8 +230,8 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             )
           )
         }
-        div(
-          do.call(tagList, element_list),
+        htmltools::div(
+          do.call(htmltools::tagList, element_list),
           class = "boxed-output"
         )
       }
@@ -239,7 +239,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
 
 
     # If glm is choosen create family
-    output[["glm_family_dropdown"]] <- renderUI({
+    output[["glm_family_dropdown"]] <- shiny::renderUI({
       if (input$model_type == "Generalised Linear Model") {
         selectInput(inputId = "FO-Family", "The distribution family which describes the residuals",
           c(
@@ -257,8 +257,8 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
     # If glm is choosen create link function
-    output[["glm_link_fct_dropdown"]] <- renderUI({
-      req(input$Family)
+    output[["glm_link_fct_dropdown"]] <- shiny::renderUI({
+      shiny::req(input$Family)
       if (input$model_type == "Generalised Linear Model") {
         if (input[["Family"]] == "binomial") {
           selectInput("FO-Link_function", "The link function",
@@ -315,11 +315,11 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
     # Optim UI
-    output[["optim_boundaries_and_method"]] <- renderUI({
+    output[["optim_boundaries_and_method"]] <- shiny::renderUI({
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         NULL
       } else if (input$model_type == "Optimization Model") {
-        div(
+        htmltools::div(
           selectInput(
             "FO-optim_method", "Optimization method",
             c(
@@ -341,11 +341,11 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     }
 
     # React to colnames buttons
-    observe({
-      req(DataModelState$df)
+    shiny::observe({
+      shiny::req(DataModelState$df)
       colnames <- names(DataModelState$df)
       lapply(colnames, function(col) {
-        observeEvent(input[[paste0("colnames_", col, "_", DataModelState$counter_id)]], {
+        shiny::observeEvent(input[[paste0("colnames_", col, "_", DataModelState$counter_id)]], {
           current_text <- input[["editable_code"]]
           updated_text <- paste(current_text, col, sep = " ")
           update_rhs_text(updated_text)
@@ -353,56 +353,56 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       })
     })
 
-    observeEvent(input$add, {
+    shiny::observeEvent(input$add, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "+", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$mul, {
+    shiny::observeEvent(input$mul, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "*", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$minus, {
+    shiny::observeEvent(input$minus, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "-", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$colon, {
+    shiny::observeEvent(input$colon, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, ":", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$div, {
+    shiny::observeEvent(input$div, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "/", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$nested, {
+    shiny::observeEvent(input$nested, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "%in%", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$interaction_level, {
+    shiny::observeEvent(input$interaction_level, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "^", sep = " ")
       update_rhs_text(updated_text)
     })
 
-    observeEvent(input$I, {
+    shiny::observeEvent(input$I, {
       current_text <- input$editable_code
       updated_text <- paste(current_text, "I(", sep = " ")
       update_rhs_text(updated_text)
     })
 
     # React to create formula
-    observeEvent(input$create_formula, {
+    shiny::observeEvent(input$create_formula, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       tryCatch({
         withCallingHandlers(
@@ -456,7 +456,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
                 input$optim_method ,input$LowerBoundary, input$UpperBoundary, input$Seed
               )
             }
-            output$model <- renderUI({
+            output$model <- shiny::renderUI({
               withMathJax(HTML(paste0("$$", model_latex, "$$")))
             })
           },

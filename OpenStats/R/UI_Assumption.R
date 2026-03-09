@@ -14,6 +14,6 @@ assSidebarUI <- function(id) {
 
 # nocov start ui-scaffold
 assUI <- function(id) {
-  fluidRow()
+  shiny::fluidRow()
 }
 # nocov end ui-scaffold

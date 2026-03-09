@@ -108,7 +108,7 @@ test_boxplot <- function(app, srv, in_background) {
 
     session$setInputs(`conditionedPanels` = 'Visualisation')
     session$setInputs(`VisConditionedPanels` = "Boxplot")
-    session$setInputs(`VIS-XRange` = list(150, 700)) # Is never called as it req(input$xVar)
+    session$setInputs(`VIS-XRange` = list(150, 700)) # Is never called as it shiny::req(input$xVar)
     session$setInputs(`VIS-YRange` = c(17, 40))
 
     session$setInputs(`VIS-CreatePlotBox` = 1)
@@ -186,7 +186,7 @@ test_scatter <- function(app, srv, in_background) {
 
     session$setInputs(`conditionedPanels` = 'Visualisation')
     session$setInputs(`VisConditionedPanels` = "ScatterPlot")
-    session$setInputs(`VIS-XRange` = list(150, 700)) # Is never called as it req(input$xVar)
+    session$setInputs(`VIS-XRange` = list(150, 700)) # Is never called as it shiny::req(input$xVar)
     session$setInputs(`VIS-YRange` = c(17, 40))
 
     session$setInputs(`VIS-CreatePlotScatter` = 1)
@@ -259,7 +259,7 @@ test_line <- function(app, srv, in_background) {
 
     session$setInputs(`conditionedPanels` = 'Visualisation')
     session$setInputs(`VisConditionedPanels` = "LinePlot")
-    session$setInputs(`VIS-XRange` = list(150, 700)) # Is never called as it req(input$xVar)
+    session$setInputs(`VIS-XRange` = list(150, 700)) # Is never called as it shiny::req(input$xVar)
     session$setInputs(`VIS-YRange` = c(17, 40))
 
     session$setInputs(`VIS-CreatePlotLine` = 1)

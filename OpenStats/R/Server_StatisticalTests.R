@@ -1,21 +1,21 @@
 testsServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
     # Render tabs
-    output$tabs <- renderUI({
+    output$tabs <- shiny::renderUI({
       tabs <- list()
 
       if (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula")) {
-        tabs[[length(tabs) + 1]] <- tabPanel("Two groups", br())
+        tabs[[length(tabs) + 1]] <- tabPanel("Two groups", htmltools::br())
       }
 
-      tabs[[length(tabs) + 1]] <- tabPanel("More than two groups", br())
-      tabs[[length(tabs) + 1]] <- tabPanel("Posthoc tests", br())
+      tabs[[length(tabs) + 1]] <- tabPanel("More than two groups", htmltools::br())
+      tabs[[length(tabs) + 1]] <- tabPanel("Posthoc tests", htmltools::br())
 
       do.call(tabsetPanel, c(tabs, id = NS(id, "TestsConditionedPanels")))
     })
     # Render Sidebar
-    output$SidebarTestsUI <- renderUI({
-      req(input$TestsConditionedPanels)
+    output$SidebarTestsUI <- shiny::renderUI({
+      shiny::req(input$TestsConditionedPanels)
       message <- check_statistical_tests(DataModelState)
       if (!is.null(message)) {
         return(
@@ -23,7 +23,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
         )
       }
       if (input$TestsConditionedPanels == "Two groups" && (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
-        div(
+        htmltools::div(
           sliderInput(NS(id, "confLevel"), "Confidence level of the interval",
             min = 0, max = 1, value = 0.95
           ),
@@ -42,19 +42,19 @@ testsServer <- function(id, DataModelState, ResultsState) {
               "Not equal" = "noeq"
             )
           ),
-          actionButton(NS(id, "tTest"), "t test")
+          shiny::actionButton(NS(id, "tTest"), "t test")
         )
       } else if (input$TestsConditionedPanels == "More than two groups") {
-        div(
-          actionButton(NS(id, "aovTest"), "ANOVA",
+        htmltools::div(
+          shiny::actionButton(NS(id, "aovTest"), "ANOVA",
             title = "Use ANOVA (Analysis of Variance) when comparing the means of more than two groups, assuming the data is normally distributed and variances are equal across groups. For more information see the Assumption tab"
           ),
-          actionButton(NS(id, "kruskalTest"), "Kruskal-Wallis Test",
+          shiny::actionButton(NS(id, "kruskalTest"), "Kruskal-Wallis Test",
             title = "Use the Kruskal-Wallis test when comparing more than two groups but the assumptions of normality or equal variances are not met. It is a non-parametric test. For more information see the Assumption tab"
           )
         )
       } else if (input$TestsConditionedPanels == "Posthoc tests" && (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
-        div(
+        htmltools::div(
           selectInput(NS(id, "PostHocTests"), "Choose a Post Hoc test",
             choices = c(
               "Tukey HSD" = "HSD", "Kruskal Wallis post hoc test" = "kruskalTest",
@@ -62,7 +62,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
               "Scheffe post hoc test" = "scheffe", "REGW post hoc test" = "REGW"
             )
           ),
-          actionButton(NS(id, "PostHocTest"), "run test"),
+          shiny::actionButton(NS(id, "PostHocTest"), "run test"),
           sliderInput(NS(id, "pval"), "P-value",
             min = 0, max = 0.15, value = 0.05
           ),
@@ -75,7 +75,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
           )
         )
       } else if (input$TestsConditionedPanels == "Posthoc tests" && inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
-        div(
+        htmltools::div(
           selectInput(NS(id, "PostHocEmmeans"), "Choose an adjustment method",
             choices = c(
               "tukey" = "tukey",
@@ -89,16 +89,16 @@ testsServer <- function(id, DataModelState, ResultsState) {
               "hommel" = "hommel"
             )
           ),
-          actionButton(NS(id, "PostHocEmmeansTest"), "run PostHoc test")
+          shiny::actionButton(NS(id, "PostHocEmmeansTest"), "run PostHoc test")
         )
       }
     })
 
     # Render p adjustment methods
-    output[["padjUI"]] <- renderUI({
-      req(input$TestsConditionedPanels == "Posthoc tests")
-      req(input$PostHocTests)
-      req(inherits(DataModelState$formula, "LinearFormula"))
+    output[["padjUI"]] <- shiny::renderUI({
+      shiny::req(input$TestsConditionedPanels == "Posthoc tests")
+      shiny::req(input$PostHocTests)
+      shiny::req(inherits(DataModelState$formula, "LinearFormula"))
       if (input$PostHocTests == "kruskalTest" || input$PostHocTests == "LSD") {
         return(
           selectInput(NS(id, "padj"), "Adjusted p method",
@@ -131,7 +131,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
         print_err(err)
       }
     }
-    observeEvent(input$tTest, {
+    shiny::observeEvent(input$tTest, {
       tTest()
     })
 
@@ -156,19 +156,19 @@ testsServer <- function(id, DataModelState, ResultsState) {
       }
     }
 
-    observeEvent(input$aovTest, {
+    shiny::observeEvent(input$aovTest, {
       conductTests("aov")
     })
 
-    observeEvent(input$kruskalTest, {
+    shiny::observeEvent(input$kruskalTest, {
       conductTests("kruskal")
     })
 
-    observeEvent(input$PostHocTest, {
+    shiny::observeEvent(input$PostHocTest, {
       conductTests(input$PostHocTests)
     })
 
-    observeEvent(input$PostHocEmmeansTest, {
+    shiny::observeEvent(input$PostHocEmmeansTest, {
       conductTests(input$PostHocEmmeans)
     })
   })

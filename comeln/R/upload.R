@@ -2,16 +2,16 @@ upload <- function(session, filepath, new_name) {
   ipaddress <- getURL(session)
   p <- session$clientData
   if(is.null(p)) {
-    showNotification("Slot clientData is not found. Is it a session object?", duration = 0)
+    shiny::showNotification("Slot clientData is not found. Is it a session object?", duration = 0)
     Sys.sleep(30)
   }
-  p <- tc(reactiveValuesToList(p), "Could not apply as.list to input")
+  p <- tc(shiny::reactiveValuesToList(p), "Could not apply as.list to input")
   p <- p$url_search
   if(is.null(p)) {
-    showNotification("Slot url_search is not found. Is it a session object?", duration = 0)
+    shiny::showNotification("Slot url_search is not found. Is it a session object?", duration = 0)
     Sys.sleep(30)
   } else if(p == "") {
-    showNotification("Slot url_search is empty. Cannot download the file?", duration = 0)
+    shiny::showNotification("Slot url_search is empty. Cannot download the file?", duration = 0)
     Sys.sleep(30)
   }
 

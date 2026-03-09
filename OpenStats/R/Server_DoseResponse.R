@@ -2,10 +2,10 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
 
     # Render sidebar
-    output[["DoseResponseUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["DoseResponseUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
       message <- check_dose_response(DataModelState)
       if (!is.null(message)) {
@@ -13,9 +13,9 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
           info_div(message)
         )
       }
-      div(
+      htmltools::div(
         style = "position: relative;",
-        br(),
+        htmltools::br(),
         checkboxInput(
           "DOSERESPONSE-xTransform",
           label = "Log transform x-axis",
@@ -26,17 +26,17 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
           label = "Log transform y-axis",
           value = FALSE
         ),
-        actionButton("DOSERESPONSE-ic50", "Conduct analysis")
+        shiny::actionButton("DOSERESPONSE-ic50", "Conduct analysis")
       )
     })
     # Render names of substances
-    output[["substanceNamesUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
-      req(inherits(DataModelState$formula, "LinearFormula"))
+    output[["substanceNamesUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(inherits(DataModelState$formula, "LinearFormula"))
       colnames <- names(DataModelState$df)
       tooltip <- "Select the column which contains the names of the different substances"
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -54,9 +54,9 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
 
     check_dr <- function() {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
-      req(input$substanceNames)
+      shiny::req(input$substanceNames)
       print_form(DataModelState$formula)
-      req(!is.null(DataModelState$formula))
+      shiny::req(!is.null(DataModelState$formula))
     }
 
     run_dr <- function(df, new_name) {
@@ -67,7 +67,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
       dr$eval(ResultsState, new_name)
     }
 
-    observeEvent(input$ic50, {
+    shiny::observeEvent(input$ic50, {
       check_dr()
       df <- DataModelState$df
       new_name <- paste0(ResultsState$counter + 1, " DoseResponse")

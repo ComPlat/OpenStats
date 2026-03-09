@@ -2,15 +2,15 @@
 visSidebarUI <- function(id) {
   tabPanel(
     "Visualisation",
-    br(),
-    div(
+    htmltools::br(),
+    htmltools::div(
       class = "boxed-output",
       uiOutput(NS(id, "yVarUI")),
       uiOutput(NS(id, "xVarUI")),
       textInput(NS(id, "xaxisText"), "X axis label", value = "x label"),
       textInput(NS(id, "yaxisText"), "Y axis label", value = "y label")
     ),
-    div(
+    htmltools::div(
       class = "boxed-output",
       conditionalPanel(
         condition = "input.VisConditionedPanels == 'Boxplot'",
@@ -31,7 +31,7 @@ visSidebarUI <- function(id) {
         )
       )
     ),
-    div(
+    htmltools::div(
       class = "boxed-output",
       uiOutput(NS(id, "colUI")),
       textInput(NS(id, "legendTitleCol"), "Legend title for colour", value = "Title colour"),
@@ -49,12 +49,12 @@ visSidebarUI <- function(id) {
         selectize = FALSE
       )
     ),
-    div(
+    htmltools::div(
       class = "boxed-output",
       uiOutput(NS(id, "facetByUI")),
       uiOutput(NS(id, "facetScalesUI"))
     ),
-    div(
+    htmltools::div(
       class = "boxed-output",
       radioButtons(NS(id, "xType"), "Type of x",
         choices = c(
@@ -70,39 +70,39 @@ visSidebarUI <- function(id) {
 }
 
 visUI <- function(id) {
-  fluidRow(
-    br(),
+  shiny::fluidRow(
+    htmltools::br(),
     tabsetPanel(
       tabPanel(
         "Boxplot",
-        br(),
+        htmltools::br(),
         uiOutput(NS(id, "CreatePlotBoxUI")),
         uiOutput(NS(id, "CreateModelBoxUI"))
       ),
       tabPanel(
         "Scatterplot",
-        br(),
+        htmltools::br(),
         uiOutput(NS(id, "CreatePlotScatterUI")),
         uiOutput(NS(id, "CreateModelScatterUI"))
       ),
       tabPanel(
         "Lineplot",
-        br(),
+        htmltools::br(),
         uiOutput(NS(id, "CreatePlotLineUI")),
         uiOutput(NS(id, "CreateModelLineUI"))
       ),
       id = "VisConditionedPanels"
     ),
-    fluidRow(
-      column(
+    shiny::fluidRow(
+      shiny::column(
         4,
         numericInput(NS(id, "widthPlot"), "Width of plot [cm]", value = 10)
       ),
-      column(
+      shiny::column(
         4,
         numericInput(NS(id, "heightPlot"), "Height of plot [cm]", value = 10)
       ),
-      column(
+      shiny::column(
         4,
         numericInput(NS(id, "resPlot"), "Resolution of plot", value = 300)
       ),

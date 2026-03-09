@@ -19,7 +19,7 @@ main_app_ui <- function() {
   uploadUIField <- upload_ui_field()
   fluidPage(
     useShinyjs(),
-    tagList(
+    htmltools::tagList(
       includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
       includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
       includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
@@ -30,25 +30,25 @@ main_app_ui <- function() {
     ),
     sidebarLayout(
       sidebarPanel(
-        div(
+        htmltools::div(
           style = "display: flex; align-items: center; gap: 6px;",
-          actionButton(
+          shiny::actionButton(
             "docu",
             label = NULL,
-            icon = icon("question-circle")
+            icon = shiny::icon("question-circle")
           ),
           uiOutput("running_status") # TODO: when an error ocurred it does not vanish
         ),
         uiOutput("open_formula_editor_main"),
         uiOutput("formulaUI"),
-        br(),
+        htmltools::br(),
         uiOutput("open_split_by_groupUI"),
         uiOutput("data_splitted"),
         verbatimTextOutput("applied_filter"),
-        br(),
+        htmltools::br(),
         uiOutput("active_df"),
-        br(),
-        div(
+        htmltools::br(),
+        htmltools::div(
           conditionalPanel(
             condition = "input.conditionedPanels == 'Data'",
             uploadUIField,

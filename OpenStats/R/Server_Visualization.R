@@ -1,72 +1,72 @@
 visServer <- function(id, DataModelState, ResultsState) {
   moduleServer(id, function(input, output, session) {
     # Render plotting functions
-    output[["CreatePlotBoxUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["CreatePlotBoxUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
-      actionButton("VIS-CreatePlotBox", "Create plot")
+      shiny::actionButton("VIS-CreatePlotBox", "Create plot")
     })
-    output[["CreatePlotScatterUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["CreatePlotScatterUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
-      actionButton("VIS-CreatePlotScatter", "Create plot")
+      shiny::actionButton("VIS-CreatePlotScatter", "Create plot")
     })
-    output[["CreatePlotLineUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["CreatePlotLineUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
-      actionButton("VIS-CreatePlotLine", "Create plot")
+      shiny::actionButton("VIS-CreatePlotLine", "Create plot")
     })
     # Render model plots
-    output[["CreateModelBoxUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["CreateModelBoxUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         message <- check_visualization2(DataModelState)
         if (!is.null(message)) return()
-        actionButton("VIS-CreateModelBox", "Plot model")
+        shiny::actionButton("VIS-CreateModelBox", "Plot model")
       }
     })
-    output[["CreateModelScatterUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["CreateModelScatterUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         message <- check_visualization2(DataModelState)
         if (!is.null(message)) return()
-        actionButton("VIS-CreateModelScatter", "Plot model")
+        shiny::actionButton("VIS-CreateModelScatter", "Plot model")
       }
     })
-    output[["CreateModelLineUI"]] <- renderUI({
-      invalidateLater(250)
+    output[["CreateModelLineUI"]] <- shiny::renderUI({
+      shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(div())
+      if (status != "Idle") return(htmltools::div())
 
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         message <- check_visualization2(DataModelState)
         if (!is.null(message)) return()
-        actionButton("VIS-CreateModelLine", "Plot model")
+        shiny::actionButton("VIS-CreateModelLine", "Plot model")
       }
     })
     # Render axis limits
-    output[["XRangeUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
-      req(input$xVar)
+    output[["XRangeUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(input$xVar)
       x <- input$xVar
       df <- DataModelState$df
       if (is.numeric(df[, x])) {
@@ -95,10 +95,10 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       }
     })
-    output[["YRangeUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
-      req(input$yVar)
+    output[["YRangeUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(input$yVar)
       y <- input$yVar
       df <- DataModelState$df
       if (is.numeric(df[, y])) {
@@ -128,12 +128,12 @@ visServer <- function(id, DataModelState, ResultsState) {
       }
     })
     # Render x and y selectInput
-    output[["yVarUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["yVarUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       colnames <- names(DataModelState$df)
       tooltip <- "Select the value of the Y variable"
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -148,18 +148,18 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       )
     })
-    output[["xVarUI"]] <- renderUI({
+    output[["xVarUI"]] <- shiny::renderUI({
       message <- check_visualization1(DataModelState)
       if (!is.null(message)) {
         return(
           info_div(message)
         )
       }
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       colnames <- names(DataModelState$df)
       tooltip <- "Select the value of the X variable"
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -174,12 +174,12 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       )
     })
-    output[["colUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["colUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Select a variable  for the colour variable. By chosing this groups are formed based on the unique entries in this column. Thereby, each entry gets its own colour to distinguish the groups. Dependent on the plot type either the lines, dots or the frame of the boxes are labelled"
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -194,12 +194,12 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       )
     })
-    output[["fillUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["fillUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Select a variable  for the fill variable. By chosing this groups are formed based on the unique entries in this column. Thereby, each entry gets its own colour to distinguish the groups."
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -214,12 +214,12 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       )
     })
-    output[["facetByUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    output[["facetByUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Split plot in panels based on which variable"
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -234,13 +234,13 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       )
     })
-    # TODO: Why is this defined as renderUI?
-    output[["facetScalesUI"]] <- renderUI({
-      req(!is.null(DataModelState$df))
-      req(is.data.frame(DataModelState$df))
+    # TODO: Why is this defined as shiny::renderUI?
+    output[["facetScalesUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Do you want to scale the Y axis"
-      div(
+      htmltools::div(
         tags$label(
           "Dependent Variable",
           class = "tooltip",
@@ -282,17 +282,17 @@ visServer <- function(id, DataModelState, ResultsState) {
       })
     }
 
-    observeEvent(input$CreatePlotBox, {
+    shiny::observeEvent(input$CreatePlotBox, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plotFct("box")
     })
 
-    observeEvent(input$CreatePlotScatter, {
+    shiny::observeEvent(input$CreatePlotScatter, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plotFct("dot")
     })
 
-    observeEvent(input$CreatePlotLine, {
+    shiny::observeEvent(input$CreatePlotLine, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plotFct("line")
     })
@@ -310,7 +310,7 @@ visServer <- function(id, DataModelState, ResultsState) {
       p <- try({
         vis$validate()
         pl <- vis$eval(ResultsState)
-        exportTestValues(
+        shiny::exportTestValues(
           plot = pl
         )
       })
@@ -319,17 +319,17 @@ visServer <- function(id, DataModelState, ResultsState) {
       }
     }
 
-    observeEvent(input$CreateModelBox, {
+    shiny::observeEvent(input$CreateModelBox, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plot_model_fct("box")
     })
 
-    observeEvent(input$CreateModelScatter, {
+    shiny::observeEvent(input$CreateModelScatter, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plot_model_fct("dot")
     })
 
-    observeEvent(input$CreateModelLine, {
+    shiny::observeEvent(input$CreateModelLine, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plot_model_fct("line")
     })

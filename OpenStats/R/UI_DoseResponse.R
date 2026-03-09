@@ -8,6 +8,6 @@ DoseResponseSidebarUI <- function(id) {
 
 # nocov start ui-scaffold
 DoseResponseUI <- function(id) {
-  fluidRow()
+  shiny::fluidRow()
 }
 # nocov end ui-scaffold
