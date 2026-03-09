@@ -230,16 +230,16 @@ env_lc_V1_2$drawplot <- drawplot
 
 ic50_internal <- function(df, abs, conc,
                           title, islog_x, islog_y) {
-  model <- drm(abs ~ conc,
-    data = df, fct = LL.4(),
+  model <- drc::drm(abs ~ conc,
+    data = df, fct = drc::LL.4(),
     robust = "median"
   )
   valid_points <- env_lc_V1_2$false_discovery_rate(residuals(model))
-  model <- drm(abs ~ conc,
+  model <- drc::drm(abs ~ conc,
     data = df,
     subset = valid_points,
     start = model$coefficients,
-    fct = LL.4(), robust = "mean",
+    fct = drc::LL.4(), robust = "mean",
   )
   res <- env_lc_V1_2$check_fit(
     model, min(df[, conc]),

@@ -266,7 +266,7 @@ app <- function() {
               class = "var-box-name",
               name
             ),
-            DTOutput(paste0("res_", name)),
+            DT::DTOutput(paste0("res_", name)),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (inherits(temp, "doseResponse")) {
@@ -281,7 +281,7 @@ app <- function() {
             ),
             shiny::actionButton(paste0("res_previous_", name), "Previous plot"),
             shiny::actionButton(paste0("res_next_", name), "Next plot"),
-            DTOutput(paste0("res_dose_response_df_", name)),
+            DT::DTOutput(paste0("res_dose_response_df_", name)),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (inherits(temp, "plot")) {
@@ -302,8 +302,8 @@ app <- function() {
               name
             ),
             plotOutput(paste0("res_plot_", name)),
-            DTOutput(paste0("res_summary_", name)),
-            DTOutput(paste0("res_information_criterion_", name)),
+            DT::DTOutput(paste0("res_summary_", name)),
+            DT::DTOutput(paste0("res_information_criterion_", name)),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else {

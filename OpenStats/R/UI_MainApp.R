@@ -88,7 +88,7 @@ main_app_ui <- function() {
         shiny::tabsetPanel(
           shiny::tabPanel(
             "Data",
-            DTOutput("df")
+            DT::DTOutput("df")
           ),
           shiny::tabPanel(
             "DataWrangling",
