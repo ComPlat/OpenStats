@@ -1,5 +1,5 @@
 DoseResponseServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
 
     # Render sidebar
     output[["DoseResponseUI"]] <- shiny::renderUI({
@@ -16,12 +16,12 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
       htmltools::div(
         style = "position: relative;",
         htmltools::br(),
-        checkboxInput(
+        shiny::checkboxInput(
           "DOSERESPONSE-xTransform",
           label = "Log transform x-axis",
           value = FALSE
         ),
-        checkboxInput(
+        shiny::checkboxInput(
           "DOSERESPONSE-yTransform",
           label = "Log transform y-axis",
           value = FALSE

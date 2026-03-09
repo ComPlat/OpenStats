@@ -65,9 +65,9 @@ show_docu <- function(input) {
       path2 <- path_list[[2]]
       plot_path <- path_list[[3]]
       title <- path_list[[4]]
-      shiny::showModal(modalDialog(
+      shiny::showModal(shiny::modalDialog(
         title = title,
-        includeHTML(path1),
+        shiny::includeHTML(path1),
         htmltools::br(),
         renderImage(
           {
@@ -86,7 +86,7 @@ show_docu <- function(input) {
         htmltools::br(),
         htmltools::br(),
         htmltools::br(),
-        includeHTML(path2),
+        shiny::includeHTML(path2),
         easyClose = TRUE,
         footer = NULL,
         size = "l"
@@ -94,9 +94,9 @@ show_docu <- function(input) {
     } else {
       path <- path_list[[1]]
       title <- path_list[[2]]
-      shiny::showModal(modalDialog(
+      shiny::showModal(shiny::modalDialog(
         title = title,
-        includeHTML(path),
+        shiny::includeHTML(path),
         easyClose = TRUE,
         footer = NULL
       ))
@@ -107,9 +107,9 @@ show_docu <- function(input) {
   obs_formula <- shiny::observeEvent(input[["FO-formula_docu"]], {
     type <- input[["FO-model_type"]]
     path_list <- get_docu(paste0(type, "Formula"))
-    shiny::showModal(modalDialog(
+    shiny::showModal(shiny::modalDialog(
       title = path_list[[2]],
-      includeHTML(path_list[[1]]),
+      shiny::includeHTML(path_list[[1]]),
       easyClose = TRUE,
       footer = NULL,
       size = "l"
@@ -119,9 +119,9 @@ show_docu <- function(input) {
   # docu split by group
   obs_split <- shiny::observeEvent(input[["SG-split_docu"]], {
     path_list <- get_docu("Split")
-    shiny::showModal(modalDialog(
+    shiny::showModal(shiny::modalDialog(
       title = path_list[[2]],
-      includeHTML(path_list[[1]]),
+      shiny::includeHTML(path_list[[1]]),
       easyClose = TRUE,
       footer = NULL,
       size = "l"

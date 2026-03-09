@@ -1,5 +1,5 @@
 corrServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
 
     output[["CorrelationUI"]] <- shiny::renderUI({
       message <- check_correlation(DataModelState)
@@ -10,7 +10,7 @@ corrServer <- function(id, DataModelState, ResultsState) {
       }
       htmltools::div(
         htmltools::br(),
-        sliderInput("CORR-conflevel", "Confidence level of the interval",
+        shiny::sliderInput("CORR-conflevel", "Confidence level of the interval",
           min = 0, max = 1, value = 0.95
         ),
         shiny::selectInput(

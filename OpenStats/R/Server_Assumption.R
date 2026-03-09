@@ -1,5 +1,5 @@
 assServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
 
     # React to model type
     output[["shapiroUI"]] <- shiny::renderUI({

@@ -143,7 +143,7 @@ output$Results <- renderUI({
           class = "var-box-name",
           name
         ),
-        plotOutput(paste0("res_dose_response_", name),
+        shiny::plotOutput(paste0("res_dose_response_", name),
           width = "100%", height = "800px"
         ),
         actionButton(paste0("res_previous_", name), "Previous plot"),
@@ -158,7 +158,7 @@ output$Results <- renderUI({
           class = "var-box-name",
           name
         ),
-        plotOutput(paste0("res_", name), width = "100%", height = "800px"),
+        shiny::plotOutput(paste0("res_", name), width = "100%", height = "800px"),
         actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
       )
     } else if (inherits(temp, "summaryModel")) {
@@ -168,7 +168,7 @@ output$Results <- renderUI({
           class = "var-box-name",
           name
         ),
-        plotOutput(paste0("res_plot_", name)),
+        shiny::plotOutput(paste0("res_plot_", name)),
         DT::DTOutput(paste0("res_summary_", name)),
         DT::DTOutput(paste0("res_information_criterion_", name)),
         actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
@@ -211,12 +211,12 @@ observe({
       } else if (is.data.frame(temp)) {
         output[[paste0("res_", name)]] <- render_df(temp)
       } else if (inherits(temp, "doseResponse")) {
-        output[[paste0("res_dose_response_", name)]] <- renderPlot(temp@p[[temp@current_page]])
+        output[[paste0("res_dose_response_", name)]] <- shiny::renderPlot(temp@p[[temp@current_page]])
         output[[paste0("res_dose_response_df_", name)]] <- render_df(temp@df, 2)
       } else if (inherits(temp, "plot")) {
-        output[[paste0("res_", name)]] <- renderPlot(temp@p)
+        output[[paste0("res_", name)]] <- shiny::renderPlot(temp@p)
       } else if (inherits(temp, "summaryModel")) {
-        output[[paste0("res_plot_", name)]] <- renderPlot(temp@p)
+        output[[paste0("res_plot_", name)]] <- shiny::renderPlot(temp@p)
         output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
         output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
       } else {

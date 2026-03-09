@@ -1,5 +1,5 @@
 SplitByGroupServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     # Reactive values
     SplitByGroupState <- shiny::reactiveValues(
       df = NULL,

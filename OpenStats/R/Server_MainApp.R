@@ -77,7 +77,7 @@ app <- function() {
 
     # upload local file from user or download from user
     # ----------------------------------------------------------
-    download_file <- reactive({
+    download_file <- shiny::reactive({
       out_dir <- file.path(tempdir(), "openstats-results")
       if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
 
@@ -119,7 +119,7 @@ app <- function() {
       shiny::req(is.data.frame(DataModelState$df))
     })
 
-    get_method <- reactive({
+    get_method <- shiny::reactive({
       if (!requireNamespace("COMELN", quietly = TRUE)) {
         shiny::validate(shiny::need(FALSE,
           paste(
@@ -276,7 +276,7 @@ app <- function() {
               class = "var-box-name",
               name
             ),
-            plotOutput(paste0("res_dose_response_", name),
+            shiny::plotOutput(paste0("res_dose_response_", name),
               width = "100%", height = "800px"
             ),
             shiny::actionButton(paste0("res_previous_", name), "Previous plot"),
@@ -291,7 +291,7 @@ app <- function() {
               class = "var-box-name",
               name
             ),
-            plotOutput(paste0("res_", name), width = "100%", height = "800px"),
+            shiny::plotOutput(paste0("res_", name), width = "100%", height = "800px"),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
           )
         } else if (inherits(temp, "summaryModel")) {
@@ -301,7 +301,7 @@ app <- function() {
               class = "var-box-name",
               name
             ),
-            plotOutput(paste0("res_plot_", name)),
+            shiny::plotOutput(paste0("res_plot_", name)),
             DT::DTOutput(paste0("res_summary_", name)),
             DT::DTOutput(paste0("res_information_criterion_", name)),
             shiny::actionButton(paste0("remove_res_", name), "Remove", class = "btn-danger")
@@ -350,20 +350,20 @@ app <- function() {
           temp <- res[[name]]
           set_rendered <- if (inherits(temp, "doseResponse")) FALSE else TRUE
           if (is.vector(temp)) {
-            output[[paste0("res_", name)]] <- renderPrint(temp)
+            output[[paste0("res_", name)]] <- shiny::renderPrint(temp)
           } else if (is.data.frame(temp)) {
             output[[paste0("res_", name)]] <- render_df(temp)
           } else if (inherits(temp, "doseResponse")) {
-            output[[paste0("res_dose_response_", name)]] <- renderPlot(temp@p[[temp@current_page]])
+            output[[paste0("res_dose_response_", name)]] <- shiny::renderPlot(temp@p[[temp@current_page]])
             output[[paste0("res_dose_response_df_", name)]] <- render_df(temp@df, 2)
           } else if (inherits(temp, "plot")) {
-            output[[paste0("res_", name)]] <- renderPlot(temp@p)
+            output[[paste0("res_", name)]] <- shiny::renderPlot(temp@p)
           } else if (inherits(temp, "summaryModel")) {
-            output[[paste0("res_plot_", name)]] <- renderPlot(temp@p)
+            output[[paste0("res_plot_", name)]] <- shiny::renderPlot(temp@p)
             output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
             output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
           } else {
-            output[[paste0("res_", name)]] <- renderPrint(temp)
+            output[[paste0("res_", name)]] <- shiny::renderPrint(temp)
           }
           if (set_rendered) attr(ResultsState$all_data[[name]], "rendered") <- TRUE
         })
@@ -437,7 +437,7 @@ app <- function() {
     })
     shiny::observeEvent(input[["open_formula_editor"]], {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
-      shiny::showModal(modalDialog(
+      shiny::showModal(shiny::modalDialog(
         title = htmltools::div(style = "display: flex; align-items: center; justify-content: space-between;",
           htmltools::span("FormulaEditor"),
           shiny::actionButton("FO-formula_docu", label = NULL, icon = shiny::icon("question-circle"))
@@ -558,7 +558,7 @@ app <- function() {
     })
     shiny::observeEvent(input[["open_split_by_group"]], {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
-      shiny::showModal(modalDialog(
+      shiny::showModal(shiny::modalDialog(
         title = "SplitByGroup",
         SplitByGroupUI("SG"),
         easyClose = TRUE,
@@ -567,10 +567,10 @@ app <- function() {
       ))
     })
     shiny::observe({
-      output$applied_filter <- renderText(NULL)
+      output$applied_filter <- shiny::renderText(NULL)
       shiny::req(!is.null(DataModelState$filter_col))
       shiny::req(!is.null(DataModelState$filter_group))
-      output$applied_filter <- renderText({
+      output$applied_filter <- shiny::renderText({
         paste(
           "The dataset is splitted by the variable(s): [",
           paste(DataModelState$filter_col, collapse = ", "),
@@ -649,7 +649,7 @@ app <- function() {
             print_err("Cannot store the results in an excelFile")
           }
           fn <- tempfile(fileext = ".zip")
-          zip(fn, c(jsonFile, excelFile))
+          utils::zip(fn, c(jsonFile, excelFile))
           if (!file.exists(fn) || file.info(fn)$size <= 0) {
             print_err("Could not create the zip archive storing the final results")
           }

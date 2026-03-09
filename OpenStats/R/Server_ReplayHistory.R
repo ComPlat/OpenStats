@@ -1,5 +1,5 @@
 HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
 
     output[["ReplayHistory"]] <- shiny::renderUI({
       shiny::invalidateLater(250)
@@ -16,7 +16,7 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       print_req(nchar(input$history_string) > 2, "The input history is too short")
 
-      shiny::showModal(modalDialog(
+      shiny::showModal(shiny::modalDialog(
         title = "Confirm History Replay",
         "Do you want to run the history? This can take a while",
         easyClose = FALSE,

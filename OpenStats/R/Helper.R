@@ -61,7 +61,7 @@ print_form <- function(formula) {
   if (is.null(formula)) {
     shiny::showNotification("You have to set a formula",
       action = htmltools::div(
-        shiny::showModal(modalDialog(
+        shiny::showModal(shiny::modalDialog(
           title = "FormulaEditor",
           FormulaEditorUI("FO"),
           easyClose = TRUE,

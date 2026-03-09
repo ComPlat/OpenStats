@@ -1,6 +1,6 @@
 OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
 
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     # Data
     observe({
       shiny::req(DataModelState$active_df_name)
@@ -27,11 +27,11 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
           ),
           htmltools::div(
             title = "This displays the current types for each column",
-            renderTable({
+            shiny::renderTable({
               col_info
             })
           ),
-          renderTable({
+          shiny::renderTable({
             head(DataWranglingState$df)
           })
         )
@@ -124,7 +124,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       iv_list <- DataWranglingState$intermediate_vars
       lapply(names(iv_list), function(name) {
         shiny::observeEvent(DataWranglingState$intermediate_vars[[name]], {
-          output[[paste0("iv_", name)]] <- renderPrint({
+          output[[paste0("iv_", name)]] <- shiny::renderPrint({
             DataWranglingState$intermediate_vars[[name]]
           })
         }, ignoreInit = TRUE)
@@ -135,7 +135,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     observe({
       iv_list <- DataWranglingState$intermediate_vars
       for (name in names(iv_list)) {
-        output[[paste0("iv_", name)]] <- renderPrint({
+        output[[paste0("iv_", name)]] <- shiny::renderPrint({
           iv_list[[name]]
         })
         shiny::observeEvent(input[[paste0("remove_iv_", name)]], {
@@ -213,7 +213,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       if (inherits(e, "try-error")) {
         return()
       }
-      output$head <- renderTable(head(DataWranglingState$df, 10))
+      output$head <- shiny::renderTable(head(DataWranglingState$df, 10))
     })
 
     shiny::observeEvent(input$add, {

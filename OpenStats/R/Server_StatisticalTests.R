@@ -1,5 +1,5 @@
 testsServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     # Render tabs
     output$tabs <- shiny::renderUI({
       tabs <- list()
@@ -24,7 +24,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
       }
       if (input$TestsConditionedPanels == "Two groups" && (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
         htmltools::div(
-          sliderInput(shiny::NS(id, "confLevel"), "Confidence level of the interval",
+          shiny::sliderInput(shiny::NS(id, "confLevel"), "Confidence level of the interval",
             min = 0, max = 1, value = 0.95
           ),
           shiny::selectInput(
@@ -63,7 +63,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
             )
           ),
           shiny::actionButton(shiny::NS(id, "PostHocTest"), "run test"),
-          sliderInput(shiny::NS(id, "pval"), "P-value",
+          shiny::sliderInput(shiny::NS(id, "pval"), "P-value",
             min = 0, max = 0.15, value = 0.05
           ),
           shiny::selectInput(

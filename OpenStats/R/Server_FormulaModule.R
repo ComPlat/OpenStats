@@ -1,5 +1,5 @@
 FormulaEditorServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
 
     # Create buttons
     output[["buttons"]] <- shiny::renderUI({
@@ -457,7 +457,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               )
             }
             output$model <- shiny::renderUI({
-              withMathJax(HTML(paste0("$$", model_latex, "$$")))
+              shiny::withMathJax(htmltools::HTML(paste0("$$", model_latex, "$$")))
             })
           },
           warning = function(warn) {

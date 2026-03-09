@@ -22,7 +22,7 @@
 \examples{ 
   \dontrun{
     server <- function(input, output, session) {
-          # the variable file is a reactive value containing 
+          # the variable file is a shiny::reactive value containing 
           # a logical called 'ready' and a filepath called 'file' 
           observeEvent(file$ready, { 
             COMELN::upload(session, file$file)

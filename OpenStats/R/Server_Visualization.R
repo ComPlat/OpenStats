@@ -1,5 +1,5 @@
 visServer <- function(id, DataModelState, ResultsState) {
-  moduleServer(id, function(input, output, session) {
+  shiny::moduleServer(id, function(input, output, session) {
     # Render plotting functions
     output[["CreatePlotBoxUI"]] <- shiny::renderUI({
       shiny::invalidateLater(250)
@@ -75,7 +75,7 @@ visServer <- function(id, DataModelState, ResultsState) {
         x_max <- max(df[[x]], na.rm = TRUE)
         padded_max <- x_max * 1.25
         return(
-          sliderInput(
+          shiny::sliderInput(
             "VIS-XRange",
             "Select range for x axis:",
             min = padded_min,
@@ -107,7 +107,7 @@ visServer <- function(id, DataModelState, ResultsState) {
         y_max <- max(df[[y]], na.rm = TRUE)
         padded_max <- y_max * 1.05
         return(
-          sliderInput(
+          shiny::sliderInput(
             "VIS-YRange",
             "Select range for y axis:",
             min = padded_min,

@@ -15,10 +15,10 @@ run_app <- function(port) {
   app <- shinyApp(
     ui = bootstrapPage(
       shiny::numericInput('n', 'Number of obs', 100),
-      plotOutput('plot')
+      shiny::plotOutput('plot')
     ),
     server = function(input, output) {
-      output$plot <- renderPlot({ hist(runif(input$n)) })
+      output$plot <- shiny::renderPlot({ hist(runif(input$n)) })
     }
   )
   runApp(app, port = port)
