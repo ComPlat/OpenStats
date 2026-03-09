@@ -125,7 +125,7 @@ check_fit <- function(model, min_conc, max_conc,
   confidence_interval <- confint(model, parm = c("e"), level = 0.95)
   IC50_relative_lower <- confidence_interval[1]
   IC50_relative_higher <- confidence_interval[2]
-  p_value <- noEffect(model)[3]
+  p_value <- drc::noEffect(model)[3]
   Response_lowestdose_predicted <- env_lc_V1_2$shapenumber(Response_lowestdose_predicted)
   Response_highestdose_predicted <- env_lc_V1_2$shapenumber(Response_highestdose_predicted)
   HillCoefficient <- env_lc_V1_2$shapenumber(HillCoefficient)
