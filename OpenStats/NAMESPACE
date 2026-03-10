@@ -1,25 +1,26 @@
 export(open_stats)
 
-import(bslib, except = c(bootstrap))
 import(ggplot2)
-import(base64enc)
-import(mgcv)
-import(RColorBrewer)
-import(tidyr, except = c(unpack, pack, expand))
-import(purrr, except = c(some))
-import(cowplot)
-import(MASS)
-import(Matrix)
-import(equatiomatic)
-import(openxlsx)
-import(car)
-import(cowplot)
-import(openssl)
-import(httr)
-import(jose)
-import(stats, except = c(gaussian, cov2cor, toeplitz, getInitial, update))
 
+import(stats, except = c(gaussian, cov2cor, toeplitz, getInitial, update))
 importFrom("readxl", "excel_sheets")
 importFrom("emmeans", "emmeans")
 importFrom("methods", "new")
-importFrom("utils", "object.size")
+importFrom("agricolae", "HSD.test")
+importFrom("equatiomatic", "extract_eq")
+importFrom("cowplot", "plot_grid")
+importFrom("car", "leveneTest")
+importFrom(openxlsx,
+  createWorkbook,
+  createStyle,
+  writeData,
+  insertImage,
+  addStyle,
+  saveWorkbook
+)
+importFrom(
+jsonlite,
+read_json,
+toJSON, fromJSON,
+base64_enc
+)

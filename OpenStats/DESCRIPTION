@@ -1,8 +1,8 @@
 Package: OpenStats
 Type: Package
 Title: Statistical Analysis in the Web for Biologists and Chemists
-Version: 1.2
-Date: 2025-10-24
+Version: 1.3
+Date: 2026-03-09
 Authors@R: person(given = "Krämer",
     family = "Konrad",
     role = c("aut", "cre"),
@@ -14,33 +14,23 @@ Depends: R (>= 4.1.0)
 Imports:
   shiny,
   DT,
-  bslib,
   broom,
   ggplot2 (>= 3.3.0),
-  base64enc,
   shinyjs,
   shinyWidgets,
-  mgcv,
-  RColorBrewer,
-  tidyr,
-  purrr,
   agricolae,
   drc,
   cowplot,
-  MASS,
-  Matrix,
   equatiomatic,
   openxlsx,
   car,
-  openssl,
   jsonlite,
   emmeans,
   readxl,
   stats,
   methods,
   utils,
-  httr,
-  jose
+  htmltools,
 Suggests:
   tinytest,
   shinytest2,

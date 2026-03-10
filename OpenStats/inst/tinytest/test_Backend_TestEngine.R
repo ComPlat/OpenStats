@@ -22,7 +22,7 @@ test_create_formula <- function() {
   )
   eq <- cf$eval(ResultsState, DataModelState, "Linear")
   check1 <- expect_equal(DataModelState$formula@formula, as.formula("uptake ~ conc"))
-  check2 <- expect_true(is.character(eq)) # extract_eq() returns a LaTeX-like string
+  check2 <- expect_true(is.character(eq)) # equatiomatic::extract_eq() returns a LaTeX-like string
   checks <- c(check1, check2)
   expect_true(all(checks))
 }

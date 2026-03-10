@@ -810,68 +810,6 @@ test_splitData <- function() {
 }
 test_splitData()
 
-# Test stack and unstack DF
-# =======================================================================================
-test_stack_unstackDF <- function() {
-  # Test data
-  df <- data.frame(
-    ID = c(1, 2, 3),
-    A = c(10, 20, 30),
-    B = c(40, 50, 60)
-  )
-
-  # Test env_utils_V1_2$stack_df
-  stacked <- OpenStats:::stack_df(df, keepCol = "ID")
-
-  # Check structure of stacked data frame
-  expect_equal(
-    colnames(stacked),
-    c("ID", "name", "value"),
-    info = "stackDF should produce columns: ID, name, value"
-  )
-  expect_equal(
-    nrow(stacked),
-    6,
-    info = "stackDF should have rows equal to original non-ID columns * number of rows"
-  )
-  expect_equal(
-    unique(stacked$name),
-    c("A", "B"),
-    info = "stackDF should properly stack column names into 'name' column"
-  )
-  expect_equal(
-    stacked$value[stacked$name == "A"],
-    df$A,
-    info = "stackDF should retain values correctly for column A"
-  )
-
-  # Test unenv_utils_V1_2$stack_df
-  unstacked <- OpenStats:::unstack_df(stacked, name = "name", value = "value")
-
-  # Check structure of unstacked data frame
-  expect_equal(
-    colnames(unstacked),
-    colnames(df),
-    info = "unstackDF should reconstruct the original column names"
-  )
-  expect_equal(
-    unstacked$A,
-    df$A,
-    info = "unstackDF should correctly reconstruct column A"
-  )
-  expect_equal(
-    unstacked$B,
-    df$B,
-    info = "unstackDF should correctly reconstruct column B"
-  )
-  expect_equal(
-    unstacked$ID,
-    df$ID,
-    info = "unstackDF should preserve the ID column"
-  )
-}
-test_stack_unstackDF()
-
 # Test env_utils_V1_2$create_js_string
 # =======================================================================================
 test_create_js_string <- function() {

@@ -3,10 +3,6 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
 
     # Render sidebar
     output[["DoseResponseUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       message <- check_dose_response(DataModelState)
       if (!is.null(message)) {
         return(

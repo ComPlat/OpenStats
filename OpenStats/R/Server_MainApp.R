@@ -49,6 +49,25 @@ app <- function() {
 
     # Running status
     # ----------------------------------------------------------
+    shiny::observe({
+      shiny::invalidateLater(250)
+      status <- ResultsState$bgp$running_status
+      if (status == "Running...") {
+        # disable the buttons of the tabs different from the current tab
+        shinyjs::disable("VIS-CreatePlotBox")
+        shinyjs::disable("VIS-CreatePlotScatter")
+        shinyjs::disable("VIS-CreatePlotLine")
+        shinyjs::disable("VIS-CreateModelBox")
+        shinyjs::disable("VIS-CreateModelScatter")
+        shinyjs::disable("VIS-CreateModelLine")
+
+        shinyjs::disable("DOSERESPONSE-ic50")
+
+        shinyjs::disable("HISTORY-replay_history")
+
+        shinyjs::enable("ASS-DiagnosticPlot")
+      }
+    })
     # React to press cancel
     shiny::observeEvent(input$confirm_stop, {
       ResultsState$bgp$cancel()

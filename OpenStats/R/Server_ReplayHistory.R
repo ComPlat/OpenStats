@@ -2,10 +2,6 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
   shiny::moduleServer(id, function(input, output, session) {
 
     output[["ReplayHistory"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       shiny::actionButton("HISTORY-replay_history", "Replay history", class = "add-button",
         title = "Copy the history (json format) into the text field and apply it to the current data set")
     })
@@ -29,7 +25,7 @@ HistoryEditorServer <- function(id, DataModelState, ResultsState, DataWranglingS
     # nocov end ui-scaffold
 
     shiny::observeEvent(input$confirm_replay, {
-      removeModal()
+      shiny::removeModal()
       rh <- get_replay_history()$new(input$history_string, DataModelState$df, ResultsState$all_data)
       rh$validate()
       rh$eval(ResultsState)

@@ -65,7 +65,7 @@ create_excel_file <- function(l) {
   }
 
   wb <- openxlsx::createWorkbook()
-  addWorksheet(wb, "Results")
+  openxlsx::addWorksheet(wb, "Results")
 
   curr_row <- 1
   plot_files <- c()
@@ -192,7 +192,8 @@ create_js_string <- function(l) {
         plot = p,
         filename = fn, width = width, height = height, dpi = resolution
       )
-      jsString <- c(jsString, paste0("data:image/png;base64,", base64enc::base64encode(fn)))
+      raw <- readBin(fn, "raw", file.info(fn)$size)
+      jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
       unlink(fn)
       js_names <- c(js_names, names_l[i])
     } else if (inherits(l[[i]], "doseResponse")) {
@@ -201,7 +202,8 @@ create_js_string <- function(l) {
       for (idx in seq_len(length(p))) {
         fn <- tempfile(fileext = ".png")
         ggsave(plot = p[[idx]], filename = fn)
-        jsString <- c(jsString, paste0("data:image/png;base64,", base64enc::base64encode(fn)))
+        raw <- readBin(fn, "raw", file.info(fn)$size)
+        jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
         unlink(fn)
         js_names <- c(js_names, paste0(names_l[i], "_PlotNr", idx))
       }
@@ -212,7 +214,8 @@ create_js_string <- function(l) {
       p <- l[[i]]@p@p
       fn <- tempfile(fileext = ".png")
       ggsave(plot = p, filename = fn)
-      jsString <- c(jsString, paste0("data:image/png;base64,", base64enc::base64encode(fn)))
+      raw <- readBin(fn, "raw", file.info(fn)$size)
+      jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
       unlink(fn)
       js_names <- c(js_names, paste0(names_l[i], " plot"))
 
@@ -232,22 +235,6 @@ create_js_string <- function(l) {
   return(list(jsString, js_names))
 }
 env_utils_V1_2$create_js_string <- create_js_string
-
-stack_df <- function(df, keepCol) {
-  as.data.frame(pivot_longer(df,
-    cols = -keepCol,
-    names_to = "name", values_to = "value"
-  ))
-}
-env_utils_V1_2$stack_df <- stack_df
-
-unstack_df <- function(df, name, value) {
-  df <- pivot_wider(df, names_from = name, values_from = value)
-  df <- map(df, simplify) %>% # TODO: is this from purrr? Maybe use lapply
-    as.data.frame()
-  as.data.frame(df)
-}
-env_utils_V1_2$unstack_df <- unstack_df
 
 correct_name <- function(name, df) {
   name %in% names(df)
@@ -463,9 +450,9 @@ check_rls <- function(ResultsState, newObj) {
   if (length(ResultsState) > 1000) {
     stop("You can only store 1000 results. Consider removing some results")
   }
-  current_size <- object.size(ResultsState)
+  current_size <- utils::object.size(ResultsState)
   max_size <- 500 * 1024^2 # 500 MB per user
-  if (current_size + object.size(newObj) > max_size) {
+  if (current_size + utils::object.size(newObj) > max_size) {
     stop("Memory limit exceeded for user results. Consider removing some results.")
   }
 }

@@ -69,7 +69,7 @@ show_docu <- function(input) {
         title = title,
         shiny::includeHTML(path1),
         htmltools::br(),
-        renderImage(
+        shiny::renderImage(
           {
             list(
               src = plot_path,

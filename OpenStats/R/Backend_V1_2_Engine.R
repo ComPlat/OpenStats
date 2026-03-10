@@ -12,6 +12,39 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
     promise_history_entry = NULL,
     in_backend = FALSE,
 
+    disable = function() {
+      # Here the buttons of the current tab are disabled
+      # The other disable runs have no effect here.
+      # Therefore,an observe is running in the main server
+      # to disable them
+      shinyjs::disable("CreatePlotBox")
+      shinyjs::disable("CreatePlotScatter")
+      shinyjs::disable("CreatePlotLine")
+      shinyjs::disable("CreateModelBox")
+      shinyjs::disable("CreateModelScatter")
+      shinyjs::disable("CreateModelLine")
+
+      shinyjs::disable("ic50")
+
+      shinyjs::disable("replay_history")
+
+      shinyjs::enable("DiagnosticPlot")
+    },
+    enable = function() {
+      shinyjs::enable("VIS-CreatePlotBox")
+      shinyjs::enable("VIS-CreatePlotScatter")
+      shinyjs::enable("VIS-CreatePlotLine")
+      shinyjs::enable("VIS-CreateModelBox")
+      shinyjs::enable("VIS-CreateModelScatter")
+      shinyjs::enable("VIS-CreateModelLine")
+
+      shinyjs::enable("DOSERESPONSE-ic50")
+
+      shinyjs::enable("HISTORY-replay_history")
+
+      shinyjs::enable("ASS-DiagnosticPlot")
+    },
+
     initialize = function(poll_interval = 250, com = communicator_V1_2) {
       self$com <- com$new()
       self$poll_interval <- poll_interval
@@ -26,14 +59,18 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
     tick = function(ResultsState, DataModelState, DataWranglingState) {
       if (!is.null(ResultsState$bgp$process) && !ResultsState$bgp$process$is_alive()) {
         res <- tryCatch(ResultsState$bgp$process$get_result(), error = function(e) e)
+
         if (ResultsState$bgp$cancel_clicked) {
           ResultsState$bgp$running_status <- "Canceled process"
           self$process$interrupt()
           ResultsState$bgp$cancel_clicked <- FALSE
-        } else if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
+          self$enable()
+        }
+        else if (inherits(res, "error") && !ResultsState$bgp$cancel_clicked) {
           ResultsState$bgp$running_status <- sprintf("Error failed with: %s", res$parent$message)
           ResultsState$bgp$com$print_err(res$parent$message)
-        } else {
+        }
+        else {
           ResultsState$bgp$warnings <- ResultsState$bgp$process$read_error()
           if (ResultsState$bgp$warnings != "") {
             ResultsState$bgp$com$print_warn(ResultsState$bgp$warnings)
@@ -41,6 +78,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           e <- try(env_utils_V1_2$check_rls(ResultsState$all_data, res))
           if (inherits(e, "try-error")) {
             self$com$print_err(conditionMessage(e))
+            self$enable()
             return()
           }
           if (inherits(res, "HistoryReplayResult")) {
@@ -75,10 +113,12 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
             )
           }
         }
+
         ResultsState$bgp$process <- NULL
         ResultsState$bgp$is_running <- FALSE
         ResultsState$bgp$promise_result_name <- NULL
         ResultsState$bgp$promise_history_entry <- NULL
+        self$enable()
       }
     },
 
@@ -117,6 +157,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
         return()
       }
       shiny::req(is.null(self$process) || !self$process$is_alive())
+      self$disable()
       self$promise_result_name <- promise_result_name
       self$promise_history_entry <- promise_history_entry
       self$is_running <- TRUE
@@ -987,7 +1028,7 @@ create_formula_V1_2 <- R6::R6Class(
         env_check_ast_V1_2$check_ast(formula, colnames(self$df))
         DataModelState$formula <- new("LinearFormula", formula = formula)
         model <- lm(formula, data = self$df)
-        eq <- extract_eq(model, wrap = TRUE)
+        eq <- equatiomatic::extract_eq(model, wrap = TRUE)
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(
           type = "CreateFormula",
           formula = deparse(formula),
@@ -1006,7 +1047,7 @@ create_formula_V1_2 <- R6::R6Class(
         )
         family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
         model <- glm(formula, data = self$df, family = eval(family))
-        eq <- extract_eq(model, wrap = TRUE)
+        eq <- equatiomatic::extract_eq(model, wrap = TRUE)
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(
           type = "CreateFormula",
           formula = deparse(formula),

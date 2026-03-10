@@ -268,7 +268,7 @@ diagnostic_plots <- function(df, formula) {
     leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
   )
 
-  plot_grid(
+  cowplot::plot_grid(
     env_diagnostic_plots_V1_2$resids_vs_fitted_plot(fitted, resids, n, formula, influential_points),
     env_diagnostic_plots_V1_2$qq_norm_plot(resids, n, formula, influential_points),
     env_diagnostic_plots_V1_2$manual_scale_location_plot(fitted, resids, n, formula, influential_points),

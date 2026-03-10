@@ -36,7 +36,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
       htmltools::div(
         htmltools::div(
-          hr(),
+          htmltools::hr(),
           do.call(htmltools::tagList, button_list)
         )
       )
@@ -129,14 +129,14 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       shiny::req(is.data.frame(DataModelState$df))
       if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
         htmltools::div(
-          hr(),
+          htmltools::hr(),
           shiny::textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
         )
       } else if (input$model_type == "Optimization Model") {
         shiny::req(input$PredefinedModels)
         if(input$PredefinedModels == "free") {
           htmltools::div(
-            hr(),
+            htmltools::hr(),
             shiny::textAreaInput("FO-editable_code", "formula terms:", value = "", rows = 12)
           )
         }
@@ -337,7 +337,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
 
     update_rhs_text <- function(updated_text) {
       DataModelState$rhs_string <- updated_text
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      shiny::updateTextAreaInput(session, "editable_code", value = updated_text)
     }
 
     # React to colnames buttons

@@ -12,7 +12,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         htmltools::div(
           htmltools::h4(htmltools::strong("Test of normal distribution")),
-          hr(),
+          htmltools::hr(),
           shiny::actionButton("ASS-shapiro",
             "Shapiro test for individual groups",
             title =
@@ -39,7 +39,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       shiny::req(DataModelState$formula)
       if(inherits(DataModelState$formula, "LinearFormula")) {
         htmltools::div(
-          hr(),
+          htmltools::hr(),
           htmltools::div(
             class = "header", checked = NA,
             htmltools::h4(
@@ -59,10 +59,6 @@ assServer <- function(id, DataModelState, ResultsState) {
       }
     })
     output[["DiagnosticPlotUI"]] <- shiny::renderUI({
-
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
 
       if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         htmltools::div(

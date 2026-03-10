@@ -2,32 +2,18 @@ visServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
     # Render plotting functions
     output[["CreatePlotBoxUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       shiny::actionButton("VIS-CreatePlotBox", "Create plot")
     })
-    output[["CreatePlotScatterUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
 
+    output[["CreatePlotScatterUI"]] <- shiny::renderUI({
       shiny::actionButton("VIS-CreatePlotScatter", "Create plot")
     })
     output[["CreatePlotLineUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       shiny::actionButton("VIS-CreatePlotLine", "Create plot")
     })
+
     # Render model plots
     output[["CreateModelBoxUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
@@ -37,10 +23,6 @@ visServer <- function(id, DataModelState, ResultsState) {
       }
     })
     output[["CreateModelScatterUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
@@ -50,10 +32,6 @@ visServer <- function(id, DataModelState, ResultsState) {
       }
     })
     output[["CreateModelLineUI"]] <- shiny::renderUI({
-      shiny::invalidateLater(250)
-      status <- ResultsState$bgp$running_status
-      if (status != "Idle") return(htmltools::div())
-
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {

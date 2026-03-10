@@ -2,7 +2,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
 
   shiny::moduleServer(id, function(input, output, session) {
     # Data
-    observe({
+    shiny::observe({
       shiny::req(DataModelState$active_df_name)
       shiny::req(ResultsState$all_data[[DataModelState$active_df_name]])
       df <- ResultsState$all_data[[DataModelState$active_df_name]]
@@ -32,7 +32,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
             })
           ),
           shiny::renderTable({
-            head(DataWranglingState$df)
+            utils::head(DataWranglingState$df)
           })
         )
       })
@@ -40,11 +40,11 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
 
     update_code_text <- function(updated_text) {
       DataWranglingState$code_string <- updated_text
-      updateTextAreaInput(session, "editable_code", value = updated_text)
+      shiny::updateTextAreaInput(session, "editable_code", value = updated_text)
     }
 
     # React to df button
-    observe({
+    shiny::observe({
       shiny::req(DataWranglingState$df)
       var <- DataWranglingState$df_name
       shiny::observeEvent(input[[paste0("dataset_", var, "_", DataWranglingState$counter_id)]], {
@@ -85,7 +85,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     })
 
     # React to colnames buttons
-    observe({
+    shiny::observe({
       shiny::req(DataWranglingState$df)
       DataWranglingState$df_name <- env_utils$create_df_name(DataWranglingState$df_name, names(DataModelState$df))
       colnames <- c(DataWranglingState$df_name, names(DataWranglingState$df))
@@ -120,7 +120,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     })
 
     # Show intermediate variables
-    observe({
+    shiny::observe({
       iv_list <- DataWranglingState$intermediate_vars
       lapply(names(iv_list), function(name) {
         shiny::observeEvent(DataWranglingState$intermediate_vars[[name]], {
@@ -132,7 +132,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     })
 
     # Observe remove of intermediate variables
-    observe({
+    shiny::observe({
       iv_list <- DataWranglingState$intermediate_vars
       for (name in names(iv_list)) {
         output[[paste0("iv_", name)]] <- shiny::renderPrint({
@@ -152,7 +152,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     })
 
     # React to intermediate variables buttons
-    observe({
+    shiny::observe({
       shiny::req(DataWranglingState$df)
       shiny::req(length(DataWranglingState$intermediate_vars) >= 1)
       iv_list <- DataWranglingState$intermediate_vars
@@ -213,7 +213,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       if (inherits(e, "try-error")) {
         return()
       }
-      output$head <- shiny::renderTable(head(DataWranglingState$df, 10))
+      output$head <- shiny::renderTable(utils::head(DataWranglingState$df, 10))
     })
 
     shiny::observeEvent(input$add, {
