@@ -13,6 +13,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
     in_backend = FALSE,
 
     disable = function() {
+      if (self$in_backend) return()
       # Here the buttons of the current tab are disabled
       # The other disable runs have no effect here.
       # Therefore,an observe is running in the main server
@@ -31,6 +32,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       shinyjs::enable("DiagnosticPlot")
     },
     enable = function() {
+      if (self$in_backend) return()
       shinyjs::enable("VIS-CreatePlotBox")
       shinyjs::enable("VIS-CreatePlotScatter")
       shinyjs::enable("VIS-CreatePlotLine")
