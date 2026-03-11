@@ -14,10 +14,9 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
 
     disable = function() {
       if (self$in_backend) return()
-      # Here the buttons of the current tab are disabled
+      # Here the buttons of the current tab are disabled instantly.
       # The other disable runs have no effect here.
-      # Therefore,an observe is running in the main server
-      # to disable them
+      # Therefore,an observe is running in the main server to disable them
       shinyjs::disable("CreatePlotBox")
       shinyjs::disable("CreatePlotScatter")
       shinyjs::disable("CreatePlotLine")

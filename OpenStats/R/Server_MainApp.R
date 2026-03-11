@@ -72,21 +72,18 @@ app <- function() {
     shiny::observeEvent(input$confirm_stop, {
       ResultsState$bgp$cancel()
     })
+
     # Show running_status
-    output$running_status <- shiny::renderUI({
+    shiny::observe({
       shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
+      output$running_status <- renderText(status)
       if ((status == "Running...") && !ResultsState$bgp$cancel_clicked) {
-        return(
-          htmltools::div(
-            style = "display: flex; align-items: center; gap: 6px;",
-            htmltools::p(status, style = "margin: 0;"),
-            shiny::icon("spinner", class = "fa-spin", style = "color: #007BFF;"),
-            shiny::actionButton("confirm_stop", "Stop process", class = "btn-danger")
-          )
-        )
+        shinyjs::show("running_status")
+        shinyjs::show("confirm_stop")
       } else {
-        NULL
+        shinyjs::hide("running_status")
+        shinyjs::hide("confirm_stop")
       }
     })
 

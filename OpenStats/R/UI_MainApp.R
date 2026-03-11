@@ -37,7 +37,12 @@ main_app_ui <- function() {
             label = NULL,
             icon = shiny::icon("question-circle")
           ),
-          shiny::uiOutput("running_status") # TODO: when an error ocurred it does not vanish
+          shiny::textOutput("running_status"),
+          shiny::actionButton(
+            "confirm_stop", "Stop process",
+            icon = shiny::icon("spinner", class = "fa-spin", style = "color: #007BFF;"),
+            class = "btn-danger"
+          )
         ),
         shiny::uiOutput("open_formula_editor_main"),
         shiny::uiOutput("formulaUI"),
