@@ -22,6 +22,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
           info_div(message)
         )
       }
+
       if (input$TestsConditionedPanels == "Two groups" && (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
         htmltools::div(
           shiny::sliderInput(shiny::NS(id, "confLevel"), "Confidence level of the interval",
@@ -44,7 +45,8 @@ testsServer <- function(id, DataModelState, ResultsState) {
           ),
           shiny::actionButton(shiny::NS(id, "tTest"), "t test")
         )
-      } else if (input$TestsConditionedPanels == "More than two groups") {
+      }
+      else if (input$TestsConditionedPanels == "More than two groups") {
         htmltools::div(
           shiny::actionButton(shiny::NS(id, "aovTest"), "ANOVA",
             title = "Use ANOVA (Analysis of Variance) when comparing the means of more than two groups, assuming the data is normally distributed and variances are equal across groups. For more information see the Assumption tab"
@@ -53,7 +55,8 @@ testsServer <- function(id, DataModelState, ResultsState) {
             title = "Use the Kruskal-Wallis test when comparing more than two groups but the assumptions of normality or equal variances are not met. It is a non-parametric test. For more information see the Assumption tab"
           )
         )
-      } else if (input$TestsConditionedPanels == "Posthoc tests" && (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
+      }
+      else if (input$TestsConditionedPanels == "Posthoc tests" && (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
         htmltools::div(
           shiny::selectInput(shiny::NS(id, "PostHocTests"), "Choose a Post Hoc test",
             choices = c(
@@ -74,7 +77,8 @@ testsServer <- function(id, DataModelState, ResultsState) {
             )
           )
         )
-      } else if (input$TestsConditionedPanels == "Posthoc tests" && inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+      }
+      else if (input$TestsConditionedPanels == "Posthoc tests" && inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         htmltools::div(
           shiny::selectInput(shiny::NS(id, "PostHocEmmeans"), "Choose an adjustment method",
             choices = c(

@@ -43,30 +43,41 @@ RUN install2.r --error --skipinstalled \
   car \
   equatiomatic \
   quarto \
-  jsonlite \
   emmeans \
   callr
 
-USER shiny
-COPY ./OpenStats/R /home/myapp
-RUN mkdir /home/shiny/results
+# Create writable directories as root and assign them to shiny
+RUN mkdir -p /home/shiny/results \
+    /srv/shiny-server/OpenStats \
+ && chown -R shiny:shiny /home/shiny \
+ && chown -R shiny:shiny /srv/shiny-server
 
-COPY ./MTT/ /home/MTT
-COPY ./comeln/ /home/comeln
-COPY ./OpenStats/ /home/OpenStats
+# Copy package sources
+COPY ./MTT/ /tmp/MTT
+COPY ./comeln/ /tmp/comeln
+COPY ./OpenStats/ /tmp/OpenStats
 
-USER root
-RUN bash -c "cd /home/MTT; R CMD INSTALL . && cd /home/comeln; R CMD INSTALL . && cd /home/OpenStats; R CMD INSTALL ."
+# Install local packages
+RUN R CMD INSTALL /tmp/MTT && \
+    R CMD INSTALL /tmp/comeln && \
+    R CMD INSTALL /tmp/OpenStats && \
+    rm -rf /tmp/MTT /tmp/comeln /tmp/OpenStats
 
-# EXPOSE 4001
-COPY ./Start_Server_App.R /srv/shiny-server/app.R
-COPY ./run.sh /home
+# Copy Shiny app entrypoint for Shiny Server
+COPY ./Start_Server_App.R /srv/shiny-server/OpenStats/app.R
 
-USER shiny
-ENV SHINY_LOG_STDERR=1
+# Optional: custom Shiny Server config
+RUN printf '%s\n' \
+  'run_as shiny;' \
+  'server {' \
+  '  listen 3838;' \
+  '  location / {' \
+  '    app_dir /srv/shiny-server/OpenStats;' \
+  '    log_dir /var/log/shiny-server;' \
+  '    directory_index on;' \
+  '  }' \
+  '}' > /etc/shiny-server/shiny-server.conf
 
-# CMD ["/bin/bash", "-c", "/home/run.sh"]
-CMD ["Rscript", "/srv/shiny-server/app.R", "3838"]
+EXPOSE 3838
 
-# Testing ELN: workshop.chemotion.scc.kit.edu
-# OpenStats running on: https://openstats.chemserv.scc.kit.edu/
+CMD ["/usr/bin/shiny-server"]

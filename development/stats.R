@@ -80,7 +80,7 @@ kruskal.test(uptake ~ Treatment, data = CO2)
 # * non parameteric repeated measurement anova
 friedman.test(uptake ~ conc | Plant, data = CO2)
 # quade.test
-# * similar to firedman but more powerful when block effects differ strongly
+# * similar to friedman but more powerful when block effects differ strongly
 quade.test(uptake ~ conc | Plant, data = CO2)
 
 # variance tests
