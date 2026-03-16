@@ -169,6 +169,17 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       res$eval(ResultsState)
       get_result(ResultsState)
     },
+    WilcoxRankSumTest = {
+      res <- wilcox_rank_sum_V1_2$new(
+        DataModelState$df,
+        DataModelState$formula,
+        entry[["alternative hypothesis"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+      get_result(ResultsState)
+    },
     ANOVA = {
       res <- statistical_tests_V1_2$new(
         DataModelState$df,
@@ -177,6 +188,27 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       )
       res$validate()
       res$eval(ResultsState, "aov")
+      get_result(ResultsState)
+    },
+    `Permutation ANOVA` = {
+      res <- perm_ANOVA_V1_2$new(
+        DataModelState$df,
+        DataModelState$formula,
+        entry[["permutation method"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+      get_result(ResultsState)
+    },
+    WELCH_ANOVA = {
+      res <- statistical_tests_V1_2$new(
+        DataModelState$df,
+        DataModelState$formula,
+        NULL, NULL, NULL, backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState, "welch_aov")
       get_result(ResultsState)
     },
     `Kruskal-Wallis Test` = {
@@ -340,6 +372,22 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       )
       res$validate()
       res$eval(ResultsState, "hommel")
+      get_result(ResultsState)
+    },
+    PairwiseComparison = {
+      if (entry[["Method"]] == "T-Test") {
+        parametric <- "parametric"
+      } else {
+        parametric <- "non_parametric"
+      }
+      res <- get_pairwise_tests()$new(
+        DataModelState$df, DataModelState$formula,
+        entry[["P-value"]], entry[["alternative hypothesis"]],
+        entry[["Adjusted p value method"]],
+        parametric, backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
       get_result(ResultsState)
     },
     RemoveResult = {

@@ -28,7 +28,9 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
 
       shinyjs::disable("replay_history")
 
-      shinyjs::enable("DiagnosticPlot")
+      shinyjs::disable("DiagnosticPlot")
+
+      shinyjs::disable("PermANOVATest")
     },
     enable = function() {
       if (self$in_backend) return()
@@ -44,6 +46,8 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       shinyjs::enable("HISTORY-replay_history")
 
       shinyjs::enable("ASS-DiagnosticPlot")
+
+      shinyjs::enable("TESTS-PermANOVATest")
     },
 
     initialize = function(poll_interval = 250, com = communicator_V1_2) {
@@ -1484,6 +1488,57 @@ t_test_V1_2 <- R6::R6Class(
     }
   )
 )
+wilcox_rank_sum_V1_2 <- R6::R6Class(
+  "wilcox_rank_sum_V1_2",
+  public = list(
+    df = NULL,
+    formula = NULL,
+    alternative_hyp = NULL,
+    com = NULL,
+
+    initialize = function(df, formula, alternative_hyp, com = communicator_V1_2) {
+      self$df <- df
+      self$formula <- formula@formula
+      self$alternative_hyp <- alternative_hyp
+      self$com = com$new()
+    },
+
+    validate = function() {},
+
+    eval = function(ResultsState) {
+      withCallingHandlers(
+        {
+          new_name <- paste0( ResultsState$counter + 1, " Wilcox-Rank-Sum-Test")
+          promise_history_entry <- self$create_history(new_name)
+          ResultsState$bgp$start(
+            fun = function(formula, df, alternative_hyp) {
+              broom::tidy(wilcox.test(formula, data = df, alternative = alternative_hyp))
+            },
+            args = list(
+              formula = self$formula, df = self$df, alternative_hyp = self$alternative_hyp
+            ),
+            promise_result_name = new_name,
+            promise_history_entry = promise_history_entry,
+            in_background = FALSE, ResultsState
+          )
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "WilcoxRankSumTest",
+        formula = deparse(self$formula),
+        "alternative hypothesis" = self$alternative_hyp,
+        "Result name" = new_name
+      )
+    }
+  )
+)
 
 statistical_tests_V1_2 <- R6::R6Class(
   "statistical_tests_V1_2",
@@ -1518,6 +1573,12 @@ statistical_tests_V1_2 <- R6::R6Class(
               switch(method,
                 aov = {
                   fit <- broom::tidy(aov(
+                    formula@formula,
+                    data = df
+                  ))
+                },
+                welch_aov = {
+                  fit <- broom::tidy(oneway.test(
                     formula@formula,
                     data = df
                   ))
@@ -1608,6 +1669,7 @@ statistical_tests_V1_2 <- R6::R6Class(
                   fit <- broom::tidy(anova(model, test = "Chisq"))
                 },
                 kruskal = {
+                  # TODO: remove it from glm
                   fit <- broom::tidy(
                     kruskal.test(formula@formula, data = df)
                   ) # Keep here the restriction for respone ~ predictor
@@ -1674,6 +1736,11 @@ statistical_tests_V1_2 <- R6::R6Class(
         aov = {
           history_data <- list(
             type = "ANOVA", formula = deparse(self$formula@formula), "Result name" = new_name
+          )
+        },
+        welch_aov = {
+          history_data <- list(
+            type = "WELCH_ANOVA", formula = deparse(self$formula@formula), "Result name" = new_name
           )
         },
         kruskal = {
@@ -1762,6 +1829,143 @@ statistical_tests_V1_2 <- R6::R6Class(
       } else if (inherits(self$formula, "GeneralisedLinearFormula")) {
         self$create_history_glm(new_name, method)
       }
+    }
+  )
+)
+
+perm_ANOVA_V1_2 <- R6::R6Class(
+  "perm_ANOVA_V1_2",
+  public = list(
+    df = NULL,
+    formula = NULL,
+    perm = NULL,
+    com = NULL,
+
+    initialize = function(df, formula, perm, com = communicator_V1_2) {
+      self$df <- df
+      self$formula <- formula@formula
+      self$perm <- perm
+      self$com = com$new()
+    },
+
+    validate = function() {},
+
+    eval = function(ResultsState) {
+      withCallingHandlers(
+        {
+          new_name <- paste0( ResultsState$counter + 1, " Permutation ANOVA")
+          promise_history_entry <- self$create_history(new_name)
+          ResultsState$bgp$start(
+            fun = function(formula, df, perm) {
+              library(lmPerm) # Required.
+              broom::tidy(aovp(formula, data = df, perm = perm))
+            },
+            args = list(
+              formula = self$formula, df = self$df, perm = self$perm
+            ),
+            promise_result_name = new_name,
+            promise_history_entry = promise_history_entry,
+            in_background = TRUE, ResultsState
+          )
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "Permutation ANOVA",
+        formula = deparse(self$formula),
+        "permutation method" = self$perm,
+        "Result name" = new_name
+      )
+    }
+  )
+)
+
+pairwise_comparisons_V1_2 <- R6::R6Class(
+  "pairwise_comparisons_V1_2",
+  public = list(
+    df = NULL,
+    formula = NULL,
+    p_val = NULL,
+    alternative_hyp = NULL,
+    p_val_adj_method = NULL,
+    parametric = NULL,
+    method = NULL,
+    com = NULL,
+
+    initialize = function(df, formula,
+                          p_val, alternative_hyp,
+                          p_val_adj_method, parametric_or_non_parametric, com = communicator_V1_2) {
+      self$df <- df
+      self$formula <- formula@formula
+      self$p_val <- p_val
+      self$alternative_hyp <- alternative_hyp
+      self$p_val_adj_method <- p_val_adj_method
+      self$parametric <- TRUE
+      self$method <- "T-Test"
+      if (parametric_or_non_parametric == "non_parametric") {
+        self$parametric <- FALSE
+        self$method <- "Wilcox"
+      }
+      self$com <- com$new()
+    },
+
+    validate = function() {},
+
+    eval = function(ResultsState) {
+      withCallingHandlers(
+        {
+          if (self$parametric) {
+            new_name <- paste0( ResultsState$counter + 1, " Pairwise T-Test")
+          } else {
+            new_name <- paste0( ResultsState$counter + 1, " Pairwise Wilcox-Test")
+          }
+          promise_history_entry <- self$create_history(new_name)
+          ResultsState$bgp$start(
+            fun = function(formula, df, p_val, alternative_hyp, p_val_adj_method, parametric) {
+              dep <- as.character(formula)[2]
+              predictors <- all.vars(formula[[3]])
+              if (parametric) {
+                res <- pairwise.t.test(df[[dep]], interaction(df[predictors]), alternative = alternative_hyp, p.adjust.method = p_val_adj_method)
+              } else {
+                res <- pairwise.wilcox.test(df[[dep]], interaction(df[predictors]), alternative = alternative_hyp, p.adjust.method = p_val_adj_method)
+              }
+              res <- broom::tidy(res)
+              res <- res[res$p.value <= p_val, ]
+              return(res)
+            },
+            args = list(
+              formula = self$formula, df = self$df,
+              p_val = self$p_val, alternative_hyp = self$alternative_hyp,
+              p_val_adj_method = self$p_val_adj_method, parametric = self$parametric
+            ),
+            promise_result_name = new_name,
+            promise_history_entry = promise_history_entry,
+            in_background = FALSE, ResultsState
+          )
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "PairwiseComparison",
+        formula = deparse(self$formula),
+        "P-value" = self$p_val,
+        "alternative hypothesis" = self$alternative_hyp,
+        "Adjusted p value method" = self$p_val_adj_method,
+        "Method" = self$method,
+        "Result name" = new_name
+      )
     }
   )
 )

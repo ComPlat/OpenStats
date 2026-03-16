@@ -103,4 +103,26 @@ check_formula <- function(formula) {
   }
   return(TRUE)
 }
+
+# the alternative hypothesis div for comparing two groups
+alt_hyp_2_groups <- function() {
+  c(
+    "Two sided" = "two.sided",
+    "Less" = "less",
+    "Greater" = "greater"
+  )
+}
+# p value correction methods
+p_value_correction_methods <- function() {
+  c(
+    "Holm" = "holm",
+    "Hochberg" = "hochberg",
+    "Hommel" = "hommel",
+    "Bonferroni" = "bonferroni",
+    "BH" = "BH",
+    "BY" = "BY",
+    "fdr" = "fdr"
+  )
+}
+
 # nocov end helper

@@ -1,3 +1,33 @@
+calc_n_covariates <- function(DataModelState) {
+  active_df <- DataModelState$df
+  if (is.null(active_df)) return(0L)
+  formula <- DataModelState$formula
+  if (is.null(formula)) return(0L)
+  if (inherits(formula, "OptimFormula")) return(0L)
+  f <- formula@formula
+  if (is.null(f)) return(0L)
+  predictors <- all.vars(f[[3]])
+  ug <- unique(active_df[predictors])
+  if (is.data.frame(ug)) return(length(interaction(ug)))
+  return(0L)
+}
+is_one_way_aov <- function(DataModelState) {
+  formula <- DataModelState$formula
+  if (is.null(formula)) return(0L)
+  f <- formula@formula
+  if (is.null(f)) return(0L)
+  predictors <- all.vars(f[[3]])
+  if (length(predictors) == 1L) return(TRUE)
+  FALSE
+}
+
+problem_small_enough_for_permutation_ANOVA <- function(DataModelState) {
+  if (nrow(DataModelState$df) > 2000L) return(FALSE)
+  predictors <- all.vars(DataModelState$formula@formula[[3]])
+  if (length(predictors) > 4L) return(FALSE)
+  TRUE
+}
+
 check_dose_response <- function(DataModelState) {
   if (is.null(DataModelState$df)) return("No data is available")
   if (!is.data.frame(DataModelState$df)) return("Dataset seems to be malformed")

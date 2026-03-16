@@ -1,3 +1,52 @@
+library(lmPerm)
+set.seed(1234)
+n <- 5000
+dat <- data.frame(
+  y = rnorm(n),
+  A = factor(sample(letters[1:4], n, TRUE)),
+  B = factor(sample(letters[1:3], n, TRUE)),
+  C = factor(sample(letters[1:2], n, TRUE)),
+  D = factor(sample(letters[1:5], n, TRUE))
+)
+head(dat)
+formula <- y ~ A * B * C * D
+summary(aov(formula, data = dat))
+# Run aovp only for small models. Otherwise segfault!!!
+# nrow <= 2000 && n_covariates <= 5
+#
+# Exact, Prob, SPR
+# seqs = TRUE/FALSE; sequential SS if TRUE
+summary(aovp(formula, data = dat, perm = "Prob", seqs = TRUE)) 
+
+rcompanion::scheirerRayHare(y ~ A * B, data = dat) # can only handly a two way anova
+
+CO2$conc <- as.factor(CO2$conc)
+model <- ARTool::art(uptake ~ conc * Treatment * Type, data = CO2)
+model
+anova(model)
+marginal <- ARTool::art.con(model, "Treatment")
+marginal
+Sum <- as.data.frame(marginal)
+rcompanion::cldList(p.value ~ contrast, data = Sum)
+
+marginal <- ARTool::art.con(model, "conc")
+marginal
+Sum <- as.data.frame(marginal)
+rcompanion::cldList(p.value ~ contrast, data = Sum)
+
+# x = response vector
+# g = grouping vector or factor
+# p.adjust.method : Method for adjusting p values (see `p.adjust`).
+# pool.sd : switch to allow/disallow the use of a pooled SD
+# paired : a logical indicating whether you want paired t-tests.
+#
+res <- pairwise.t.test(CO2$uptake, interaction(CO2[c("conc", "Treatment")]), conflevel = 0.001)
+
+f <- uptake ~ conc * Treatment
+all.vars(f[[3]])
+res <- broom::tidy(res)
+res[res$p.value <= 0.05, ]
+pairwise.wilcox.test(CO2$uptake, interaction(CO2[c("conc", "Treatment")]))
 # ------------------------------------------------------------------
 # Post Hoc tests
 # ------------------------------------------------------------------

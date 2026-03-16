@@ -164,9 +164,24 @@ get_ttest <- function(version = VERSION) {
     `1.2` = t_test_V1_2
   )[[version]]
 }
+get_wilcox_rank_sum <- function(version = VERSION) {
+  list(
+    `1.2` = wilcox_rank_sum_V1_2
+  )[[version]]
+}
 get_statistical_tests <- function(version = VERSION) {
   list(
     `1.2` = statistical_tests_V1_2
+  )[[version]]
+}
+get_permutation_anova <- function(version = VERSION) {
+  list(
+    `1.2` = perm_ANOVA_V1_2
+  )[[version]]
+}
+get_pairwise_tests <- function(version = VERSION) {
+  list(
+    `1.2` = pairwise_comparisons_V1_2
   )[[version]]
 }
 get_remove_results <- function(version = VERSION) {

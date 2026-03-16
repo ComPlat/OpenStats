@@ -66,6 +66,8 @@ app <- function() {
         shinyjs::disable("HISTORY-replay_history")
 
         shinyjs::enable("ASS-DiagnosticPlot")
+
+        shinyjs::enable("TESTS-PermANOVATest")
       }
     })
     # React to press cancel
@@ -241,6 +243,8 @@ app <- function() {
     corrServer("CORR", DataModelState, ResultsState)
     visServer("VIS", DataModelState, ResultsState)
     assServer("ASS", DataModelState, ResultsState)
+    testsUIServer("TESTS", DataModelState, ResultsState)
+    testsUISidebarServer("TESTS", DataModelState, ResultsState)
     testsServer("TESTS", DataModelState, ResultsState)
     DoseResponseServer("DOSERESPONSE", DataModelState, ResultsState)
     FormulaEditorServer("FO", DataModelState, ResultsState)

@@ -1,16 +1,22 @@
+# nocov start ui-scaffold
 testsSidebarUI <- function(id) {
   shiny::tabPanel(
     "Tests",
+    shiny::uiOutput(shiny::NS(id, "parametricUI")),
     htmltools::br(),
-    shiny::uiOutput(shiny::NS(id, "SidebarTestsUI")),
-    shiny::uiOutput(shiny::NS(id, "padjUI"))
+    shiny::uiOutput(shiny::NS(id, "SidebarTestsUI"))
   )
 }
 
-# nocov start ui-scaffold
 testsUI <- function(id) {
-  shiny::fluidRow(
-    shiny::uiOutput(shiny::NS(id, "tabs"))
+  shiny::tagList(
+    htmltools::br(),
+    shiny::fluidRow(
+      shiny::column(
+        width = 12,
+        shiny::uiOutput(shiny::NS(id, "tabs"))
+      )
+    )
   )
 }
 # nocov end ui-scaffold

@@ -12,6 +12,7 @@ Description: Offering a shiny app to conduct common tasks encountered in the ana
 License: GPL-3
 Depends: R (>= 4.1.0)
 Imports:
+  R6,
   shiny,
   DT,
   broom,

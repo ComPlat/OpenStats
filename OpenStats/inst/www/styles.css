@@ -77,6 +77,14 @@
   margin-bottom: 8px;
   margin-top: 4px;
 }
+.sidebar-section {
+  margin-top:25px;
+  margin-left:-15px;
+  margin-right:-15px;
+  padding:15px;
+  border-top:2px solid #ddd;
+  background:#f8f9fa;
+}
 .info-box {
   background-color: #e6f2ff; /* light blue */
   border: 1px solid #99ccff; /* soft blue border */

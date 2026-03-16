@@ -44,16 +44,16 @@ main_app_ui <- function() {
             class = "btn-danger"
           )
         ),
+
         shiny::uiOutput("open_formula_editor_main"),
         shiny::uiOutput("formulaUI"),
-        htmltools::br(),
         shiny::uiOutput("open_split_by_groupUI"),
         shiny::uiOutput("data_splitted"),
         shiny::verbatimTextOutput("applied_filter"),
-        htmltools::br(),
         shiny::uiOutput("active_df"),
-        htmltools::br(),
+
         htmltools::div(
+          class = "sidebar-section",
           shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Data'",
             uploadUIField,
