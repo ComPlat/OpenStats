@@ -191,20 +191,45 @@ test_rendering_statistical_tests <- function(app, srv) {
   checks <- c()
   shiny::testServer(srv, {
     DataModelState$df <- CO2
-    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
     session$setInputs(active_tab = "Tests")
     session$flushReact()
 
+    # All tabs are available at the beginning
+    # -------------------------------------------------
     ui_obj <- output[["TESTS-tabs"]]
     html   <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('Two groups', html))
     checks <<- c(checks, grepl('More than two groups', html))
-    checks <<- c(checks, grepl('Posthoc tests', html))
+    checks <<- c(checks, grepl('Multiple Comparisons', html))
+
+    # Model created for 2-groups
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+    session$flushReact()
+    ui_obj <- output[["TESTS-tabs"]]
+    html   <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, grepl('Two groups', html))
+    checks <<- c(checks, !grepl('More than two groups', html))
+    checks <<- c(checks, !grepl('Multiple Comparisons', html))
+
+    # Model created for > 2 groups
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+    session$flushReact()
+    ui_obj <- output[["TESTS-tabs"]]
+    html   <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, !grepl('Two groups', html))
+    checks <<- c(checks, grepl('More than two groups', html))
+    checks <<- c(checks, grepl('Multiple Comparisons', html))
 
     # T Test
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
     session$setInputs(`TESTS-TestsConditionedPanels`= "Two groups")
     session$flushReact()
     ui_obj <- output[["TESTS-SidebarTestsUI"]]
+
     html <- htmltools::renderTags(ui_obj)$html
     html <- strsplit(html, "<div")[[1]]
     checks <<- c(checks, grepl('confLevel', html[[3]]))
@@ -222,28 +247,123 @@ test_rendering_statistical_tests <- function(app, srv) {
     checks <<- c(checks, grepl('noeq', html[[7]]))
     checks <<- c(checks, grepl('TESTS-tTest', html[[7]]))
 
-    # More than two groups
+    # Wilcox Rank Sum test
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ Treatment)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels`= "Two groups")
+    session$flushReact()
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+
+    html <- htmltools::renderTags(ui_obj)$html
+    html <- strsplit(html, "<div")[[1]]
+    checks <<- c(checks, grepl('confLevel', html[[3]]))
+    checks <<- c(checks, grepl('data-from=\"0.95\"', html[[3]]))
+    checks <<- c(checks, grepl('data-min=\"0\"', html[[3]]))
+    checks <<- c(checks, grepl('data-max=\"1\"', html[[3]]))
+    # alternative hypthosesis
+    checks <<- c(checks, grepl('altHyp', html[[5]]))
+    checks <<- c(checks, grepl('two.sided', html[[5]]))
+    checks <<- c(checks, grepl('less', html[[5]]))
+    checks <<- c(checks, grepl('greater', html[[5]]))
+
+    # More than two groups parametric
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
     session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
+    session$flushReact()
     ui_obj <- output[["TESTS-SidebarTestsUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('aovTest', html))
-    checks <<- c(checks, grepl('kruskalTest', html))
+    checks <<- c(checks, grepl('welchaovTest', html))
 
-    # Posthocs
-    session$setInputs(`TESTS-TestsConditionedPanels` = "Posthoc tests")
+    # More than two groups non parametric
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
+    session$flushReact()
     ui_obj <- output[["TESTS-SidebarTestsUI"]]
     html <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('TESTS-PostHocTests', html))
     checks <<- c(checks, grepl('kruskalTest', html))
+    checks <<- c(checks, grepl('PermANOVATest', html))
+    html <- strsplit(html, "<div")[[1]]
+    checks <<- c(checks, grepl('TESTS-perm', html[[6]]))
+
+    # Kruskal-Wallis disappears if it is not a one way anova
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc*Treatment)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
+    session$flushReact()
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    html <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, !grepl('kruskalTest', html))
+    checks <<- c(checks, grepl('PermANOVATest', html))
+
+    # Multiple comparisons parametric
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    session$flushReact()
+    html <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, grepl('TESTS-PostHocTests', html))
+    checks <<- c(checks, grepl('Tukey', html))
     checks <<- c(checks, grepl('LSD', html))
     checks <<- c(checks, grepl('scheffe', html))
     checks <<- c(checks, grepl('REGW', html))
     checks <<- c(checks, grepl('TESTS-PostHocTest', html))
     checks <<- c(checks, grepl('TESTS-design', html))
 
+    checks <<- c(checks, grepl('TESTS-padjPairwise', html))
+    checks <<- c(checks, grepl('altHypPairwise', html))
+    checks <<- c(checks, grepl('pairwise_test', html))
+
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc*Treatment)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    session$flushReact()
+    html <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, !grepl('TESTS-PostHocTests', html))
+
+    # Multiple comparisons non parametric
+    # -------------------------------------------------
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    html <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, grepl('TESTS-PostHocTests', html))
+    checks <<- c(checks, grepl('kruskalTest', html))
+    checks <<- c(checks, grepl('TESTS-design', html))
+
+    checks <<- c(checks, grepl('TESTS-padjPairwise', html))
+    checks <<- c(checks, grepl('altHypPairwise', html))
+    checks <<- c(checks, grepl('pairwise_test', html))
+
+    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc*Treatment)
+    session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
+    session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    session$flushReact()
+    html <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, !grepl('TESTS-PostHocTests', html))
+
+    # Generalised linear model
+    # -------------------------------------------------
     session$flushReact()
     DataModelState$formula <- new("GeneralisedLinearFormula", formula = uptake ~ conc, family = "Gamma", link_fct = "inverse")
-    session$setInputs(`TESTS-TestsConditionedPanels` = "Posthoc tests")
+
+    session$setInputs(`TESTS-TestsConditionedPanels` = "More than two groups")
+    session$flushReact()
+    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    html <- htmltools::renderTags(ui_obj)$html
+    checks <<- c(checks, grepl('aovTest', html))
+
+    session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
     ui_obj <- output[["TESTS-SidebarTestsUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('TESTS-PostHocEmmeans', html))

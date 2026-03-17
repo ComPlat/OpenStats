@@ -3,11 +3,8 @@ assSidebarUI <- function(id) {
     "Assumption",
     shiny::tags$hr(),
     shiny::uiOutput(shiny::NS(id, "shapiroUI")),
-    shiny::tags$hr(),
     shiny::uiOutput(shiny::NS(id, "shapiroResidualsUI")),
-    shiny::tags$hr(),
     shiny::uiOutput(shiny::NS(id, "LeveneUI")),
-    shiny::tags$hr(),
     shiny::uiOutput(shiny::NS(id, "DiagnosticPlotUI"))
   )
 }
