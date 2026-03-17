@@ -289,7 +289,8 @@ test_rendering_statistical_tests <- function(app, srv) {
     checks <<- c(checks, grepl('kruskalTest', html))
     checks <<- c(checks, grepl('PermANOVATest', html))
     html <- strsplit(html, "<div")[[1]]
-    checks <<- c(checks, grepl('TESTS-perm', html[[6]]))
+    checks <<- c(checks, grepl('TESTS-perm', html[[5]]))
+    checks <<- c(checks, grepl('Seed', html[[6]]))
 
     # Kruskal-Wallis disappears if it is not a one way anova
     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc*Treatment)
