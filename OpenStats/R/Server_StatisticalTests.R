@@ -137,7 +137,6 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
               "Scheffe post hoc test" = "scheffe", "REGW post hoc test" = "REGW"
             )
           ),
-          shiny::actionButton(shiny::NS(id, "PostHocTest"), "run test"),
           shiny::sliderInput(shiny::NS(id, "pval"), "P-value",
             min = 0, max = 0.15, value = 0.05
           ),
@@ -149,6 +148,7 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
             )
           ),
           shiny::uiOutput(shiny::NS(id, "padjUI")),
+          shiny::actionButton(shiny::NS(id, "PostHocTest"), "run test"),
           class = "var-box-output"
         )
         ui_elements[[length(ui_elements) + 1L]] <- htmltools::br()
@@ -268,7 +268,6 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
               # FSA imports dunn.test. PMCMRplus has many many PostHocTests
             )
           ),
-          shiny::actionButton(shiny::NS(id, "PostHocTest"), "run test"),
           shiny::sliderInput(shiny::NS(id, "pval"), "P-value",
             min = 0, max = 0.15, value = 0.05
           ),
@@ -280,6 +279,7 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
             )
           ),
           shiny::uiOutput(shiny::NS(id, "padjUI")),
+          shiny::actionButton(shiny::NS(id, "PostHocTest"), "run test"),
           class = "var-box-output"
         )
         ui_elements[[length(ui_elements) + 1L]] <- htmltools::br()
