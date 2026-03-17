@@ -10,6 +10,7 @@ importFrom("agricolae", "HSD.test")
 importFrom("equatiomatic", "extract_eq")
 importFrom("cowplot", "plot_grid")
 importFrom("car", "leveneTest")
+importFrom("R6", "R6Class")
 importFrom(openxlsx,
   createWorkbook,
   createStyle,

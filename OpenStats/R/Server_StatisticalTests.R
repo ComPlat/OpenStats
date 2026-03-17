@@ -209,7 +209,7 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
         shiny::actionButton(
           shiny::NS(id, "wilcoxTest"),
           "Wilcoxon test",
-          title = "Wilcoxon rank-sum test (Mann–Whitney test). A non-parametric alternative to the independent two-sample t-test for comparing two independent groups. Paired tests are currently not supported."
+          title = "Wilcoxon rank-sum test (Mann-Whitney test). A non-parametric alternative to the independent two-sample t-test for comparing two independent groups. Paired tests are currently not supported."
         ),
         class = "var-box-output"
       )

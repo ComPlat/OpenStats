@@ -79,7 +79,7 @@ app <- function() {
     shiny::observe({
       shiny::invalidateLater(250)
       status <- ResultsState$bgp$running_status
-      output$running_status <- renderText(status)
+      output$running_status <- shiny::renderText(status)
       if ((status == "Running...") && !ResultsState$bgp$cancel_clicked) {
         shinyjs::show("running_status")
         shinyjs::show("confirm_stop")
