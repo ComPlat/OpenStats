@@ -445,3 +445,52 @@ expect_true(
   ),
   "Summary model 2"
 )
+
+# Test Permutation ANOVA
+# ========================================================================================
+CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
+result <- load_and_eval_history(files[8], CO2)
+result <- result$ResultsState$all_data
+expect_true(
+  length(result) == 3, info = "Permutation ANOVA"
+)
+set.seed(954388)
+P <- permuco::Pmat(np = 5000L, n = nrow(CO2))
+expected <- as.data.frame(summary(
+  permuco::aovperm(uptake ~ Treatment * conc, data = CO2, P = P)
+))
+expect_equal(
+  result[[3]], expected
+)
+
+# Wilcox Rank sum test
+# ========================================================================================
+CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
+result <- load_and_eval_history(files[9], CO2)
+result <- result$ResultsState$all_data
+expected <- broom::tidy(wilcox.test(uptake ~ Treatment, alternative = "two.sided", data = CO2))
+expect_equal(
+  result[[3]], expected
+)
+
+# Test Pairwise Comparison
+# ========================================================================================
+CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
+result <- load_and_eval_history(files[10], CO2)
+result <- result$ResultsState$all_data
+expect_true(
+  length(result) == 4, info = "Pairwise comparison"
+)
+
+p_val <- 0.05
+res <- pairwise.wilcox.test(CO2$uptake, interaction(CO2[c("Treatment", "conc")]),
+  alternative = "two.sided", p.adjust.method = "fdr")
+res <- broom::tidy(res)
+expected <- res[res$p.value <= p_val, ]
+expect_equal(result[[3]], expected)
+
+res <- pairwise.t.test(CO2$uptake, interaction(CO2[c("Treatment", "conc")]),
+  alternative = "two.sided", p.adjust.method = "fdr")
+res <- broom::tidy(res)
+expected <- res[res$p.value <= p_val, ]
+expect_equal(result[[4]], expected)

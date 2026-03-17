@@ -421,6 +421,38 @@ test_t_test <- function(in_background) {
 }
 run_test(test_t_test)
 
+test_wilcox_test <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- CO2
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  formula <- as.formula("uptake ~ Treatment")
+  formula <- new("LinearFormula", formula = formula)
+
+  w <- OpenStats:::wilcox_rank_sum_V1_2$new(
+    df = df,
+    formula = formula,
+    alternative_hyp = "two.sided",
+    com = OpenStats:::backend_communicator_V1_2
+  )
+
+  result <- w$eval(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+  result <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+  expected <- broom::tidy(
+    wilcox.test(uptake ~ Treatment, alternative = "two.sided", data = CO2)
+  )
+  check1 <- expect_equal(expected, result)
+  check2 <- expect_equal(ResultsState$counter, 1)
+  check3 <- expect_equal(ResultsState$history[[1]]$type, "WilcoxRankSumTest")
+  checks <- c(check1, check2, check3)
+  expect_true(all(checks))
+}
+run_test(test_wilcox_test)
+
 test_statistical_methods <- function(in_background) {
   options(OpenStats.background = in_background)
   ib <- getOption("OpenStats.background", TRUE)
@@ -431,7 +463,7 @@ test_statistical_methods <- function(in_background) {
   formula <- new("LinearFormula", formula = formula)
 
   outer_checks <- c()
-  methods <- c("aov", "kruskal", "HSD", "kruskalTest", "LSD", "scheffe", "REGW")
+  methods <- c("aov", "welch_aov", "kruskal", "HSD", "kruskalTest", "LSD", "scheffe", "REGW")
   for (method in methods) {
     ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
     ResultsState$bgp$in_backend <- TRUE
@@ -457,6 +489,70 @@ test_statistical_methods <- function(in_background) {
   expect_true(all(outer_checks))
 }
 run_test(test_statistical_methods)
+
+test_permutation_anova <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- CO2
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  formula <- uptake ~ conc * Treatment * Type
+  formula <- new("LinearFormula", formula = formula)
+
+  perm <- 20000L
+  pa <- OpenStats:::perm_ANOVA_V1_2$new(
+    df = df, formula = formula, perm = perm, seed = 1234,
+    com = OpenStats:::backend_communicator_V1_2
+  )
+
+   result <- pa$eval(ResultsState)
+   if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+   result <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+  set.seed(1234)
+  P <- permuco::Pmat(np = perm, n = nrow(CO2))
+  expected <- as.data.frame(summary(
+    permuco::aovperm(uptake ~ conc * Treatment * Type, data = CO2, P = P)
+  ))
+  expect_equal(result, expected)
+}
+run_test(test_permutation_anova)
+
+test_pairwise_comparison <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- CO2
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  formula <- uptake ~ conc * Treatment * Type
+  formula <- new("LinearFormula", formula = formula)
+
+  checks <- c()
+  for (p in c("parametric", "non_parametric")) {
+    p_val <- 0.05
+    alternative_hyp <- "two.sided"
+    p_val_adj_method = "holm"
+    pc <- OpenStats:::pairwise_comparisons_V1_2$new(
+      df, formula, p_val, alternative_hyp, p_val_adj_method, p, com = OpenStats:::backend_communicator_V1_2
+    )
+    result <- pc$eval(ResultsState)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+    result <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+    dep <- "uptake"
+    predictors <- c("conc", "Treatment", "Type")
+    test <- pairwise.t.test
+    if (p == "non_parametric") test <- pairwise.wilcox.test
+    res <- test(df[[dep]], interaction(df[predictors]), alternative = alternative_hyp, p.adjust.method = p_val_adj_method)
+    res <- broom::tidy(res)
+    expected <- res[res$p.value <= p_val, ]
+    checks <- c(checks, identical(expected, result))
+  }
+  expect_true(all(checks))
+}
+run_test(test_pairwise_comparison)
 
 test_statistical_methods_glm <- function(in_background) {
   options(OpenStats.background = in_background)

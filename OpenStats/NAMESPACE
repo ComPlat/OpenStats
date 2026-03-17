@@ -11,6 +11,7 @@ importFrom("equatiomatic", "extract_eq")
 importFrom("cowplot", "plot_grid")
 importFrom("car", "leveneTest")
 importFrom("R6", "R6Class")
+importFrom("permuco", "aovperm")
 importFrom(openxlsx,
   createWorkbook,
   createStyle,

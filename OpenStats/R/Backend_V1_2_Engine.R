@@ -1839,12 +1839,14 @@ perm_ANOVA_V1_2 <- R6::R6Class(
     df = NULL,
     formula = NULL,
     perm = NULL,
+    seed = 1234,
     com = NULL,
 
-    initialize = function(df, formula, perm, com = communicator_V1_2) {
+    initialize = function(df, formula, perm, seed, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula@formula
       self$perm <- perm
+      self$seed <- seed
       self$com = com$new()
     },
 
@@ -1856,12 +1858,14 @@ perm_ANOVA_V1_2 <- R6::R6Class(
           new_name <- paste0( ResultsState$counter + 1, " Permutation ANOVA")
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
-            fun = function(formula, df, perm) {
-              library(lmPerm) # Required.
-              broom::tidy(aovp(formula, data = df, perm = perm))
+            fun = function(formula, df, perm, seed) {
+              set.seed(seed)
+              P <- permuco::Pmat(np = perm, n = nrow(df))
+              fit <- permuco::aovperm(formula, data = df, P = P)
+              as.data.frame(summary(fit))
             },
             args = list(
-              formula = self$formula, df = self$df, perm = self$perm
+              formula = self$formula, df = self$df, perm = self$perm, seed = self$seed
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
@@ -1879,7 +1883,8 @@ perm_ANOVA_V1_2 <- R6::R6Class(
       list(
         type = "Permutation ANOVA",
         formula = deparse(self$formula),
-        "permutation method" = self$perm,
+        "number of permutations" = self$perm,
+        "seed" = self$seed,
         "Result name" = new_name
       )
     }

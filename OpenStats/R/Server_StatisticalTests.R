@@ -227,15 +227,10 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
       }
       if (problem_small_enough_for_permutation_ANOVA(DataModelState)) {
         ui_elements[[length(ui_elements) + 1L]] <- htmltools::div(
-          shiny::selectInput(
-            shiny::NS(id, "perm"), "Permutation p-value method",
-            choices = c(
-              "Exact (all permutations)" = "Exact",
-              "Monte Carlo approximation" = "Prob",
-              "Sequential permutation (SPR)" = "SPR"
-            ),
-            selectize = FALSE
+          shiny::sliderInput(shiny::NS(id, "perm"), "Number of Permutations",
+            min = 1000, max = 20000, value = 5000
           ),
+          shiny::numericInput(shiny::NS(id, "Seed"), "Seed (start value for random number generation)", value = sample(1:10^6, 1)),
           htmltools::div(
             shiny::actionButton(
               shiny::NS(id, "PermANOVATest"),
@@ -424,7 +419,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
 
       res <- try({
         st <- get_permutation_anova()$new(
-          DataModelState$df, DataModelState$formula, input$perm
+          DataModelState$df, DataModelState$formula, input$perm, input$Seed
         )
         st$validate()
         st$eval(ResultsState)

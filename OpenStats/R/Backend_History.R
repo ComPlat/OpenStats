@@ -194,7 +194,8 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       res <- perm_ANOVA_V1_2$new(
         DataModelState$df,
         DataModelState$formula,
-        entry[["permutation method"]],
+        entry[["number of permutations"]],
+        entry[["seed"]],
         backend_communicator_V1_2
       )
       res$validate()
