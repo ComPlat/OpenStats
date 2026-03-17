@@ -3,6 +3,7 @@ app <- function() {
   ui <- main_app_ui()
 
   server <- function(input, output, session) {
+    
     # States
     # ----------------------------------------------------------
     # Create background process instance
@@ -65,9 +66,9 @@ app <- function() {
 
         shinyjs::disable("HISTORY-replay_history")
 
-        shinyjs::enable("ASS-DiagnosticPlot")
+        shinyjs::disable("ASS-DiagnosticPlot")
 
-        shinyjs::enable("TESTS-PermANOVATest")
+        shinyjs::disable("TESTS-PermANOVATest")
       }
     })
     # React to press cancel

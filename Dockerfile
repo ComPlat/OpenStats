@@ -44,7 +44,8 @@ RUN install2.r --error --skipinstalled \
   equatiomatic \
   quarto \
   emmeans \
-  callr
+  callr \
+  permuco
 
 # Create writable directories as root and assign them to shiny
 RUN mkdir -p /home/shiny/results \
