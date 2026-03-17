@@ -92,7 +92,7 @@ app <- function() {
 
     # docu
     # ----------------------------------------------------------
-    show_docu(input)
+    show_docu(input, DataModelState)
 
     # upload local file from user or download from user
     # ----------------------------------------------------------

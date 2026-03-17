@@ -7,54 +7,184 @@
 </div>
 
 <div class="boxed-output">
-  <p><strong>Confidence Level:</strong>
-    A slider to set the confidence level for the interval, ranging from 0 to 1 (default is 0.95).</p>
-  <p><strong>Alternative Hypothesis:</strong>
-    A dropdown menu for selecting the type of alternative hypothesis (two-sided, less, or greater).</p>
+  <p><strong>Test family:</strong>
+    In case a linear model is defined you can choose between two test families, parametric or non parametric.
+    The parametric tests require several assumptions such as normally distributed residuals and similar variances across the different groups (homoscedasticity).
+    In case these assumptions are not met, non-parametric or permutation-based tests should be preferred as they rely on fewer distributional assumptions.
+  </p>
 </div>
 
 <div class="boxed-output">
-  <p><strong>Two groups:</strong> 
+  <p><strong>Two groups:</strong>
     <ul>
-    <li><strong>Variance Equality:</strong> Decide if the variances of the two groups are equal or not.</li>
+
+      <ul>
+        <li><p><strong>Parametric (T-Test)</strong></p></li>
+        <ul>
+          <p><strong>Confidence Level:</strong>
+            A slider to set the confidence level for the interval, ranging from 0 to 1 (default is 0.95).
+          </p>
+          <p><strong>Alternative Hypothesis:</strong>
+            A dropdown menu for selecting the type of alternative hypothesis (two-sided, less, or greater).
+          </p>
+          <p><strong>Variance Equality:</strong>
+            Decide if the variances of the two groups are equal or not. In case they are not equal a Welch test is performed, otherwise a classical Student's t-test.
+          </p>
+        </ul>
+      </ul>
+
+      <ul>
+        <li><p><strong>Non-Parametric (Wilcox-Rank-Sum-Test)</strong></p></li>
+        <ul>
+          <p><strong>Confidence Level:</strong>
+            A slider to set the confidence level for the interval, ranging from 0 to 1 (default is 0.95).
+          </p>
+          <p><strong>Alternative Hypothesis:</strong>
+            A dropdown menu for selecting the type of alternative hypothesis (two-sided, less, or greater).
+          </p>
+          <p>
+            This test compares the distributions of two groups using ranks instead of raw values and is robust against non-normality and outliers.
+          </p>
+        </ul>
+      </ul>
+
     </ul>
   </p>
 </div>
 
 <div class="boxed-output">
-<p><strong>Multiple Group Tests:</strong> For cases with more than two groups, users can perform:
+<p><strong>Multiple Group Tests:</strong>
   <ul>
-    <li><strong>ANOVA:</strong> Conduct an analysis of variance test.</li>
-    <li><strong>Kruskal-Wallis Test:</strong> Non-parametric test for comparing more than two groups.</li>
+
+    <ul>
+      <li><p><strong>Parametric tests</strong></p></li>
+        <ul>
+          <p><strong>ANOVA:</strong> Conduct an analysis of variance test. Supports factorial designs and interaction terms.</p>
+          <p><strong>Welch ANOVA:</strong> Conduct an analysis of variance test without assuming equal variances across groups.
+            The caveat is that only one predictor can be used.</p>
+        </ul>
+    </ul>
+
+    <ul>
+      <li><p><strong>Non-Parametric tests</strong></p></li>
+        <ul>
+          <p><strong>Kruskal-Wallis Test:</strong> Non-parametric test for comparing more than two groups. 
+            It is based on ranks and does not assume normality. The caveat is that only one predictor can be used.</p>
+
+          <p><strong>Permutation ANOVA (permuco::aovperm):</strong></p>
+          <ul>
+            <p>
+              A permutation-based alternative to classical ANOVA that evaluates the significance of effects by comparing the observed test statistic to a distribution obtained through random permutations of the data.
+            </p>
+
+            <p><strong>Key characteristics:</strong></p>
+            <ul>
+              <li>Does not rely on normality assumptions.</li>
+              <li>Can handle complex designs including interactions (similar to classical ANOVA).</li>
+              <li>Provides p-values based on permutation distributions.</li>
+              <li>More robust against heteroscedasticity and non-normal residuals.</li>
+            </ul>
+
+            <p><strong>Important parameters:</strong></p>
+            <ul>
+              <li><strong>Number of Permutations:</strong> Higher values increase accuracy but also computation time.</li>
+            </ul>
+
+            <p><strong>Notes:</strong></p>
+            <ul>
+              <li>Results may vary slightly between runs due to random permutations.</li>
+              <li>For reproducibility, a random seed should be set before running the analysis.</li>
+              <li>Suitable as a general replacement when ANOVA assumptions are questionable.</li>
+            </ul>
+          </ul>
+        </ul>
+    </ul>
+
   </ul>
 </p>
 </div>
-
 
 <div class="boxed-output">
-<p><strong>Post Hoc Tests:</strong> After conducting ANOVA, users can select and run post hoc tests, including:
+  <p><strong>Multiple Comparisons:</strong></p>
   <ul>
-    <li><strong>Tukey HSD (Honestly Significant Difference):</strong> A test used to compare all pairs of group means to determine which pairs are significantly different. This test is suitable for balanced designs with equal sample sizes in each group and is often used after ANOVA to perform pairwise comparisons.</li>
-    <li><strong>Kruskal Wallis post hoc test:</strong> A non-parametric method used to compare more than two groups. If the Kruskal-Wallis test finds a significant difference, post hoc pairwise comparisons can be performed using the Dunn test or other similar methods to identify which groups differ.</li>
-    <li><strong>Least Significant Difference (LSD) test:</strong> A post hoc test that compares all pairs of means, but unlike Tukey’s HSD, it does not adjust for multiple comparisons. It is more sensitive but less conservative, which increases the chance of Type I errors (false positives).</li>
-    <li><strong>Scheffe post hoc test:</strong> A very conservative test that can be used to make all pairwise comparisons and contrasts between groups. It is robust to unequal sample sizes and can be used after ANOVA with more than two levels, especially when there are complex contrasts.</li>
-    <li><strong>REGW (Revised Generalized Welch’s) post hoc test:</strong> This is a robust method for comparing group means when the assumption of equal variances is violated (heteroscedasticity). It is designed to work with unequal sample sizes and unequal variances.</li>
-  </ul>
-  Users can also adjust the p-value threshold and choose between balanced or unbalanced designs.
-</p>
-<p><strong>Adjusted p-Value Method:</strong>
-    When applicable, users can select the method for adjusting p-values for multiple comparisons, including:
-  <ul>
-    <li><strong>Holm:</strong> A step-down method for controlling the family-wise error rate (FWER). It adjusts p-values sequentially from the smallest to the largest.</li>
-    <li><strong>Hommel:</strong> A more powerful adjustment for controlling the FWER, often used when performing multiple comparisons.</li>
-    <li><strong>Hochberg:</strong> A step-up method for controlling the FWER. It is more powerful than Bonferroni but may be less robust under certain conditions.</li>
-    <li><strong>Bonferroni:</strong> A conservative method for controlling the FWER. It divides the significance level (alpha) by the number of tests performed to reduce the likelihood of Type I errors.</li>
-    <li><strong>BH (Benjamini-Hochberg):</strong> A method to control the false discovery rate (FDR). It is less conservative than Bonferroni and is useful when performing a large number of comparisons.</li>
-    <li><strong>BY (Benjamini-Yekutieli):</strong> An extension of the Benjamini-Hochberg method that controls FDR in situations where the tests are dependent.</li>
-    <li><strong>FDR (False Discovery Rate):</strong> An alternative to controlling FWER, this method allows for a specified proportion of false positives among the rejected hypotheses.</li>
-  </ul>
-</p>
+
+    <li><p><strong>PostHoc tests</strong></p></li>
+    <p>PostHoc Tests can be used to investigate which groups differ significantly from each other.</p>
+    <ul>
+
+      <li><p><strong>Parametric PostHoc tests</strong></p></li>
+      <ul>
+        <li><strong>Tukey HSD (Honestly Significant Difference):</strong> A test used to compare all pairs of group means to determine which pairs are significantly different. This test is suitable for balanced designs with equal sample sizes in each group and is often used after ANOVA to perform pairwise comparisons.</li>
+        <li><strong>Least Significant Difference (LSD) test:</strong> A post hoc test that compares all pairs of means, but unlike Tukey’s HSD, it does not adjust for multiple comparisons. It is more sensitive but less conservative, which increases the chance of Type I errors (false positives).</li>
+        <li><strong>Scheffe post hoc test:</strong> A very conservative test that can be used to make all pairwise comparisons and contrasts between groups. It is robust to unequal sample sizes and can be used after ANOVA with more than two levels, especially when there are complex contrasts.</li>
+        <li><strong>REGW (Revised Generalized Welch’s) post hoc test:</strong> This is a robust method for comparing group means when the assumption of equal variances is violated (heteroscedasticity). It is designed to work with unequal sample sizes and unequal variances.</li>
+        Users can also adjust the p-value threshold and choose between balanced or unbalanced designs.
+      </ul>
+
+      <li><p><strong>Non-Parametric PostHoc tests</strong></p></li>
+      <ul>
+        <li><strong>Kruskal Wallis post hoc test:</strong> A non-parametric method used to compare more than two groups. If the Kruskal-Wallis test finds a significant difference, post hoc pairwise comparisons can be performed using the Dunn test or other similar methods to identify which groups differ.</li>
+      </ul>
+
+      <li><strong>Adjusted p-Value Methods: </strong></li>
+      <p>When applicable, users can select the method for adjusting p-values for multiple comparisons, including:</p>
+      <ul>
+        <li><strong>Holm:</strong> A step-down method for controlling the family-wise error rate (FWER). It adjusts p-values sequentially from the smallest to the largest.</li>
+        <li><strong>Hommel:</strong> A more powerful adjustment for controlling the FWER, often used when performing multiple comparisons.</li>
+        <li><strong>Hochberg:</strong> A step-up method for controlling the FWER. It is more powerful than Bonferroni but may be less robust under certain conditions.</li>
+        <li><strong>Bonferroni:</strong> A conservative method for controlling the FWER. It divides the significance level (alpha) by the number of tests performed to reduce the likelihood of Type I errors.</li>
+        <li><strong>BH (Benjamini-Hochberg):</strong> A method to control the false discovery rate (FDR). It is less conservative than Bonferroni and is useful when performing a large number of comparisons.</li>
+        <li><strong>BY (Benjamini-Yekutieli):</strong> An extension of the Benjamini-Hochberg method that controls FDR in situations where the tests are dependent.</li>
+        <li><strong>FDR (False Discovery Rate):</strong> An alternative to controlling FWER, this method allows for a specified proportion of false positives among the rejected hypotheses.</li>
+      </ul>
+
+    </ul>
+
 </div>
+
+<div class="boxed-output">
+  <p><strong>Pairwise Comparisons:</strong>
+    Pairwise comparisons can be used after a global group comparison to determine which specific groups differ from each other.
+    Depending on the selected test family, OpenStats performs either pairwise t-tests (parametric) or pairwise Wilcoxon rank-sum tests (non-parametric).
+    In both cases, paired tests are currently not supported.
+  </p>
+
+  <ul>
+    <li>
+      <strong>Parametric: Pairwise t-tests</strong><br>
+      Performs pairwise comparisons between group means using t-tests.
+      This option is appropriate when the assumptions of parametric testing are reasonably met, such as approximately normally distributed residuals.
+    </li>
+
+    <li>
+      <strong>Non-Parametric: Pairwise Wilcoxon rank-sum tests</strong><br>
+      Performs pairwise comparisons using rank-based Wilcoxon tests.
+      This option is useful when parametric assumptions are not met or when the data contain strong deviations from normality.
+    </li>
+  </ul>
+
+  <p><strong>Adjusted p method:</strong>
+    Select the method used to adjust p-values for multiple testing.
+    This helps control the increased risk of false positives that arises when several pairwise comparisons are performed.
+  </p>
+
+  <p><strong>Alternative hypothesis:</strong>
+    Defines the direction of the statistical test.
+    Available options are typically <em>two-sided</em>, <em>less</em>, or <em>greater</em>.
+    In most applications, a two-sided test is used unless there is a clear directional research hypothesis.
+  </p>
+
+  <p><strong>P-value:</strong>
+    Sets the significance threshold used to decide whether a comparison is considered statistically significant.
+    The default value is 0.05.
+  </p>
+
+  <p><strong>Run pairwise comparisons:</strong>
+    Starts the selected pairwise comparison procedure with the chosen settings.
+    The resulting output reports the pairwise group comparisons together with the corresponding adjusted p-values.
+  </p>
+</div>
+
 
 <div class="boxed-output">
   <p><strong>Saving and Exporting Options</strong></p>

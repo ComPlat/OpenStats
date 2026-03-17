@@ -9,7 +9,7 @@ docu_path <- function(file) {
   }
 }
 
-get_docu <- function(panel) {
+get_docu <- function(panel, DataModelState) {
   path <- ""
   title <- ""
 
@@ -32,7 +32,13 @@ get_docu <- function(panel) {
     path <- docu_path("correlation.html")
     title <- "Correlation"
   } else if (panel == "Tests") {
-    path <- docu_path("tests.html")
+    if (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula")) {
+      path <- docu_path("tests.html")
+    } else if(inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+      path <- docu_path("tests_glm.html")
+    } else if(inherits(DataModelState$formula, "OptimFormula")) {
+      path <- docu_path("tests.html") # Doesn't make too much sense just to make sure something is shown
+    }
     title <- "Statistical tests"
   } else if (panel == "Dose Response analysis") {
     path <- docu_path("doseresponse.html")
@@ -57,9 +63,9 @@ get_docu <- function(panel) {
   return(list(path, title))
 }
 
-show_docu <- function(input) {
+show_docu <- function(input, DataModelState) {
   obs_main <- shiny::observeEvent(input[["docu"]], {
-    path_list <- get_docu(input$conditionedPanels)
+    path_list <- get_docu(input$conditionedPanels, DataModelState)
     if (length(path_list) == 4) {
       path1 <- path_list[[1]]
       path2 <- path_list[[2]]
