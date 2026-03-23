@@ -4,7 +4,9 @@ testsSidebarUI <- function(id) {
     "Tests",
     shiny::uiOutput(shiny::NS(id, "parametricUI")),
     htmltools::br(),
-    shiny::uiOutput(shiny::NS(id, "SidebarTestsUI"))
+    shiny::uiOutput(shiny::NS(id, "SidebarTestsLinearParametricUI")),
+    shiny::uiOutput(shiny::NS(id, "SidebarTestsLinearNonParametricUI")),
+    shiny::uiOutput(shiny::NS(id, "SidebarTestsGeneralizedLinearUI"))
   )
 }
 

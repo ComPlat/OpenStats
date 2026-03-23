@@ -1,3 +1,32 @@
+pairwise_comparisons_ui <- function(ParametricOrNonParametric) {
+  if (ParametricOrNonParametric == "parametric") {
+    title_button <- "Performs pairwise comparisons between group means using pairwise t-tests with p-value adjustment. Paired tests are currently not supported."
+    title <- htmltools::div(
+      htmltools::h3("Pairwise Comparisons using:"),
+      htmltools::h5("T-Tests")
+    )
+  } else {
+    title <- htmltools::div(
+      htmltools::h3("Pairwise Comparisons using:"),
+      htmltools::h5("Wilcoxon-rank-sum-tests")
+    )
+    title_button <- "Performs pairwise comparisons between group means using pairwise Wilcoxon rank-sum tests with p-value adjustment. Paired tests are currently not supported."
+  }
+  htmltools::div(
+    title,
+    shiny::selectInput("TESTS-padjPairwise", "Adjusted p method", p_value_correction_methods(), selectize = FALSE),
+    shiny::selectInput("TESTS-altHypPairwise", "Alternative hypothesis", alt_hyp_2_groups()),
+    shiny::sliderInput("TESTS-pvalPairwise", "P-value",
+      min = 0, max = 0.15, value = 0.05
+    ),
+    shiny::actionButton(
+      "TESTS-pairwise_test",
+      "Run pairwise comparisons",
+      title = title_button
+    ),
+    class = "var-box-output"
+  )
+}
 # -----------------------------------------------------------------------------------
 # Server which renders tbas and parametric vs. non parametric
 # -----------------------------------------------------------------------------------
@@ -44,9 +73,9 @@ testsUIServer <- function(id, DataModelState, ResultsState) {
 }
 
 # -----------------------------------------------------------------------------------
-# Server which renders the sidebar based on model, parametric or non parametric
+# Server which renders the sidebar for parametric linear models
 # -----------------------------------------------------------------------------------
-testsUISidebarServer <- function(id, DataModelState, ResultsState) {
+LinearParametricTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
 
     # Render Sidebar
@@ -96,35 +125,6 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
       )
     }
 
-    pairwise_comparisons_ui <- function() {
-      if (input$ParametricOrNonParametric == "parametric") {
-        title_button <- "Performs pairwise comparisons between group means using pairwise t-tests with p-value adjustment. Paired tests are currently not supported."
-        title <- htmltools::div(
-          htmltools::h3("Pairwise Comparisons using:"),
-          htmltools::h5("T-Tests")
-        )
-      } else {
-        title <- htmltools::div(
-          htmltools::h3("Pairwise Comparisons using:"),
-          htmltools::h5("Wilcoxon-rank-sum-tests")
-        )
-        title_button <- "Performs pairwise comparisons between group means using pairwise Wilcoxon rank-sum tests with p-value adjustment. Paired tests are currently not supported."
-      }
-      htmltools::div(
-        title,
-        shiny::selectInput(shiny::NS(id, "padjPairwise"), "Adjusted p method", p_value_correction_methods(), selectize = FALSE),
-        shiny::selectInput(shiny::NS(id, "altHypPairwise"), "Alternative hypothesis", alt_hyp_2_groups()),
-        shiny::sliderInput(shiny::NS(id, "pvalPairwise"), "P-value",
-          min = 0, max = 0.15, value = 0.05
-        ),
-        shiny::actionButton(
-          shiny::NS(id, "pairwise_test"),
-          "Run pairwise comparisons",
-          title = title_button
-        ),
-        class = "var-box-output"
-      )
-    }
     parametric_multiple_comparisons <- function() {
       ui_elements <- list()
       if (is_one_way_aov(DataModelState)) {
@@ -153,7 +153,7 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
         )
         ui_elements[[length(ui_elements) + 1L]] <- htmltools::br()
       }
-      ui_elements[[length(ui_elements) + 1L]] <- pairwise_comparisons_ui()
+      ui_elements[[length(ui_elements) + 1L]] <- pairwise_comparisons_ui(input$ParametricOrNonParametric)
       htmltools::div(
         do.call(htmltools::tagList, ui_elements)
       )
@@ -168,6 +168,39 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
         parametric_multiple_comparisons()
       }
     }
+
+    output$SidebarTestsLinearParametricUI <- shiny::renderUI({
+      shiny::req(input$TestsConditionedPanels)
+      message <- check_statistical_tests(DataModelState)
+      if (!is.null(message)) {
+        return(
+          info_div(message)
+        )
+      }
+      if (!is.null(input$ParametricOrNonParametric) && input$ParametricOrNonParametric == "parametric" &&
+        (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
+        parametric_sidebar()
+      }
+
+    })
+
+    # Render p adjustment methods
+    output[["padjUI"]] <- shiny::renderUI({
+      shiny::req(input$TestsConditionedPanels == "Multiple Comparisons")
+      shiny::req(input$PostHocTests)
+      shiny::req(inherits(DataModelState$formula, "LinearFormula"))
+      if (input$PostHocTests == "kruskalTest" || input$PostHocTests == "LSD") {
+        return(
+          shiny::selectInput(shiny::NS(id, "padj"), "Adjusted p method", p_value_correction_methods(), selectize = FALSE)
+        )
+      }
+    })
+
+  })
+}
+
+LinearNonParametricTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
+  shiny::moduleServer(id, function(input, output, session) {
 
     glm_sidebar <- function() {
       if (input$TestsConditionedPanels == "More than two groups") {
@@ -279,7 +312,7 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
         )
         ui_elements[[length(ui_elements) + 1L]] <- htmltools::br()
       }
-      ui_elements[[length(ui_elements) + 1L]] <- pairwise_comparisons_ui()
+      ui_elements[[length(ui_elements) + 1L]] <- pairwise_comparisons_ui(input$ParametricOrNonParametric)
       htmltools::div(
         do.call(htmltools::tagList, ui_elements)
       )
@@ -296,7 +329,7 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
       }
     }
 
-    output$SidebarTestsUI <- shiny::renderUI({
+    output$SidebarTestsLinearNonParametricUI <- shiny::renderUI({
       shiny::req(input$TestsConditionedPanels)
       message <- check_statistical_tests(DataModelState)
       if (!is.null(message)) {
@@ -304,21 +337,9 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
           info_div(message)
         )
       }
-
-      # ---------------------------------------------------------------------------------------------------------------------
-      # Parametric tests for linear models and the tests for other models such as glm
-      # ---------------------------------------------------------------------------------------------------------------------
-
-      if (!is.null(input$ParametricOrNonParametric) && input$ParametricOrNonParametric == "parametric" &&
-        (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula"))) {
-        parametric_sidebar()
-      } else if (inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
-        glm_sidebar()
-      }
-      else if (!is.null(input$ParametricOrNonParametric) && input$ParametricOrNonParametric == "non_parametric") {
+      if (!is.null(input$ParametricOrNonParametric) && input$ParametricOrNonParametric == "non_parametric") {
         non_parametric_sidebar()
       }
-
     })
 
     # Render p adjustment methods
@@ -332,6 +353,56 @@ testsUISidebarServer <- function(id, DataModelState, ResultsState) {
         )
       }
     })
+  })
+}
+
+GeneralizedLinearTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
+  shiny::moduleServer(id, function(input, output, session) {
+
+    glm_sidebar <- function() {
+      if (input$TestsConditionedPanels == "More than two groups") {
+        htmltools::div(
+          shiny::actionButton(
+            shiny::NS(id, "aovTest"),
+            "Analysis of Deviance (GLM)",
+            title = "Performs an analysis of deviance for the generalized linear model. Tests the contribution of model terms using likelihood-ratio or deviance tests."
+          )
+        )
+      }
+      else if (input$TestsConditionedPanels == "Multiple Comparisons") {
+        htmltools::div(
+          htmltools::h3("Pairwise Comparisons"),
+          shiny::selectInput(shiny::NS(id, "PostHocEmmeans"), "Choose an adjustment method",
+            choices = c(
+              "tukey" = "tukey",
+              "sidak" = "sidak",
+              "bonferroni" = "bonferroni",
+              "scheffe" = "scheffe",
+              "none" = "none",
+              "fdr" = "fdr",
+              "holm" = "holm",
+              "hochberg" = "hochberg",
+              "hommel" = "hommel"
+            )
+          ),
+          shiny::actionButton(shiny::NS(id, "PostHocEmmeansTest"), "run PostHoc test")
+        )
+      }
+    }
+
+    output$SidebarTestsGeneralizedLinearUI <- shiny::renderUI({
+      shiny::req(input$TestsConditionedPanels)
+      message <- check_statistical_tests(DataModelState)
+      if (!is.null(message)) {
+        return(
+          info_div(message)
+        )
+      }
+      if (inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+        glm_sidebar()
+      }
+    })
+
   })
 }
 
