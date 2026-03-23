@@ -228,7 +228,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
     session$setInputs(`TESTS-TestsConditionedPanels`= "Two groups")
     session$flushReact()
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearParametricUI"]]
 
     html <- htmltools::renderTags(ui_obj)$html
     html <- strsplit(html, "<div")[[1]]
@@ -253,7 +253,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
     session$setInputs(`TESTS-TestsConditionedPanels`= "Two groups")
     session$flushReact()
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearNonParametricUI"]]
 
     html <- htmltools::renderTags(ui_obj)$html
     html <- strsplit(html, "<div")[[1]]
@@ -267,16 +267,16 @@ test_rendering_statistical_tests <- function(app, srv) {
     checks <<- c(checks, grepl('less', html[[5]]))
     checks <<- c(checks, grepl('greater', html[[5]]))
 
-    # More than two groups parametric
-    # -------------------------------------------------
-    DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
-    session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
-    session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
-    session$flushReact()
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
-    html <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('aovTest', html))
-    checks <<- c(checks, grepl('welchaovTest', html))
+     # More than two groups parametric
+     # -------------------------------------------------
+     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
+     session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
+     session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
+     session$flushReact()
+     ui_obj <- output[["TESTS-SidebarTestsLinearParametricUI"]]
+     html <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('aovTest', html))
+     checks <<- c(checks, grepl('welchaovTest', html))
 
     # More than two groups non parametric
     # -------------------------------------------------
@@ -284,7 +284,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
     session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
     session$flushReact()
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearNonParametricUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('kruskalTest', html))
     checks <<- c(checks, grepl('PermANOVATest', html))
@@ -297,7 +297,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
     session$setInputs(`TESTS-TestsConditionedPanels`= "More than two groups")
     session$flushReact()
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearNonParametricUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, !grepl('kruskalTest', html))
     checks <<- c(checks, grepl('PermANOVATest', html))
@@ -307,7 +307,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
     session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
     session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearParametricUI"]]
     session$flushReact()
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('TESTS-PostHocTests', html))
@@ -325,7 +325,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc*Treatment)
     session$setInputs(`TESTS-ParametricOrNonParametric` = "parametric")
     session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearParametricUI"]]
     session$flushReact()
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, !grepl('TESTS-PostHocTests', html))
@@ -335,7 +335,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
     session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
     session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearNonParametricUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('TESTS-PostHocTests', html))
     checks <<- c(checks, grepl('kruskalTest', html))
@@ -348,7 +348,7 @@ test_rendering_statistical_tests <- function(app, srv) {
     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc*Treatment)
     session$setInputs(`TESTS-ParametricOrNonParametric` = "non_parametric")
     session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsLinearNonParametricUI"]]
     session$flushReact()
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, !grepl('TESTS-PostHocTests', html))
@@ -360,12 +360,12 @@ test_rendering_statistical_tests <- function(app, srv) {
 
     session$setInputs(`TESTS-TestsConditionedPanels` = "More than two groups")
     session$flushReact()
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsGeneralizedLinearUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('aovTest', html))
 
     session$setInputs(`TESTS-TestsConditionedPanels` = "Multiple Comparisons")
-    ui_obj <- output[["TESTS-SidebarTestsUI"]]
+    ui_obj <- output[["TESTS-SidebarTestsGeneralizedLinearUI"]]
     html <- htmltools::renderTags(ui_obj)$html
     checks <<- c(checks, grepl('TESTS-PostHocEmmeans', html))
     checks <<- c(checks, grepl('sidak', html))
