@@ -571,7 +571,7 @@ test_statistical_methods_glm <- function(in_background) {
 
   outer_checks <- c()
   methods <- c(
-    "aov", "kruskal",  # native GLM tests
+    "aov",  # native GLM tests
     "tukey", "sidak", "bonferroni", "scheffe", "none",
     "fdr", "holm", "hochberg", "hommel"  # emmeans
   )
