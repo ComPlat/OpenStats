@@ -28,7 +28,7 @@ pairwise_comparisons_ui <- function(ParametricOrNonParametric) {
   )
 }
 # -----------------------------------------------------------------------------------
-# Server which renders tbas and parametric vs. non parametric
+# Server which renders tabs and parametric vs. non parametric
 # -----------------------------------------------------------------------------------
 testsUIServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
@@ -199,6 +199,9 @@ LinearParametricTestsUISidebarServer <- function(id, DataModelState, ResultsStat
   })
 }
 
+# -----------------------------------------------------------------------------------
+# Server which renders the sidebar for non parametric linear models
+# -----------------------------------------------------------------------------------
 LinearNonParametricTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
 
@@ -356,6 +359,9 @@ LinearNonParametricTestsUISidebarServer <- function(id, DataModelState, ResultsS
   })
 }
 
+# -----------------------------------------------------------------------------------
+# Server which renders the sidebar for generalized linear models
+# -----------------------------------------------------------------------------------
 GeneralizedLinearTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
 

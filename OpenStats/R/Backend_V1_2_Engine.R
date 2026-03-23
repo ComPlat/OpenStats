@@ -1667,12 +1667,6 @@ statistical_tests_V1_2 <- R6::R6Class(
                   family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
                   model <- glm(formula@formula, data = df, family = eval(family))
                   fit <- broom::tidy(anova(model, test = "Chisq"))
-                },
-                kruskal = {
-                  # TODO: remove it from glm
-                  fit <- broom::tidy(
-                    kruskal.test(formula@formula, data = df)
-                  ) # Keep here the restriction for respone ~ predictor
                 }
               )
               if (is.null(fit)) { # This covers all the emmeans post hoc tests
