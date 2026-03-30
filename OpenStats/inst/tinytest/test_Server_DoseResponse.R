@@ -4,7 +4,7 @@ df <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats")
 # =================================================================
 expected <- OpenStats:::ic50(
   df, "abs", "conc",
-  "names",
+  "names", "units",
   FALSE, FALSE
 )
 dfs <- lapply(expected, function(x) {
@@ -38,6 +38,7 @@ test_dose_response <- function(app, srv) {
     DataModelState$df      <- df
     DataModelState$formula <- new("LinearFormula", formula = abs ~ conc)
     session$setInputs(`DOSERESPONSE-substanceNames` = "names")
+    session$setInputs(`DOSERESPONSE-unitNames` = "units")
     session$setInputs(`DOSERESPONSE-yTransform` = FALSE)
     session$setInputs(`DOSERESPONSE-xTransform` = FALSE)
     session$setInputs(`DOSERESPONSE-ic50` = 1)
