@@ -22,10 +22,14 @@ read_well <- function(well) {
   res <- data.frame(
     conc = rep(NA, nrow),
     name = rep(NA, nrow),
-    values = rep(NA, nrow)
+    values = rep(NA, nrow),
+    unit = rep(NA, nrow)
   )
   res$values <- sapply(well$readouts, function(read) {
     read$value |> as.numeric()
+  })
+  res$unit <- sapply(well$readouts, function(read) {
+    read$unit |> as.character()
   })
   res$conc <- well$sample$conc
   res$name <- well$sample$short_label |> env_import_export_dose_response_V1_2$extract_sample_name()
@@ -81,6 +85,15 @@ import_dose_response_json <- function(path, DataModelState, ResultsState, Method
       max_rows, max_cols
     ))
   }
+  tapply(DataModelState$df, DataModelState$df$name, function(block) {
+    units <- unique(block$unit)
+    if (length(units) != 1L) {
+      stop(sprintf("Found for sample %s multiple units: %s",
+        unique(block$name), paste(units, collapse = ", ")
+      ))
+    }
+  })
+  invisible(NULL)
 }
 env_import_export_dose_response_V1_2$import_dose_response_json <- import_dose_response_json
 

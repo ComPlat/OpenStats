@@ -2,6 +2,7 @@ DoseResponseSidebarUI <- function(id) {
   shiny::tabPanel(
     "Dose Response analysis",
     shiny::uiOutput(shiny::NS(id, "substanceNamesUI")),
+    shiny::uiOutput(shiny::NS(id, "unitNamesUI")),
     shiny::uiOutput(shiny::NS(id, "DoseResponseUI"))
   )
 }

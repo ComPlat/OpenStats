@@ -1320,6 +1320,7 @@ dose_response_V1_2 <- R6::R6Class(
     is_xlog = NULL,
     is_ylog = NULL,
     substance_names = NULL,
+    unit_names = NULL,
     formula = NULL,
     com = NULL,
     res_df = NULL,
@@ -1327,13 +1328,14 @@ dose_response_V1_2 <- R6::R6Class(
 
     initialize = function(df,
                           is_xlog, is_ylog,
-                          substance_names,
+                          substance_names, unit_names,
                           formula, com = communicator_V1_2) {
       self$df <- df
       self$df[, substance_names] <- self$df[, substance_names] |> as.character()
       self$is_xlog <- is_xlog
       self$is_ylog <- is_ylog
       self$substance_names <- substance_names
+      self$unit_names <- unit_names
       self$formula <- formula@formula
       self$com <- com$new()
     },
@@ -1345,7 +1347,7 @@ dose_response_V1_2 <- R6::R6Class(
         expr = {
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
-            fun = function(df, formula, substance_names, is_xlog, is_ylog) {
+            fun = function(df, formula, substance_names, unit_names, is_xlog, is_ylog) {
               f <- as.character(formula)
               dep <- f[2]
               indep <- f[3]
@@ -1358,7 +1360,7 @@ dose_response_V1_2 <- R6::R6Class(
 
                 res <- OpenStats:::env_lc_V1_2$ic50(
                   df, dep,
-                  indep, substance_names,
+                  indep, substance_names, unit_names,
                   is_xlog, is_ylog
                 )
                 if (inherits(res, "errorClass")) {
@@ -1386,13 +1388,13 @@ dose_response_V1_2 <- R6::R6Class(
                 stop(err)
               }
               new("doseResponse", input_df = df, df = res_df, p = res_p,
-                name_col = substance_names, formula = formula,
+                name_col = substance_names, unit_col = unit_names, formula = formula,
                 xTransform = is_xlog, yTransform = is_ylog,
                 current_page = 1L)
             },
             args = list(
               df = self$df, formula = self$formula, substance_names = self$substance_names,
-              is_xlog = self$is_xlog, is_ylog = self$is_ylog
+              unit_names = self$unit_names, is_xlog = self$is_xlog, is_ylog = self$is_ylog
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
@@ -1410,6 +1412,7 @@ dose_response_V1_2 <- R6::R6Class(
       list(
         type = "DoseResponse",
         "Column containing the names" = self$substance_names,
+        "Column containing the units" = self$unit_names,
         "Log transform x-axis" = self$is_xlog,
         "Log transform y-axis" = self$is_ylog,
         "formula" = deparse(self$formula),

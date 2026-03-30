@@ -149,6 +149,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         entry[["Log transform x-axis"]],
         entry[["Log transform y-axis"]],
         entry[["Column containing the names"]],
+        entry[["Column containing the units"]],
         DataModelState$formula,
         backend_communicator_V1_2
       )

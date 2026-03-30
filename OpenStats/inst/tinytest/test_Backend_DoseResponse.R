@@ -18,7 +18,7 @@ simulate <- function(name, slope, true_ic50) {
   abs <- logistic_response(conc, b, c, d, e) + rnorm(length(conc), sd = 0.05)
 
   data.frame(
-    substance = rep(name, length(conc)), conc = conc, abs = abs
+    substance = rep(name, length(conc)), conc = conc, abs = abs, unit = "M"
   )
 }
 
@@ -41,7 +41,7 @@ test_check_fit <- function(ic50_true) {
   title = "Bla"
   res <- OpenStats:::check_fit(
     model, min(df[, conc]),
-    max(df[, conc]), min(df[, abs]), max(df[, abs]), title
+    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M"
   )
   expect_true(is.data.frame(res))
 }
@@ -50,7 +50,7 @@ test_check_fit(10)
 # Test ic50 internal
 test_ic50_internal <- function(ic50_true) {
   data <- simulate("A", 7, ic50_true)
-  res <- OpenStats:::ic50_internal(data, "abs", "conc", "substance", FALSE, FALSE)
+  res <- OpenStats:::ic50_internal(data, "abs", "conc", "substance", FALSE, FALSE, "M")
   res_df <- res[[1]]
   tol_percentage <- 0.1
   rel_error <- function(a, b) {
@@ -71,8 +71,9 @@ test_errorClass <- function() {
   checks[[2]] <- err$error_message == "An error message"
   err_null <- OpenStats:::errorClass$new()
   checks[[3]] <- err_null$isNull()
-  all(unlist(checks))
+  expect_true(all(unlist(checks)))
 }
+test_errorClass()
 
 # Test cases for env_lc_V1_2$shapenumber
 test_shapenumber <- function() {
@@ -81,8 +82,9 @@ test_shapenumber <- function() {
   checks[[2]] <- is.na(OpenStats:::shapenumber(Inf))
   checks[[3]] <- is.na(OpenStats:::shapenumber(-Inf))
   checks[[4]] <- is.na(OpenStats:::shapenumber(NA))
-  all(unlist(checks))
+  expect_true(all(unlist(checks)))
 }
+test_shapenumber()
 
 # Test cases for env_lc_V1_2$robust_68_percentile
 test_robust_68_percentile <- function() {
@@ -104,8 +106,9 @@ test_robust_68_percentile <- function() {
   identical_residuals <- rep(1, 10)
   p68_identical <- OpenStats:::robust_68_percentile(identical_residuals)
   checks[[4]] <- expect_true(abs(p68_identical - 1) < 0.01)
-  all(unlist(checks))
+  expect_true(all(unlist(checks)))
 }
+test_robust_68_percentile()
 
 # Test cases for env_lc_V1_2$rsdr
 test_rsdr <- function() {
@@ -128,8 +131,9 @@ test_rsdr <- function() {
   small_residuals <- c(-2, -1, 0, 1, 2)
   rsdr_small <- OpenStats:::rsdr(small_residuals, 1)
   checks[[4]] <- expect_true(rsdr_small > 0)
-  all(unlist(checks))
+  expect_true(all(unlist(checks)))
 }
+test_rsdr()
 
 # Test cases for env_lc_V1_2$false_discovery_rate
 test_false_discovery_rate <- function() {
@@ -138,13 +142,14 @@ test_false_discovery_rate <- function() {
   include <- OpenStats:::false_discovery_rate(residuals)
   checks[[1]] <- expect_true(is.logical(include))
   checks[[2]] <- expect_equal(length(include), length(residuals))
-  all(unlist(checks))
+  expect_true(all(unlist(checks)))
 }
+test_false_discovery_rate()
 
 # drawplot_only_raw_data
 test_drawplot_only_raw_data <- function() {
   df <- simulate("A", 7, 2)
-  p <- OpenStats:::drawplot_only_raw_data(df, "abs", "conc", "Bla")
+  p <- OpenStats:::drawplot_only_raw_data(df, "abs", "conc", "Bla", "M")
   layers <- p$layers
   expect_true(inherits(layers[[1]]$geom, "GeomBoxplot"))
   expect_true(inherits(layers[[2]]$geom, "GeomPoint"))
@@ -183,10 +188,10 @@ test_drawplot <- function() {
   title = "Bla"
   res <- OpenStats:::check_fit(
     model, min(df[, conc]),
-    max(df[, conc]), min(df[, abs]), max(df[, abs]), title
+    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M"
   )
   p <- OpenStats:::drawplot(
-    df, abs, conc, model, valid_points, title, res$IC50_relative,
+    df, abs, conc, "M", model, valid_points, title, res$IC50_relative,
     res$IC50_relative_lower, res$IC50_relative_higher,
     FALSE, FALSE
   )
@@ -266,18 +271,12 @@ test_ic50 <- function() {
   data <- data.frame(
     abs = c(0.5, 0.6, 0.7, 0.8, 0.9),
     conc = c(1, 10, 100, 1000, 10000),
-    names = c("A", "A", "A", "A", "A")
+    names = c("A", "A", "A", "A", "A"),
+    unit = "M"
   )
-  result <- OpenStats:::ic50(data, "abs", "conc", "names", FALSE, FALSE)
+  result <- OpenStats:::ic50(data, "abs", "conc", "names", "unit", FALSE, FALSE)
   checks[[1]] <- expect_true(is.list(result))
   checks[[2]] <- expect_true(is.data.frame(result[[1]][[1]]))
-  all(unlist(checks))
+  expect_true(all(unlist(checks)))
 }
-
-# Run all tests
-expect_true(test_errorClass())
-expect_true(test_shapenumber())
-expect_true(test_robust_68_percentile())
-expect_true(test_rsdr())
-expect_true(test_false_discovery_rate())
-expect_true(test_ic50())
+test_ic50()

@@ -80,7 +80,7 @@ false_discovery_rate <- function(res) {
 env_lc_V1_2$false_discovery_rate <- false_discovery_rate
 
 check_fit <- function(model, min_conc, max_conc,
-                      min_abs, max_abs, substance_name) {
+                      min_abs, max_abs, substance_name, unit) {
   if (model$fit$convergence != TRUE) {
     return(errorClass$new(paste(
       substance_name,
@@ -141,14 +141,14 @@ check_fit <- function(model, min_conc, max_conc,
     HillCoefficient = HillCoefficient,
     asymptote_one = c, asymptote_two = d,
     IC50_relative = IC50_relative, IC50_relative_lower = IC50_relative_lower,
-    IC50_relative_higher = IC50_relative_higher, pIC50 = pIC50,
+    IC50_relative_higher = IC50_relative_higher, unit = unit, pIC50 = pIC50,
     RSE = RSE, p_value = p_value, Problems = Problems
   )
   return(outvar)
 }
 env_lc_V1_2$check_fit <- check_fit
 
-drawplot_only_raw_data <- function(df, abs_col, conc_col, title) {
+drawplot_only_raw_data <- function(df, abs_col, conc_col, title, unit) {
   conc <- function() stop("Should never be called") # Please R CMD check
 
   data_measured <- data.frame(conc = df[, conc_col], abs = df[, abs_col])
@@ -161,14 +161,14 @@ drawplot_only_raw_data <- function(df, abs_col, conc_col, title) {
       data = data_measured,
       aes(x = conc, y = abs)
     ) +
-    xlab("Concentration") + # Concentration in µM
-    ylab("Viability") + # Viaibility [%]
+    xlab(paste0("Concentration [", unit, "]")) +
+    ylab("Viability") +
     ggtitle(title)
   return(p)
 }
 env_lc_V1_2$drawplot_only_raw_data <- drawplot_only_raw_data
 
-drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
+drawplot <- function(df, abs_col, conc_col, unit, model, valid_points, title,
                      IC50_relative, IC50_relative_lower, IC50_relative_higher,
                      islog_x, islog_y) {
 
@@ -183,13 +183,13 @@ drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
     abs = res,
     conc = grid
   )
-  p <- env_lc_V1_2$drawplot_only_raw_data(df, abs_col, conc_col, title) +
+  p <- env_lc_V1_2$drawplot_only_raw_data(df, abs_col, conc_col, title, unit) +
     geom_line(data = data, aes(x = conc, y = abs))
   max_conc <- max(df[, conc_col]) +
     0.1 * (max(df[, conc_col]) - min(df[, conc_col]))
   min_conc <- min(df[, conc_col]) - 0.1 * min(df[, conc_col])
-  xmin <- IC50_relative - IC50_relative_lower
-  xmax <- IC50_relative + IC50_relative_higher
+  xmin <- IC50_relative_lower
+  xmax <- IC50_relative_higher
   if (!is.na(xmin) && !is.na(xmax)) {
     ymin <- min(df[, abs_col])
     ymax <- max(df[, abs_col])
@@ -229,7 +229,7 @@ drawplot <- function(df, abs_col, conc_col, model, valid_points, title,
 env_lc_V1_2$drawplot <- drawplot
 
 ic50_internal <- function(df, abs, conc,
-                          title, islog_x, islog_y) {
+                          title, islog_x, islog_y, unit) {
   model <- drc::drm(abs ~ conc,
     data = df, fct = drc::LL.4(),
     robust = "median"
@@ -243,10 +243,10 @@ ic50_internal <- function(df, abs, conc,
   )
   res <- env_lc_V1_2$check_fit(
     model, min(df[, conc]),
-    max(df[, conc]), min(df[, abs]), max(df[, abs]), title
+    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, unit
   )
   p <- env_lc_V1_2$drawplot(
-    df, abs, conc, model, valid_points, title, res$IC50_relative,
+    df, abs, conc, unit, model, valid_points, title, res$IC50_relative,
     res$IC50_relative_lower, res$IC50_relative_higher,
     islog_x, islog_y
   )
@@ -285,12 +285,8 @@ transform_conc_dr <- function(conc_col) {
 }
 env_lc_V1_2$transform_conc_dr <- transform_conc_dr
 
-#' @examples
-#' path <- system.file("data", package = "MTT")
-#' df <- read.csv(paste0(path, "/ExampleData.txt"))
-#' ic50(df, "abs", "conc", "names", NULL, FALSE, FALSE)
 ic50 <- function(df, abs_col, conc_col,
-                 substance_name_col,
+                 substance_name_col, unit_col,
                  islog_x, islog_y) {
   # Checks
   err <- env_lc_V1_2$check_dr_df(df, abs_col, conc_col, substance_name_col)
@@ -307,12 +303,14 @@ ic50 <- function(df, abs_col, conc_col,
   df <- data.frame(
     abs = df[, abs_col],
     conc = df[, conc_col],
-    names = df[, substance_name_col]
+    names = df[, substance_name_col],
+    unit = df[, unit_col]
   )
   res <- list()
   for (i in seq_along(substances)) {
     df_temp <- df[df$names == substances[i], ]
     df_temp <- df_temp[!sapply(df_temp$conc, is.na), ]
+    unit <- unique(df_temp$unit)
 
     m <- tryCatch(
       {
@@ -320,7 +318,7 @@ ic50 <- function(df, abs_col, conc_col,
           df_temp,
           "abs", "conc",
           substances[i],
-          islog_x, islog_y
+          islog_x, islog_y, unit
         )
       },
       error = function(err) {
@@ -328,7 +326,7 @@ ic50 <- function(df, abs_col, conc_col,
           paste("A warning occurred: ", conditionMessage(err))
         )
         retval$object <- env_lc_V1_2$drawplot_only_raw_data(
-          df_temp, "abs", "conc", substances[i]
+          df_temp, "abs", "conc", substances[i], unit
         )
         return(retval)
       }

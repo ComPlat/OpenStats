@@ -707,7 +707,8 @@ test_dose_response <- function(in_background) {
   df <- data.frame(
     dose = rep(c(0.1, 1, 10, 100), each = 5),
     response = c(100, 90, 80, 60, 50, 98, 85, 75, 58, 48, 95, 80, 70, 55, 45, 92, 78, 65, 50, 40),
-    name = rep(c("A", "B"), length.out = 20)
+    name = rep(c("A", "B"), length.out = 20),
+    unit = "M"
   )
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
   formula <- response ~ dose
@@ -720,6 +721,7 @@ test_dose_response <- function(in_background) {
     is_xlog = FALSE,
     is_ylog = FALSE,
     substance_names = "name",
+    unit_names = "unit",
     formula = formula,
     com = OpenStats:::backend_communicator_V1_2
   )
