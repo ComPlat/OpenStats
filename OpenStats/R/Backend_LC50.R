@@ -79,7 +79,7 @@ false_discovery_rate <- function(res) {
 }
 env_lc_V1_2$false_discovery_rate <- false_discovery_rate
 
-check_fit <- function(model, min_conc, max_conc,
+check_fit <- function(model, ic_percentage, min_conc, max_conc,
                       min_abs, max_abs, substance_name, unit) {
   if (model$fit$convergence != TRUE) {
     return(errorClass$new(paste(
@@ -93,46 +93,51 @@ check_fit <- function(model, min_conc, max_conc,
   e <- coefficients(model)[4] # IC50
   RSE <- summary(model)$rseMat[1] # residual standard error estimated
   Response_lowestdose_predicted <- predict(
-    model, data.frame(concentration = min_conc),
+    model, data.frame(conc = min_conc),
     se.fit = FALSE
   )[1]
   Response_highestdose_predicted <- predict(
-    model, data.frame(concentration = max_conc),
+    model, data.frame(conc = max_conc),
     se.fit = FALSE
   )[1]
   Response_difference <- abs(
     Response_lowestdose_predicted - Response_highestdose_predicted
   )
   HillCoefficient <- b
-  IC50_relative <- e
+  ed_res <- drc::ED(
+    model,
+    respLev = ic_percentage,
+    interval = "delta",
+    level = 0.95,
+    type = "relative",
+    display = FALSE
+  )
+  IC_relative <- ed_res[1, 1]
   Problems <- ""
   if (Response_difference < 0.25) {
     Problems <- paste(Problems,
-      "Response Difference lower than 25%",
-      collapse = " , "
+      "Response Difference lower than 25%", collapse = " , "
     )
-  } else if (IC50_relative > max_conc) {
+  } else if (IC_relative > max_conc) {
     Problems <- paste(Problems,
-      "IC50 larger than highest measured concentration",
-      collapse = " , "
+      "IC larger than highest measured concentration", collapse = " , "
     )
-  } else if (IC50_relative < min_conc) {
+  } else if (IC_relative < min_conc) {
     Problems <- paste(Problems,
-      "IC50 lower than lowest measured concentration",
-      collapse = " , "
+      "IC lower than lowest measured concentration", collapse = " , "
     )
   }
-  confidence_interval <- confint(model, parm = c("e"), level = 0.95)
-  IC50_relative_lower <- confidence_interval[1]
-  IC50_relative_higher <- confidence_interval[2]
+
+  IC_relative_lower <- ed_res[1, 3]
+  IC_relative_higher <- ed_res[1, 4]
   p_value <- drc::noEffect(model)[3]
   Response_lowestdose_predicted <- env_lc_V1_2$shapenumber(Response_lowestdose_predicted)
   Response_highestdose_predicted <- env_lc_V1_2$shapenumber(Response_highestdose_predicted)
   HillCoefficient <- env_lc_V1_2$shapenumber(HillCoefficient)
-  IC50_relative <- env_lc_V1_2$shapenumber(IC50_relative)
-  IC50_relative_lower <- env_lc_V1_2$shapenumber(IC50_relative_lower)
-  IC50_relative_higher <- env_lc_V1_2$shapenumber(IC50_relative_higher)
-  pIC50 <- env_lc_V1_2$shapenumber(-log10(IC50_relative))
+  IC_relative <- env_lc_V1_2$shapenumber(IC_relative)
+  IC_relative_lower <- env_lc_V1_2$shapenumber(IC_relative_lower)
+  IC_relative_higher <- env_lc_V1_2$shapenumber(IC_relative_higher)
+  pIC <- env_lc_V1_2$shapenumber(-log10(IC_relative))
   p_value <- env_lc_V1_2$shapenumber(p_value)
   outvar <- data.frame(
     name = substance_name,
@@ -140,10 +145,16 @@ check_fit <- function(model, min_conc, max_conc,
     Response_highestdose_predicted = Response_highestdose_predicted,
     HillCoefficient = HillCoefficient,
     asymptote_one = c, asymptote_two = d,
-    IC50_relative = IC50_relative, IC50_relative_lower = IC50_relative_lower,
-    IC50_relative_higher = IC50_relative_higher, unit = unit, pIC50 = pIC50,
+    IC_relative = IC_relative, IC_relative_lower = IC_relative_lower, IC_relative_higher = IC_relative_higher,
+    unit = unit, pIC = pIC,
     RSE = RSE, p_value = p_value, Problems = Problems
   )
+  names(outvar)[7:9] <- c(
+    paste0("IC_", ic_percentage, "_relative"),
+    paste0("IC_", ic_percentage, "_relative_lower"),
+    paste0("IC_", ic_percentage, "_relative_higher")
+  )
+
   return(outvar)
 }
 env_lc_V1_2$check_fit <- check_fit
@@ -169,7 +180,7 @@ drawplot_only_raw_data <- function(df, abs_col, conc_col, title, unit) {
 env_lc_V1_2$drawplot_only_raw_data <- drawplot_only_raw_data
 
 drawplot <- function(df, abs_col, conc_col, unit, model, valid_points, title,
-                     IC50_relative, IC50_relative_lower, IC50_relative_higher,
+                     IC_relative, IC_relative_lower, IC_relative_higher,
                      islog_x, islog_y) {
 
   conc <- function() stop("Should never be called") # Please R CMD check
@@ -188,8 +199,8 @@ drawplot <- function(df, abs_col, conc_col, unit, model, valid_points, title,
   max_conc <- max(df[, conc_col]) +
     0.1 * (max(df[, conc_col]) - min(df[, conc_col]))
   min_conc <- min(df[, conc_col]) - 0.1 * min(df[, conc_col])
-  xmin <- IC50_relative_lower
-  xmax <- IC50_relative_higher
+  xmin <- IC_relative_lower
+  xmax <- IC_relative_higher
   if (!is.na(xmin) && !is.na(xmax)) {
     ymin <- min(df[, abs_col])
     ymax <- max(df[, abs_col])
@@ -228,7 +239,7 @@ drawplot <- function(df, abs_col, conc_col, unit, model, valid_points, title,
 }
 env_lc_V1_2$drawplot <- drawplot
 
-ic50_internal <- function(df, abs, conc,
+ic_internal <- function(df, ic_percentage, abs, conc,
                           title, islog_x, islog_y, unit) {
   model <- drc::drm(abs ~ conc,
     data = df, fct = drc::LL.4(),
@@ -242,17 +253,17 @@ ic50_internal <- function(df, abs, conc,
     fct = drc::LL.4(), robust = "mean",
   )
   res <- env_lc_V1_2$check_fit(
-    model, min(df[, conc]),
+    model, ic_percentage, min(df[, conc]),
     max(df[, conc]), min(df[, abs]), max(df[, abs]), title, unit
   )
   p <- env_lc_V1_2$drawplot(
-    df, abs, conc, unit, model, valid_points, title, res$IC50_relative,
-    res$IC50_relative_lower, res$IC50_relative_higher,
+    df, abs, conc, unit, model, valid_points, title,
+    res[[7]], res[[8]], res[[9]],
     islog_x, islog_y
   )
   return(list(res, p))
 }
-env_lc_V1_2$ic50_internal <- ic50_internal
+env_lc_V1_2$ic_internal <- ic_internal
 
 check_dr_df <- function(df, abs_col,
                         conc_col, substance_name_col) {
@@ -260,7 +271,7 @@ check_dr_df <- function(df, abs_col,
     !is.factor(df[, substance_name_col])) {
     return(errorClass$new("The substance names are not character"))
   }
-  substances <- unique(df[, substance_name_col]) # TODO: is this even possible?
+  substances <- unique(df[, substance_name_col]) # is this even possible?
   if (length(substances) < 1) {
     return(errorClass$new("The data for compounds seems to be missing"))
   }
@@ -279,13 +290,13 @@ transform_conc_dr <- function(conc_col) {
     ))
   }
   if (!is.numeric(temp_conc)) {
-    return(errorClass$new("The concentration data is not numerical")) # TODO: is this even possible?
+    return(errorClass$new("The concentration data is not numerical")) # is this even possible?
   }
   return(temp_conc)
 }
 env_lc_V1_2$transform_conc_dr <- transform_conc_dr
 
-ic50 <- function(df, abs_col, conc_col,
+ic <- function(df, ic_percentage, abs_col, conc_col,
                  substance_name_col, unit_col,
                  islog_x, islog_y) {
   # Checks
@@ -314,8 +325,8 @@ ic50 <- function(df, abs_col, conc_col,
 
     m <- tryCatch(
       {
-        m <- env_lc_V1_2$ic50_internal(
-          df_temp,
+        m <- env_lc_V1_2$ic_internal(
+          df_temp, ic_percentage,
           "abs", "conc",
           substances[i],
           islog_x, islog_y, unit
@@ -335,4 +346,4 @@ ic50 <- function(df, abs_col, conc_col,
   }
   return(res)
 }
-env_lc_V1_2$ic50 <- ic50
+env_lc_V1_2$ic <- ic

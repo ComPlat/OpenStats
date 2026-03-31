@@ -15,8 +15,11 @@ backend_method_state <- R6::R6Class(
 MethodState <- backend_method_state$new()
 path <- "./development/dose_response_input.json"
 import_dose_response_json(path, DataModelState, ResultsState, MethodState)
-DataModelState$df
 
 library(ggplot2)
-res <- ic50(DataModelState$df, "values", "conc", "name", "unit", FALSE, FALSE)
-res
+res <- ic50(DataModelState$df, 10, "values", "conc", "name", "unit", FALSE, FALSE)
+df <- lapply(res, function(obj) {
+  obj[[1L]]
+})
+df <- Reduce(rbind, df)
+df

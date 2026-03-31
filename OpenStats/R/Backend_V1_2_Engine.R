@@ -1325,12 +1325,14 @@ dose_response_V1_2 <- R6::R6Class(
     com = NULL,
     res_df = NULL,
     res_p = NULL,
+    ic_percentage = NULL,
 
-    initialize = function(df,
+    initialize = function(df, ic_percentage,
                           is_xlog, is_ylog,
                           substance_names, unit_names,
                           formula, com = communicator_V1_2) {
       self$df <- df
+      self$ic_percentage <- ic_percentage
       self$df[, substance_names] <- self$df[, substance_names] |> as.character()
       self$is_xlog <- is_xlog
       self$is_ylog <- is_ylog
@@ -1347,7 +1349,7 @@ dose_response_V1_2 <- R6::R6Class(
         expr = {
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
-            fun = function(df, formula, substance_names, unit_names, is_xlog, is_ylog) {
+            fun = function(df, ic_percentage, formula, substance_names, unit_names, is_xlog, is_ylog) {
               f <- as.character(formula)
               dep <- f[2]
               indep <- f[3]
@@ -1358,9 +1360,8 @@ dose_response_V1_2 <- R6::R6Class(
                 OpenStats:::env_check_ast_V1_2$check_ast(str2lang(indep), colnames(df))
                 OpenStats:::env_check_ast_V1_2$check_ast(str2lang(dep), colnames(df))
 
-                res <- OpenStats:::env_lc_V1_2$ic50(
-                  df, dep,
-                  indep, substance_names, unit_names,
+                res <- OpenStats:::env_lc_V1_2$ic(
+                  df, ic_percentage, dep, indep, substance_names, unit_names,
                   is_xlog, is_ylog
                 )
                 if (inherits(res, "errorClass")) {
@@ -1393,7 +1394,7 @@ dose_response_V1_2 <- R6::R6Class(
                 current_page = 1L)
             },
             args = list(
-              df = self$df, formula = self$formula, substance_names = self$substance_names,
+              df = self$df, ic_percentage = self$ic_percentage, formula = self$formula, substance_names = self$substance_names,
               unit_names = self$unit_names, is_xlog = self$is_xlog, is_ylog = self$is_ylog
             ),
             promise_result_name = new_name,
@@ -1411,6 +1412,7 @@ dose_response_V1_2 <- R6::R6Class(
     create_history = function(new_name) {
       list(
         type = "DoseResponse",
+        "IC [%]" = self$ic_percentage,
         "Column containing the names" = self$substance_names,
         "Column containing the units" = self$unit_names,
         "Log transform x-axis" = self$is_xlog,

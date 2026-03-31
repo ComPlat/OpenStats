@@ -718,6 +718,7 @@ test_dose_response <- function(in_background) {
 
   dr <- OpenStats:::dose_response_V1_2$new(
     df = df,
+    ic_percentage = 50,
     is_xlog = FALSE,
     is_ylog = FALSE,
     substance_names = "name",

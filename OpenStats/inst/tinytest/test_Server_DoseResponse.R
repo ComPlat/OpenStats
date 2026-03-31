@@ -2,8 +2,8 @@ df <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats")
 
 # Expected
 # =================================================================
-expected <- OpenStats:::ic50(
-  df, "abs", "conc",
+expected <- OpenStats:::ic(
+  df, 50, "abs", "conc",
   "names", "units",
   FALSE, FALSE
 )
@@ -37,6 +37,7 @@ test_dose_response <- function(app, srv) {
   shiny::testServer(srv, {
     DataModelState$df      <- df
     DataModelState$formula <- new("LinearFormula", formula = abs ~ conc)
+    session$setInputs(`DOSERESPONSE-ic_percentage` = 50)
     session$setInputs(`DOSERESPONSE-substanceNames` = "names")
     session$setInputs(`DOSERESPONSE-unitNames` = "units")
     session$setInputs(`DOSERESPONSE-yTransform` = FALSE)

@@ -40,7 +40,7 @@ test_check_fit <- function(ic50_true) {
   abs <- "abs"
   title = "Bla"
   res <- OpenStats:::check_fit(
-    model, min(df[, conc]),
+    model, 50, min(df[, conc]),
     max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M"
   )
   expect_true(is.data.frame(res))
@@ -50,13 +50,13 @@ test_check_fit(10)
 # Test ic50 internal
 test_ic50_internal <- function(ic50_true) {
   data <- simulate("A", 7, ic50_true)
-  res <- OpenStats:::ic50_internal(data, "abs", "conc", "substance", FALSE, FALSE, "M")
+  res <- OpenStats:::ic_internal(data, 50, "abs", "conc", "substance", FALSE, FALSE, "M")
   res_df <- res[[1]]
   tol_percentage <- 0.1
   rel_error <- function(a, b) {
     abs(b - a) / b
   }
-  expect_true(rel_error(ic50_true, res_df$IC50_relative) < tol_percentage)
+  expect_true(rel_error(ic50_true, res_df$IC_50_relative) < tol_percentage)
 }
 test_ic50_internal(0.6)
 test_ic50_internal(5)
@@ -187,12 +187,12 @@ test_drawplot <- function() {
   abs <- "abs"
   title = "Bla"
   res <- OpenStats:::check_fit(
-    model, min(df[, conc]),
+    model, 50, min(df[, conc]),
     max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M"
   )
   p <- OpenStats:::drawplot(
-    df, abs, conc, "M", model, valid_points, title, res$IC50_relative,
-    res$IC50_relative_lower, res$IC50_relative_higher,
+    df, abs, conc, "M", model, valid_points, title, res$IC_50_relative,
+    res$IC_50_relative_lower, res$IC_50_relative_higher,
     FALSE, FALSE
   )
   layers <- p$layers
@@ -274,7 +274,7 @@ test_ic50 <- function() {
     names = c("A", "A", "A", "A", "A"),
     unit = "M"
   )
-  result <- OpenStats:::ic50(data, "abs", "conc", "names", "unit", FALSE, FALSE)
+  result <- OpenStats:::ic(data, 50, "abs", "conc", "names", "unit", FALSE, FALSE)
   checks[[1]] <- expect_true(is.list(result))
   checks[[2]] <- expect_true(is.data.frame(result[[1]][[1]]))
   expect_true(all(unlist(checks)))

@@ -146,6 +146,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
     DoseResponse = {
       res <- dose_response_V1_2$new(
         DataModelState$df,
+        entry[["IC [%]"]],
         entry[["Log transform x-axis"]],
         entry[["Log transform y-axis"]],
         entry[["Column containing the names"]],
