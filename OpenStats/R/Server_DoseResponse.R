@@ -80,7 +80,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
 
     run_dr <- function(df, new_name) {
       dr <- get_dose_response()$new(
-        df, input$xTransform, input$yTransform,
+        df, input$ic_percentage, input$xTransform, input$yTransform,
         input$substanceNames, input$unitNames, DataModelState$formula
       )
       dr$eval(ResultsState, new_name)

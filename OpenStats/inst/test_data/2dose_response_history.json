@@ -17,6 +17,7 @@
   },
   {
     "type": "DoseResponse",
+    "IC [%]": 50,
     "Column containing the names": "names",
     "Column containing the units": "units",
     "Log transform x-axis": false,
@@ -26,6 +27,7 @@
   },
   {
     "type": "DoseResponse",
+    "IC [%]": 50,
     "Column containing the names": "names",
     "Column containing the units": "units",
     "Log transform x-axis": false,
@@ -35,6 +37,7 @@
   },
   {
     "type": "DoseResponse",
+    "IC [%]": 50,
     "Column containing the names": "names",
     "Column containing the units": "units",
     "Log transform x-axis": false,
