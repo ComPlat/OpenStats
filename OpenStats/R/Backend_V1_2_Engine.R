@@ -80,7 +80,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           if (ResultsState$bgp$warnings != "") {
             ResultsState$bgp$com$print_warn(ResultsState$bgp$warnings)
           }
-          e <- try(env_utils_V1_2$check_rls(ResultsState$all_data, res))
+          e <- try(env_utils_V1_2$check_rls(ResultsState$all_data, res), silent = TRUE)
           if (inherits(e, "try-error")) {
             self$com$print_err(conditionMessage(e))
             self$enable()
@@ -147,7 +147,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           )
         }
       } else {
-        self$com$print_err(res)
+        self$com$print_err(attributes(res)$condition$message)
       }
     },
 
@@ -1422,6 +1422,96 @@ dose_response_V1_2 <- R6::R6Class(
       )
     }
 
+  )
+)
+primary_assay_V1_2 <- R6::R6Class(
+  "primary_assay_V1_2",
+  public = list(
+    df = NULL,
+    formula = NULL,
+    name_column = NULL,
+    neg_control_name = NULL,
+    pos_control_name = NULL,
+    com = NULL,
+
+    initialize = function(df, formula, neg_control_name, pos_control_name, com = communicator_V1_2) {
+      self$df <- df
+      self$formula <- formula
+      indep <- try({
+        f <- as.character(formula@formula)
+        f[[3L]]
+      }, silent = TRUE)
+      if (inherits(indep, "try-error")) stop("The independent variable is not usable")
+      self$name_column <- indep
+      self$neg_control_name <- neg_control_name
+      self$pos_control_name <- pos_control_name
+      self$com <- com$new()
+    },
+
+    validate = function() {},
+
+    eval = function(ResultsState) {
+      withCallingHandlers(
+        expr = {
+          new_name <- paste0(ResultsState$counter + 1, " Primary Assay")
+          promise_history_entry <- self$create_history(new_name)
+
+          ResultsState$bgp$start(
+            fun = function(df, formula, name_column, neg_control_name, pos_control_name) {
+              indep <- as.character(formula@formula)[3]
+              dep <- as.character(formula@formula)[2]
+              if (pos_control_name != "") {
+                mean_pos <- mean(df[df[, indep] == pos_control_name, dep], na.rm = TRUE)
+                df[, dep] <- df[, dep] - mean_pos
+                df <- df[df[, indep] != pos_control_name, , drop = FALSE] # Remove pos control
+              } else {
+                warning("No positive control is specified the respective normalization will not be conducted")
+              }
+              if (neg_control_name != "") {
+                mean_neg <- mean(df[df[, indep] == neg_control_name, dep], na.rm = TRUE)
+                df[, dep] <- (df[, dep] / mean_neg) * 100
+              } else {
+                stop("You have to define a name for the negative control")
+              }
+              fit <- lm(formula@formula, data = df)
+              emm <- emmeans::emmeans(fit, name_column)
+              res <- emmeans::contrast(emm, method = "trt.vs.ctrl", ref = neg_control_name, adjust = "holm")
+              res <- broom::tidy(res) |> as.data.frame()
+              res <- res[, c(2, 4, 8)]
+              names(res) <- c("name", "Standard Value", "adj. p value")
+              res[["Standard Units"]] <- "%"
+              res <- res[, c(1, 2, 4, 3)]
+              pattern <- paste0("\\s*-\\s*", neg_control_name, "$")
+              res$name <- gsub(pattern, "", res$name)
+              res
+            },
+            args = list(
+              df = self$df, formula = self$formula,
+              name_column = self$name_column,
+              neg_control_name = self$neg_control_name, pos_control_name = self$pos_control_name
+            ),
+            promise_result_name = new_name,
+            promise_history_entry = promise_history_entry,
+            in_background = FALSE, ResultsState = ResultsState
+          )
+
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "PrimaryAssay",
+        formula = deparse(self$formula@formula),
+        "Negative control name" = self$neg_control_name,
+        "Positive control name" = self$pos_control_name,
+        "Result name" = new_name
+      )
+    }
   )
 )
 

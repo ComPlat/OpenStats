@@ -71,6 +71,55 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
       )
     })
 
+    # Render control group
+    output[["primaryAssayUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      shiny::req(inherits(DataModelState$formula, "LinearFormula"))
+
+      message <- try(check_primary_assay(DataModelState), silent = TRUE)
+      if (!is.null(message)) {
+        return(info_div(message))
+      }
+
+      indep <- try({
+        f <- as.character(DataModelState$formula@formula)
+        f[[3L]]
+      }, silent = TRUE)
+      if (inherits(indep, "try-error")) return()
+
+      choices <- unique(DataModelState$df[[indep]])
+      htmltools::div(
+        htmltools::h4("Primary Assay"),
+
+        shiny::selectizeInput(
+          inputId = paste0("DOSERESPONSE-neg_control_name"),
+          label = "Name of the negative control",
+          selected = choices[1],
+          choices = choices,
+          options = list(
+            placeholder = 'Type to search...',
+            maxOptions = 1000
+          )
+        ),
+
+        shiny::selectizeInput(
+          inputId = paste0("DOSERESPONSE-pos_control_name"),
+          label = "Name of the positive control",
+          selected = choices[1],
+          choices = choices,
+          options = list(
+            placeholder = 'Type to search...',
+            maxOptions = 1000
+          )
+        ),
+
+        shiny::actionButton("DOSERESPONSE-primary_assay", "Run primary assay"),
+        message,
+        class = "boxed-output"
+      )
+    })
+
     check_dr <- function() {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       shiny::req(input$substanceNames)
@@ -91,6 +140,16 @@ DoseResponseServer <- function(id, DataModelState, ResultsState) {
       df <- DataModelState$df
       new_name <- paste0(ResultsState$counter + 1, " DoseResponse")
       e <- try(run_dr(df, new_name))
+    })
+
+    shiny::observeEvent(input$primary_assay, {
+      try({
+        pa <- get_primary_assay()$new(
+          DataModelState$df, DataModelState$formula,
+          input$neg_control_name, input$pos_control_name
+        )
+        pa$eval(ResultsState)
+      })
     })
 
   })

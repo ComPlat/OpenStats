@@ -158,6 +158,18 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       res$eval(ResultsState, entry[["Result name"]])
       get_result(ResultsState)
     },
+    PrimaryAssay = {
+      res <- primary_assay_V1_2$new(
+        DataModelState$df,
+        DataModelState$formula,
+        entry[["Negative control name"]],
+        entry[["Positive control name"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+      get_result(ResultsState)
+    },
     TTest= {
       res <- t_test_V1_2$new(
         DataModelState$df,
