@@ -159,6 +159,11 @@ get_dose_response <- function(version = VERSION) {
     `1.2` = dose_response_V1_2
   )[[version]]
 }
+get_primary_assay <- function(version = VERSION) {
+  list(
+    `1.2` = primary_assay_V1_2
+  )[[version]]
+}
 get_ttest <- function(version = VERSION) {
   list(
     `1.2` = t_test_V1_2
