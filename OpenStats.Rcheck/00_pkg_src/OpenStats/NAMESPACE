@@ -1,0 +1,28 @@
+export(open_stats)
+
+import(ggplot2)
+
+import(stats, except = c(gaussian, cov2cor, toeplitz, getInitial, update))
+importFrom("readxl", "excel_sheets")
+importFrom("emmeans", "emmeans")
+importFrom("methods", "new")
+importFrom("agricolae", "HSD.test")
+importFrom("equatiomatic", "extract_eq")
+importFrom("cowplot", "plot_grid")
+importFrom("car", "leveneTest")
+importFrom("R6", "R6Class")
+importFrom("permuco", "aovperm")
+importFrom(openxlsx,
+  createWorkbook,
+  createStyle,
+  writeData,
+  insertImage,
+  addStyle,
+  saveWorkbook
+)
+importFrom(
+jsonlite,
+read_json,
+toJSON, fromJSON,
+base64_enc
+)

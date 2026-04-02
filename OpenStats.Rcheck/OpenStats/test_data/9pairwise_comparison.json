@@ -1,0 +1,39 @@
+[
+  {
+    "type": "Version",
+    "Nr": "1_2"
+  },
+  {
+    "type": "SetActiveTable",
+    "NewActiveTable": "df0"
+  },
+  {
+    "type": "CreateFormula",
+    "formula": "uptake ~ Treatment * conc",
+    "Model Type": "Linear",
+    "details": ""
+  },
+  {
+    "type": "ModelSummary",
+    "formula": "uptake ~ Treatment * conc",
+    "Result name": "2 Model summary"
+  },
+  {
+    "type": "PairwiseComparison",
+    "formula": "uptake ~ Treatment * conc",
+    "P-value": 0.05,
+    "alternative hypothesis": "two.sided",
+    "Adjusted p value method": "fdr",
+    "Method": "Wilcox",
+    "Result name": "3 Pairwise Wilcox-Test"
+  },
+  {
+    "type": "PairwiseComparison",
+    "formula": "uptake ~ Treatment * conc",
+    "P-value": 0.05,
+    "alternative hypothesis": "two.sided",
+    "Adjusted p value method": "fdr",
+    "Method": "T-Test",
+    "Result name": "4 Pairwise T-Test"
+  }
+]

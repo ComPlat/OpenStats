@@ -1,0 +1,105 @@
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #f2f2f2;
+}
+.info-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.documentation {
+  max-width: 200px;
+}
+</style>
+
+<div class="info-container">
+  <div class="boxed-output">
+    <h4><strong>1. Overview</strong></h4>
+    <p>
+      The optimization module allows you to determine unknown parameters in a mathematical model
+      so that the model best fits your observed data. For example, you can fit a curve of the form
+      <code>y = a * x + b</code> to your data by estimating the optimal values of <code>a</code> and <code>b</code>.
+    </p>
+    <p>
+      The formula behaves like a standard mathematical function: the left side is the known outcome (e.g. <code>y</code>),
+      and the right side defines the function you want to fit using predictors (e.g. <code>x</code>; Notably, <code>x</code> would be a column in your dataset)
+      and parameters (e.g. <code>a</code>, <code>b</code>).
+    </p>
+    <p>
+      Parameters are not chosen from your dataset — they are automatically inferred through optimization.
+    </p>
+  </div>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>2. Getting Started</strong></h4>
+  <ol>
+    <li>Select a column as your dependent variable (left side).</li>
+    <li>Construct a formula on the right side using predictors and parameter names of your choice.</li>
+    <li>Use operators like <code>+</code>, <code>*</code>, <code>-</code>, and <code>/</code> to define relationships.</li>
+    <li>Set parameter boundaries and initial seed (random starting point) in the lower panel.</li>
+    <li>Click <strong>Create Statistical Model</strong> to start the optimization.</li>
+  </ol>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>3. Left Side of the Model</strong></h4>
+  <ul>
+    <li>This is the known output (e.g., a column <code>y</code> from your dataset).</li>
+    <li>Use the dropdown to select it.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>4. Right Side of the Model</strong></h4>
+  <ul>
+    <li>Construct a function using dataset variables (predictors) and new parameter names (e.g. <code>a</code>, <code>b</code>).</li>
+    <li>You can write expressions such as <code>a * x + b</code>, <code>c * log(x)</code>, or <code>a / (1 + exp(-b * x))</code>.</li>
+    <li>Edit the formula manually or use the provided variable and operator buttons.</li>
+  </ul>
+</div>
+
+<div class="info-container">
+<div class="boxed-output">
+  <h4><strong>5. Example: Fit a Straight Line</strong></h4>
+  <p><strong>Goal:</strong> Fit a linear model <code>y = a * x + b</code> where <code>y</code> is measured data and <code>x</code> is a predictor.</p>
+
+  <h5>Sample Data</h5>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:right;">x</th>
+        <th style="text-align:right;">y</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>2.1</td></tr>
+      <tr><td>2</td><td>4.3</td></tr>
+      <tr><td>3</td><td>6.2</td></tr>
+      <tr><td>4</td><td>8.4</td></tr>
+    </tbody>
+  </table>
+
+  <h5>Model Formula</h5>
+  <p><code>y ~ a * x + b</code></p>
+
+  <h5>How it works</h5>
+  <ul>
+    <li><code>x</code> comes from your dataset.</li>
+    <li><code>a</code> and <code>b</code> are unknowns — the optimizer finds the best values for them.</li>
+    <li>You set value boundaries (e.g., <code>a</code> between 0 and 10).</li>
+  </ul>
+
+    <summary><strong>Interpretation</strong></summary>
+    <ul>
+      <li>The optimizer minimizes the difference between the predicted <code>a * x + b</code> and the actual <code>y</code> values in your data.</li>
+      <li>Once the model is created, it returns the best-fitting parameter estimates and optionally a LaTeX-rendered formula.</li>
+    </ul>
+</div>
+</div>

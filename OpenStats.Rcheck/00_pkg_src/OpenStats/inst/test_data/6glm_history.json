@@ -1,0 +1,88 @@
+[
+  {
+    "type": "Version",
+    "Nr": "1_2"
+  },
+  {
+    "type": "CreateFormula",
+    "formula": "uptake ~ Treatment",
+    "Model Type": "Generalised Linear Model",
+    "family": "gaussian",
+    "Link function": "identity"
+  },
+  {
+    "type": "ModelSummary",
+    "formula": "uptake ~ Treatment",
+    "Result name": "1 Model summary"
+  },
+  {
+    "type": "ANOVA-Chisq",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "1 Test aov"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: tukey",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "2 Test tukey"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: sidak",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "3 Test sidak"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: bonferroni",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "4 Test bonferroni"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: scheffe",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "5 Test scheffe"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: none",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "6 Test none"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: fdr",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "7 Test fdr"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: holm",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "8 Test holm"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: hochberg",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "9 Test hochberg"
+  },
+  {
+    "type": "GLM PostHoc adjusted by: hommel",
+    "formula": "uptake ~ Treatment",
+    "family": "gaussian",
+    "link_fct": "identity",
+    "Result name": "10 Test hommel"
+  }
+]
