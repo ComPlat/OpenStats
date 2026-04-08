@@ -53,6 +53,11 @@ main_app_ui <- function() {
         shiny::uiOutput("active_df"),
 
         htmltools::div(
+          id = "offcanvas",
+          shiny::uiOutput("offcanvas_content")
+        ),
+
+        htmltools::div(
           class = "sidebar-section",
           shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Data'",

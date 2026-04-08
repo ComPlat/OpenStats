@@ -617,6 +617,7 @@ app <- function() {
     })
 
     # Download
+    # TODO: put everything in try!!!
     # ----------------------------------------------------------
     shiny::observeEvent(input$download, {
       if (MethodState$method == "Default") {
