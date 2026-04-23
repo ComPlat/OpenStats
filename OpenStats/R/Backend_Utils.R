@@ -190,7 +190,9 @@ create_excel_file <- function(l) {
   )
 
   # Clean up
-  unlink(plot_files[file.exists(plot_files)], force = TRUE)
+  if (length(plot_files) >= 1L) {
+    unlink(plot_files[file.exists(plot_files)], force = TRUE)
+  }
 
   return(fn)
 }

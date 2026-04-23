@@ -22,7 +22,20 @@
   {
     "type": "CreateIntermediateVariable",
     "operation": "Mean(conc)",
+    "groups": "",
     "name": "mean_conc"
+  },
+  {
+    "type": "CreateIntermediateVariable",
+    "operation": "Mean(uptake)",
+    "groups": "conc",
+    "name": "mean_conc2"
+  },
+  {
+    "type": "CreateIntermediateVariable",
+    "operation": "Mean(uptake)",
+    "groups": "conc, Treatment",
+    "name": "mean_conc3"
   },
   {
     "type": "CreateNewColumn",

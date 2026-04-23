@@ -671,13 +671,15 @@ create_intermediate_var_V1_2 <- R6::R6Class(
     com = NULL,
 
     var_name = NULL,
+    group_apply = NULL,
 
-    initialize = function(df, df_name, intermediate_vars, operation, name, com = communicator_V1_2) {
+    initialize = function(df, df_name, intermediate_vars, operation, name, group_apply, com = communicator_V1_2) {
       self$df <- df
       self$df_name <- df_name
       self$intermediate_vars <- intermediate_vars
       self$operation <- operation
       self$name <- name
+      self$group_apply <- group_apply
       self$com <- com$new()
     },
 
@@ -725,14 +727,30 @@ create_intermediate_var_V1_2 <- R6::R6Class(
 
     eval = function(ResultsState, DataWranglingState) {
       e <- try({
-        eval_env <- create_run_env()
-        list2env(self$intermediate_vars, envir = eval_env)
-        list2env(DataWranglingState$df, envir = eval_env) # NOTE: this adds each column as own variable
-        eval_env[[DataWranglingState$df_name]] <- self$df
-        new <- eval(parse(text = self$operation), envir = eval_env)
-        check_type_res(new)
-        env_utils_V1_2$check_rls(ResultsState$all_data, new)
-      })
+        if (!is.null(self$group_apply)) {
+          eval_env <- create_run_env()
+          list2env(self$intermediate_vars, envir = eval_env)
+          ints <- interaction(DataWranglingState$df[, self$group_apply])
+          new <- lapply(unique(ints), function(g) {
+            block <- DataWranglingState$df[ints == g, ]
+            list2env(block, envir = eval_env) # NOTE: this adds each column as own variable
+            eval_env[[DataWranglingState$df_name]] <- block
+            temp <- eval(parse(text = self$operation), envir = eval_env)
+            check_type_res(temp)
+            env_utils_V1_2$check_rls(ResultsState$all_data, temp)
+            data.frame(name = g, value = temp)
+          })
+          new <- Reduce(rbind, new)
+        } else {
+          eval_env <- create_run_env()
+          list2env(self$intermediate_vars, envir = eval_env)
+          list2env(DataWranglingState$df, envir = eval_env) # NOTE: this adds each column as own variable
+          eval_env[[DataWranglingState$df_name]] <- self$df
+          new <- eval(parse(text = self$operation), envir = eval_env)
+          check_type_res(new)
+          env_utils_V1_2$check_rls(ResultsState$all_data, new)
+        }
+      }, silent = TRUE)
       if (inherits(e, "try-error")) {
         err <- conditionMessage(attr(e, "condition"))
         self$com$print_err(err)
@@ -751,6 +769,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(
           type = "CreateIntermediateVariable",
           operation = self$operation,
+          groups = paste(self$group_apply, collapse = ", "),
           name = self$name
         )
       }

@@ -3,6 +3,12 @@ OperatorEditorSidebar <- function(id) {
     htmltools::div(
       htmltools::h3("Variables"),
       shiny::uiOutput(shiny::NS(id, "colnames_list")),
+      shiny::uiOutput(shiny::NS(id, "column_apply")),
+      class = "boxed-output"
+    ),
+    htmltools::div(
+      htmltools::h3("Apply by groups"),
+      shiny::uiOutput(shiny::NS(id, "column_apply")),
       class = "boxed-output"
     ),
     htmltools::br(),

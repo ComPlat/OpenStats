@@ -100,8 +100,30 @@ expect_equal(
   result[[3]], data.frame(mean_conc = mean(CO2$conc)),
   info = "max_conc <- Max(conc)"
 )
+
+expected <- Reduce(rbind, lapply(unique(CO2$conc), function(g) {
+  b <- CO2[CO2$conc == g, ]
+  data.frame(name = g, value = mean(b$uptake))
+}))
+expected$name <- as.factor(expected$name)
 expect_equal(
-  result[[4]],
+  result[[4]], expected,
+  info = "by conc mean(uptake)"
+)
+
+int <- interaction(CO2[, c("conc", "Treatment")])
+expected <- Reduce(rbind, lapply(unique(int), function(g) {
+  b <- CO2[int == g, ]
+  data.frame(name = g, value = mean(b$uptake))
+}))
+expected$name <- as.factor(expected$name)
+expect_equal(
+  result[[5]], expected,
+  info = "by conc mean(uptake)"
+)
+
+expect_equal(
+  result[[6]],
   {
     CO2$conc_norm <-  CO2$conc / mean(CO2$conc)
     CO2
@@ -109,19 +131,19 @@ expect_equal(
   info = "CO2$conc_norm <-  CO2$conc / max(CO2$conc)"
 )
 expect_true(
-  inherits(result[[5]], "plot"),
+  inherits(result[[7]], "plot"),
   info = "Plot model 1"
 )
 expect_true(
-  inherits(result[[6]], "plot"),
+  inherits(result[[8]], "plot"),
   info = "plot uptake against conc_norm"
 )
 expect_true(
-  inherits(result[[7]], "data.frame"),
+  inherits(result[[9]], "data.frame"),
   info = "Shapiro on data"
 )
 expect_equal(
-  result[[8]],
+  result[[10]],
   {
     fit <- lm(uptake ~ conc, data = CO2)
     r <- resid(fit)
@@ -132,27 +154,27 @@ expect_equal(
   info = "CO2$conc_norm <-  CO2$conc / max(CO2$conc)"
 )
 expect_true(
-  inherits(result[[9]], "plot"),
+  inherits(result[[11]], "plot"),
   info = "Diagnostic plots"
 )
 expect_true(
-  inherits(result[[10]]@p, "plot"),
+  inherits(result[[12]]@p, "plot"),
   "Summary model 2"
 )
 expect_true(
   identical(
-    broom::tidy(lm(uptake ~ Type, data = CO2)), result[[10]]@summary
+    broom::tidy(lm(uptake ~ Type, data = CO2)), result[[12]]@summary
   ),
   "Summary model 2"
 )
 expect_true(
   identical(
-    AIC(lm(uptake ~ Type, data = CO2)), result[[10]]@information_criterions[,1]
+    AIC(lm(uptake ~ Type, data = CO2)), result[[12]]@information_criterions[,1]
   ),
   "Summary model 2"
 )
 expect_equal(
-  result[[11]],
+  result[[13]],
   {
     res <- broom::tidy(
       car::leveneTest(uptake ~ Type, data = CO2, center = "mean")
@@ -163,23 +185,23 @@ expect_equal(
   info = "Levene test on model 2"
 )
 expect_true(
-  inherits(result[[12]]@p, "plot"),
+  inherits(result[[14]]@p, "plot"),
   "Summary model 3"
 )
 expect_true(
   identical(
-    broom::tidy(lm(uptake ~ conc, data = CO2)), result[[12]]@summary
+    broom::tidy(lm(uptake ~ conc, data = CO2)), result[[14]]@summary
   ),
   "Summary model 3"
 )
 expect_true(
   identical(
-    AIC(lm(uptake ~ conc, data = CO2)), result[[12]]@information_criterions[,1]
+    AIC(lm(uptake ~ conc, data = CO2)), result[[14]]@information_criterions[,1]
   ),
   "Summary model 3"
 )
 expect_equal(
-  result[[13]],
+  result[[15]],
   {
     res <- broom::tidy(
       cor.test(
@@ -194,7 +216,7 @@ expect_equal(
   info = "pearson"
 )
 expect_equal(
-  result[[14]],
+  result[[16]],
   {
     res <- broom::tidy(
       cor.test(
@@ -209,7 +231,7 @@ expect_equal(
   info = "spearman"
 )
 expect_equal(
-  result[[15]],
+  result[[17]],
   {
     res <- broom::tidy(
       cor.test(
@@ -224,18 +246,18 @@ expect_equal(
   info = "kendall"
 )
 expect_true(
-  inherits(result[[16]]@p, "plot"),
+  inherits(result[[18]]@p, "plot"),
   "Summary model 4"
 )
 expect_true(
   identical(
-    broom::tidy(lm(uptake ~ Treatment, data = CO2)), result[[16]]@summary
+    broom::tidy(lm(uptake ~ Treatment, data = CO2)), result[[18]]@summary
   ),
   "Summary model 4"
 )
 expect_true(
   identical(
-    AIC(lm(uptake ~ Treatment, data = CO2)), result[[16]]@information_criterions[,1]
+    AIC(lm(uptake ~ Treatment, data = CO2)), result[[18]]@information_criterions[,1]
   ),
   "Summary model 4"
 )
@@ -244,7 +266,7 @@ expect_equal(
     data = CO2, conf.level = 0.95,
     alternative = "two.sided", var.equal = TRUE
   )),
-  result[[17]],
+  result[[19]],
   info = "Ttest"
 )
 expect_equal(
@@ -254,7 +276,7 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[18]],
+  result[[20]],
   info = "ANOVA"
 )
 expect_equal(
@@ -264,7 +286,7 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[19]],
+  result[[21]],
   info = "Kruskal Wallis test"
 )
 expect_equal(
@@ -284,7 +306,7 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[20]],
+  result[[22]],
   info = "TukeyHSD"
 )
 expect_equal(
@@ -297,7 +319,7 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[21]],
+  result[[23]],
   info = "Kruskal Wallis PostHoc test"
 )
 expect_equal(
@@ -311,7 +333,7 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[22]],
+  result[[24]],
   info = "LSD"
 )
 expect_equal(
@@ -325,22 +347,22 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("Treatment", collapse = ".")
     fit
   },
-  result[[23]],
+  result[[25]],
   info = "scheffe"
 )
 expect_true(
-  inherits(result[[24]]@p, "plot"),
+  inherits(result[[26]]@p, "plot"),
   "Summary model 5"
 )
 expect_true(
   identical(
-    broom::tidy(lm(uptake ~ conc_norm, data = CO2)), result[[24]]@summary
+    broom::tidy(lm(uptake ~ conc_norm, data = CO2)), result[[26]]@summary
   ),
   "Summary model 5"
 )
 expect_true(
   identical(
-    AIC(lm(uptake ~ conc_norm, data = CO2)), result[[24]]@information_criterions[,1]
+    AIC(lm(uptake ~ conc_norm, data = CO2)), result[[26]]@information_criterions[,1]
   ),
   "Summary model 5"
 )
@@ -355,7 +377,7 @@ expect_equal(
     names(fit)[ncol(fit)] <- paste0("conc_norm", collapse = ".")
     fit
   },
-  result[[25]],
+  result[[27]],
   info = "REGW"
 )
 

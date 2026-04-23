@@ -83,6 +83,27 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       })
       do.call(htmltools::tagList, button_list)
     })
+    output[["column_apply"]] <- shiny::renderUI({
+      shiny::req(DataWranglingState$df_name)
+      shiny::req(DataWranglingState$df)
+
+      tooltip <- "Apply a function to each group based on the selected column(s). Moreover, apply is only used for intermediate variables."
+      cols <- names(DataWranglingState$df)
+      htmltools::div(
+        shiny::tags$label(
+          class = "tooltip",
+          title = tooltip,
+          `data-toggle` = "tooltip"
+        ),
+        shiny::selectInput(
+          inputId = shiny::NS(id, "group_apply"),
+          label = "Variable",
+          choices = cols,
+          selected = NULL,
+          multiple = TRUE
+        )
+      )
+    })
 
     # React to colnames buttons
     shiny::observe({
@@ -178,7 +199,8 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         df = DataWranglingState$df, df_name = DataWranglingState$df_name,
         intermediate_vars = DataWranglingState$intermediate_vars,
         operation = string,
-        name = input$iv
+        name = input$iv,
+        group_apply = input$group_apply
       )
       e <- try({
         civ$validate()

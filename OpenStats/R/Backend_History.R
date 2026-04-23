@@ -65,10 +65,16 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       res$eval(ResultsState, DataModelState)
     },
     CreateIntermediateVariable = {
+      groups <- entry[["groups"]]
+      if (groups == "") {
+        groups <- NULL
+      } else {
+        groups <- strsplit(entry[["groups"]], ", ")[[1L]]
+      }
       res <- create_intermediate_var_V1_2$new(
         DataWranglingState$df, DataWranglingState$df_name,
         DataWranglingState$intermediate_vars,
-        entry[["operation"]], entry[["name"]],
+        entry[["operation"]], entry[["name"]], groups,
         backend_communicator_V1_2
       )
       res$validate()

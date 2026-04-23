@@ -326,6 +326,7 @@ test_create_intermediate_var <- function() {
     intermediate_vars = list(),
     operation = "uptake + conc",
     name = "myVar",
+    group_apply = NULL,
     com = OpenStats:::backend_communicator_V1_2
   )
 
