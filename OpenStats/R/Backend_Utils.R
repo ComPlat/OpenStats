@@ -58,6 +58,25 @@ df_2_string <- function(df) {
 }
 env_utils_V1_2$df_2_string <- df_2_string
 
+get_packages_w_versions <- function() {
+  desc <- packageDescription("OpenStats")
+  imports <- strsplit(desc$Imports, ",")[[1]]
+  imports <- trimws(imports)
+  imports
+  parse_pkg <- function(x) {
+    m <- regexec("([^\\(]+)(?:\\(>=\\s*([^\\)]+)\\))?", x)
+    parts <- regmatches(x, m)[[1]]
+    trimws(parts[2])
+  }
+  parsed <- lapply(imports, parse_pkg)
+  parsed
+  Reduce(rbind, lapply(parsed, function(pkg) {
+    res <- as.character(packageVersion(pkg))
+    data.frame(name = pkg, version = res)
+  }))
+}
+env_utils_V1_2$get_packages_w_versions <- get_packages_w_versions
+
 create_excel_file <- function(l) {
   if (length(l) == 0) {
     print_warn("Nothing to upload")

@@ -640,6 +640,8 @@ app <- function() {
         l_history <- c("HistoryTable" = history_table)
         l <- c(l_history, l)
         l <- c(l, "HistoryJSON" = history_json)
+        versions <- env_utils_V1_2$get_packages_w_versions()
+        l <- c(l, list(Versions = versions))
 
         # Sent data to ChemotionELN
         # -----------------------------------------------------------------------
