@@ -1,0 +1,58 @@
+---
+title: "Example SaAH"
+format:
+  pdf:
+    number-sections: true
+    callout-appearance: simple
+fontsize: 11pt
+geometry: margin=1in
+---
+
+```{r}
+groups <- read.csv("tesstSaAH.csv", sep = ";", header = TRUE)
+names(groups)[[1L]] <- "ids"
+groups[, 2:6] <- apply(groups[, 2:6], 2, as.numeric)
+
+# Divide it on 3 groups
+# 11, 11, 10
+n_blocks <- data.frame(
+  treatment = c(
+    rep("mCherry", 11L),
+    rep("Gq", 11L),
+    rep("Gi", 10L) # Based on the excel file
+  )
+)
+
+result <- Randomization::random_finite_assign(
+  seed = 1234,
+  groups = groups[, 2:6],
+  design = n_blocks,
+  max_iter = 1000L,
+  ids = groups$ids,
+)
+df <- data.frame(
+  id = result$unit_id,
+  treatment = n_blocks$treatment,
+  groups[result$unit_id, 2:6]
+)
+knitr::kable(df)
+summary <- function(df, fct) {
+  res <- tapply(df, df$treatment, function(b) {
+    rs <- apply(b[, 3:7], 2, fct)
+    rs[["across all"]] <- fct(unlist(c(b[, 3:7])))
+    rs
+  })
+  data.frame(
+    mCherry = res$mCherry,
+    Gq = res$Gq,
+    Gi = res$Gi
+  )
+}
+# Means for D1-D5
+means <- summary(df, mean)
+knitr::kable(means)
+
+# SDs for D1-D5
+sds <- summary(df, sd)
+knitr::kable(sds)
+```

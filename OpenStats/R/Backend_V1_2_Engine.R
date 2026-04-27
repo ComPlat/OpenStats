@@ -738,7 +738,15 @@ create_intermediate_var_V1_2 <- R6::R6Class(
             temp <- eval(parse(text = self$operation), envir = eval_env)
             check_type_res(temp)
             env_utils_V1_2$check_rls(ResultsState$all_data, temp)
-            data.frame(name = g, value = temp)
+            res <- data.frame(name = g)
+            if (length(temp) > 1L) {
+              for (i in seq_len(length(temp))) {
+                res[[paste0("value", i)]] <- temp[[i]]
+              }
+            } else {
+              res <- data.frame(name = g, value = temp)
+            }
+            res
           })
           new <- Reduce(rbind, new)
         } else {
