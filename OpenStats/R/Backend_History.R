@@ -150,6 +150,8 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       get_result(ResultsState)
     },
     DoseResponse = {
+      response_type <- entry[["Response type"]]
+      if (is.null(response_type)) response_type <- "continuous"
       res <- dose_response_V1_2$new(
         DataModelState$df,
         entry[["IC [%]"]],
@@ -158,6 +160,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         entry[["Column containing the names"]],
         entry[["Column containing the units"]],
         DataModelState$formula,
+        response_type,
         backend_communicator_V1_2
       )
       res$validate()

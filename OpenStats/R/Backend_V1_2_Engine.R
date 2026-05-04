@@ -1353,11 +1353,13 @@ dose_response_V1_2 <- R6::R6Class(
     res_df = NULL,
     res_p = NULL,
     ic_percentage = NULL,
+    type = NULL,
 
     initialize = function(df, ic_percentage,
                           is_xlog, is_ylog,
                           substance_names, unit_names,
-                          formula, com = communicator_V1_2) {
+                          formula, type,
+                          com = communicator_V1_2) {
       self$df <- df
       self$ic_percentage <- ic_percentage
       self$df[, substance_names] <- self$df[, substance_names] |> as.character()
@@ -1366,6 +1368,7 @@ dose_response_V1_2 <- R6::R6Class(
       self$substance_names <- substance_names
       self$unit_names <- unit_names
       self$formula <- formula@formula
+      self$type <- type
       self$com <- com$new()
     },
 
@@ -1376,7 +1379,7 @@ dose_response_V1_2 <- R6::R6Class(
         expr = {
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
-            fun = function(df, ic_percentage, formula, substance_names, unit_names, is_xlog, is_ylog) {
+            fun = function(df, ic_percentage, formula, substance_names, unit_names, is_xlog, is_ylog, type) {
               f <- as.character(formula)
               dep <- f[2]
               indep <- f[3]
@@ -1389,7 +1392,7 @@ dose_response_V1_2 <- R6::R6Class(
 
                 res <- OpenStats:::env_lc_V1_2$ic(
                   df, ic_percentage, dep, indep, substance_names, unit_names,
-                  is_xlog, is_ylog
+                  is_xlog, is_ylog, type
                 )
                 if (inherits(res, "errorClass")) {
                   stop(res$error_message)
@@ -1422,7 +1425,7 @@ dose_response_V1_2 <- R6::R6Class(
             },
             args = list(
               df = self$df, ic_percentage = self$ic_percentage, formula = self$formula, substance_names = self$substance_names,
-              unit_names = self$unit_names, is_xlog = self$is_xlog, is_ylog = self$is_ylog
+              unit_names = self$unit_names, is_xlog = self$is_xlog, is_ylog = self$is_ylog, type = self$type
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
@@ -1445,6 +1448,7 @@ dose_response_V1_2 <- R6::R6Class(
         "Log transform x-axis" = self$is_xlog,
         "Log transform y-axis" = self$is_ylog,
         "formula" = deparse(self$formula),
+        "Response type" = self$type,
         "Result name" = new_name
       )
     }
@@ -1460,9 +1464,10 @@ primary_assay_V1_2 <- R6::R6Class(
     neg_control_name = NULL,
     pos_control_name = NULL,
     pval_adj_method = NULL,
+    fold_or_percentage = NULL,
     com = NULL,
 
-    initialize = function(df, formula, neg_control_name, pos_control_name, pval_adj_method, com = communicator_V1_2) {
+    initialize = function(df, formula, neg_control_name, pos_control_name, pval_adj_method, fold_or_percentage, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
       indep <- try({
@@ -1474,6 +1479,7 @@ primary_assay_V1_2 <- R6::R6Class(
       self$neg_control_name <- neg_control_name
       self$pos_control_name <- pos_control_name
       self$pval_adj_method <- pval_adj_method
+      self$fold_or_percentage <- fold_or_percentage
       self$com <- com$new()
     },
 
@@ -1486,39 +1492,67 @@ primary_assay_V1_2 <- R6::R6Class(
           promise_history_entry <- self$create_history(new_name)
 
           ResultsState$bgp$start(
-            fun = function(df, formula, name_column, neg_control_name, pos_control_name, pval_adj_method) {
+            fun = function(df, formula, name_column, neg_control_name, pos_control_name, fold_or_percentage, pval_adj_method) {
               indep <- as.character(formula@formula)[3]
               dep <- as.character(formula@formula)[2]
-              if (pos_control_name != "") {
-                mean_pos <- mean(df[df[, indep] == pos_control_name, dep], na.rm = TRUE)
-                df[, dep] <- df[, dep] - mean_pos
-                df <- df[df[, indep] != pos_control_name, , drop = FALSE] # Remove pos control
-              } else {
-                warning("No positive control is specified the respective normalization will not be conducted")
+
+              if (inherits(formula, "LinearFormula")) {
+                if (pos_control_name != "") {
+                  mean_pos <- mean(df[df[, indep] == pos_control_name, dep], na.rm = TRUE)
+                  df[, dep] <- df[, dep] - mean_pos
+                  df <- df[df[, indep] != pos_control_name, , drop = FALSE] # Remove pos control
+                } else {
+                  warning("No positive control is specified the respective normalization will not be conducted")
+                }
               }
-              if (neg_control_name != "") {
+              unit <- "%"
+              if (inherits(formula, "LinearFormula")) {
+                if (neg_control_name == "") {
+                  stop("You have to define a name for the negative control")
+                }
                 mean_neg <- mean(df[df[, indep] == neg_control_name, dep], na.rm = TRUE)
-                df[, dep] <- (df[, dep] / mean_neg) * 100
+                if (fold_or_percentage == "Percentage") {
+                  df[, dep] <- (df[, dep] / mean_neg) * 100
+                } else if (fold_or_percentage == "Fold change") {
+                  df[, dep] <- df[, dep] / mean_neg
+                  unit <- ""
+                } else {
+                  stop(sprintf("Invalid mode '%s' for a linear model. Use 'Percentage' or 'Fold change'.", fold_or_percentage))
+                }
               } else {
-                stop("You have to define a name for the negative control")
+                unit <- ""
               }
-              fit <- lm(formula@formula, data = df)
+
+              if (inherits(formula, "LinearFormula")) {
+                fit <- lm(formula@formula, data = df)
+              } else if (inherits(formula, "GeneralisedLinearFormula")) {
+                f <- formula@family
+                if (f != "binomial") {
+                  warning(sprintf("Cannot handle family %s. Therefore the family binomial is used here!", f))
+                  f <- "binomial"
+                }
+                fit <- glm(formula@formula, data = df, family = f)
+              } else {
+                stop(sprintf("Cannot use model of type %s", class(formula)))
+              }
+
               emm <- emmeans::emmeans(fit, name_column)
               res <- emmeans::contrast(emm, method = "trt.vs.ctrl", ref = neg_control_name, adjust = pval_adj_method)
               res <- broom::tidy(res) |> as.data.frame()
-              res <- res[, c(2, 4, 8)]
+              res <- res[, c("contrast", "estimate", "adj.p.value")]
               names(res) <- c("name", "Standard Value", "adj. p value")
-              res[["Standard Units"]] <- "%"
+              res[["Standard Units"]] <- unit
               res <- res[, c(1, 2, 4, 3)]
-              pattern <- paste0("\\s*-\\s*", neg_control_name, "$")
-              res$name <- gsub(pattern, "", res$name)
+              pattern <- paste0("\\s*-\\s*\\Q", neg_control_name, "\\E$")
+              res$name <- gsub(pattern, "", res$name, perl = TRUE)
               res
             },
             args = list(
               df = self$df, formula = self$formula,
               name_column = self$name_column,
               neg_control_name = self$neg_control_name, pos_control_name = self$pos_control_name,
-              self$pval_adj_method
+              fold_or_percentage = self$fold_or_percentage,
+              pval_adj_method = self$pval_adj_method
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,

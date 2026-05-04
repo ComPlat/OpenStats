@@ -59,7 +59,7 @@ df_2_string <- function(df) {
 env_utils_V1_2$df_2_string <- df_2_string
 
 get_packages_w_versions <- function() {
-  desc <- packageDescription("OpenStats")
+  desc <- utils::packageDescription("OpenStats")
   imports <- strsplit(desc$Imports, ",")[[1]]
   imports <- trimws(imports)
   imports
@@ -71,7 +71,7 @@ get_packages_w_versions <- function() {
   parsed <- lapply(imports, parse_pkg)
   parsed
   Reduce(rbind, lapply(parsed, function(pkg) {
-    res <- as.character(packageVersion(pkg))
+    res <- as.character(utils::packageVersion(pkg))
     data.frame(name = pkg, version = res)
   }))
 }

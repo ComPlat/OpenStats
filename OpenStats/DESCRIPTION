@@ -2,7 +2,7 @@ Package: OpenStats
 Type: Package
 Title: Statistical Analysis in the Web for Biologists and Chemists
 Version: 1.2
-Date: 2026-03-09
+Date: 2026-05-04
 Authors@R: person(given = "Krämer",
     family = "Konrad",
     role = c("aut", "cre"),

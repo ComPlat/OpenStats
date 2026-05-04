@@ -116,7 +116,7 @@ app <- function() {
       if (MethodState$method == "Default") {
         env_import$read_data(file, DataModelState, ResultsState)
       } else if (MethodState$method == "DoseResponse") {
-        MethodState$storage_class <- new("MethodDoseResponse", id = "", request_id = "")
+        MethodState$storage_class <- new("MethodDoseResponse", id = "", request_id = "", element_info = list())
         env_import_dose_response$import_dose_response_json(file, DataModelState, ResultsState, MethodState)
       }
       print_req(
@@ -154,7 +154,7 @@ app <- function() {
         MethodState$method <- "DoseResponse"
         MethodState$storage_class <- new(
           "MethodDoseResponse",
-          id = "", request_id = ""
+          id = "", request_id = "", element_info = list()
         )
       }
     })
@@ -175,6 +175,14 @@ app <- function() {
       })
     } else {
       shiny::observeEvent(input$file, {
+        # e <- try({
+        #   MethodState$method <- "DoseResponse"
+        #   MethodState$storage_class <- new(
+        #     "MethodDoseResponse",
+        #     id = "", request_id = "", element_info = list()
+        #   )
+        #   import_dose_response_json(input$file$datapath, DataModelState, ResultsState, MethodState)
+        # })
         e <- try(env_import$read_data(input$file$datapath, DataModelState, ResultsState))
         if (inherits(e, "try-error")) {
           err <- conditionMessage(attr(e, "condition"))
@@ -248,7 +256,7 @@ app <- function() {
     LinearNonParametricTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     GeneralizedLinearTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     testsServer("TESTS", DataModelState, ResultsState)
-    DoseResponseServer("DOSERESPONSE", DataModelState, ResultsState)
+    DoseResponseServer("DOSERESPONSE", DataModelState, ResultsState, MethodState)
     FormulaEditorServer("FO", DataModelState, ResultsState)
     SplitByGroupServer("SG", DataModelState, ResultsState)
     HistoryEditorServer("HISTORY", DataModelState, ResultsState, DataWranglingState)

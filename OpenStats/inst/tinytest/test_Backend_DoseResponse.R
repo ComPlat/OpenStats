@@ -29,7 +29,7 @@ test_check_fit <- function(ic50_true) {
     data = df, fct = drc::LL.4(),
     robust = "median"
   )
-  valid_points <- OpenStats:::false_discovery_rate(residuals(model))
+  valid_points <- OpenStats:::false_discovery_rate(model, "continuous")
   model <- drc::drm(abs ~ conc,
     data = df,
     subset = valid_points,
@@ -41,7 +41,7 @@ test_check_fit <- function(ic50_true) {
   title = "Bla"
   res <- OpenStats:::check_fit(
     model, 50, min(df[, conc]),
-    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M"
+    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M", "continuous"
   )
   expect_true(is.data.frame(res))
 }
@@ -50,7 +50,7 @@ test_check_fit(10)
 # Test ic50 internal
 test_ic50_internal <- function(ic50_true) {
   data <- simulate("A", 7, ic50_true)
-  res <- OpenStats:::ic_internal(data, 50, "abs", "conc", "substance", FALSE, FALSE, "M")
+  res <- OpenStats:::ic_internal(data, 50, "abs", "conc", "substance", FALSE, FALSE, "M", "continuous")
   res_df <- res[[1]]
   tol_percentage <- 0.1
   rel_error <- function(a, b) {
@@ -138,10 +138,11 @@ test_rsdr()
 # Test cases for env_lc_V1_2$false_discovery_rate
 test_false_discovery_rate <- function() {
   checks <- list()
-  residuals <- c(1, 2, 3, 4, 5)
-  include <- OpenStats:::false_discovery_rate(residuals)
+  df <- simulate("A", 7, 10)
+  model <- drc::drm(abs ~ conc, data = df, fct = drc::LL.4(), robust = "median")
+  include <- OpenStats:::false_discovery_rate(model, "continuous")
   checks[[1]] <- expect_true(is.logical(include))
-  checks[[2]] <- expect_equal(length(include), length(residuals))
+  checks[[2]] <- expect_equal(length(include), nrow(df))
   expect_true(all(unlist(checks)))
 }
 test_false_discovery_rate()
@@ -176,7 +177,7 @@ test_drawplot <- function() {
     data = df, fct = drc::LL.4(),
     robust = "median"
   )
-  valid_points <- OpenStats:::false_discovery_rate(residuals(model))
+  valid_points <- OpenStats:::false_discovery_rate(model, "continuous")
   model <- drc::drm(abs ~ conc,
     data = df,
     subset = valid_points,
@@ -188,7 +189,7 @@ test_drawplot <- function() {
   title = "Bla"
   res <- OpenStats:::check_fit(
     model, 50, min(df[, conc]),
-    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M"
+    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M", "continuous"
   )
   p <- OpenStats:::drawplot(
     df, abs, conc, "M", model, valid_points, title, res$IC_50_relative,
@@ -274,7 +275,7 @@ test_ic50 <- function() {
     names = c("A", "A", "A", "A", "A"),
     unit = "M"
   )
-  result <- OpenStats:::ic(data, 50, "abs", "conc", "names", "unit", FALSE, FALSE)
+  result <- OpenStats:::ic(data, 50, "abs", "conc", "names", "unit", FALSE, FALSE, "continuous")
   checks[[1]] <- expect_true(is.list(result))
   checks[[2]] <- expect_true(is.data.frame(result[[1]][[1]]))
   expect_true(all(unlist(checks)))

@@ -20,8 +20,14 @@ check_mapping <- function(df, indep, name_column) {
 }
 env_primary_assay_V1_2$check_mapping <- check_mapping
 
-pa_continous_internal <- function(formula, df, name_column, neg_control_name, pval_adj_method) {
-  fit <- lm(formula, data = df)
+# family = NULL --> lm; otherwise glm with the given family ("binomial", "poisson", ...)
+contrast_vs_control <- function(formula, df, name_column, neg_control_name, pval_adj_method,
+                                family = NULL) {
+  fit <- if (is.null(family)) {
+    lm(formula, data = df)
+  } else {
+    glm(formula, data = df, family = family)
+  }
   emm <- emmeans::emmeans(fit, name_column)
   res <- emmeans::contrast(emm, method = "trt.vs.ctrl", ref = neg_control_name, adjust = pval_adj_method)
   res <- broom::tidy(res) |> as.data.frame()
@@ -31,7 +37,7 @@ pa_continous_internal <- function(formula, df, name_column, neg_control_name, pv
   res$name <- gsub(pattern, "", res$name)
   res
 }
-env_primary_assay_V1_2$pa_continous_internal <- pa_continous_internal
+env_primary_assay_V1_2$contrast_vs_control <- contrast_vs_control
 
 add_fold_change_and_percentage <- function(res, df, dep, indep, neg_control_name, name_column) {
   if (neg_control_name == "") {
@@ -58,60 +64,36 @@ pa <- function(df, formula, name_column, neg_control_name, pos_control_name, pva
   dep <- as.character(formula)[2]
   env_primary_assay_V1_2$check_mapping(df, indep, name_column)
   df <- env_primary_assay_V1_2$pos_norm(df, dep, indep, pos_control_name)
-  res <- env_primary_assay_V1_2$pa_continous_internal(formula, df, name_column, neg_control_name, pval_adj_method)
+  res <- env_primary_assay_V1_2$contrast_vs_control(
+    formula, df, name_column, neg_control_name, pval_adj_method
+  )
   env_primary_assay_V1_2$add_fold_change_and_percentage(
     res, df, dep, indep, neg_control_name, name_column
   )
 }
 env_primary_assay_V1_2$pa <- pa
 
-pa_binomial_internal <- function(formula, df, name_column, neg_control_name, pval_adj_method) {
-  fit <- glm(formula, data = df, family = "binomial")
-  emm <- emmeans::emmeans(fit, name_column)
-  res <- emmeans::contrast(emm, method = "trt.vs.ctrl", ref = neg_control_name, adjust = pval_adj_method)
-  res <- broom::tidy(res) |> as.data.frame()
-  res <- res[, c(2, 4, 8)]
-  names(res) <- c("name", "Standard Value", "adj. p value")
-  pattern <- paste0("\\s*-\\s*", neg_control_name, "$")
-  res$name <- gsub(pattern, "", res$name)
-  res
-}
-env_primary_assay_V1_2$pa_binomial_internal <- pa_binomial_internal
-
 pa_binomial <- function(df, formula, name_column, neg_control_name, pval_adj_method) {
   indep <- as.character(formula)[3]
   dep <- as.character(formula)[2]
   env_primary_assay_V1_2$check_mapping(df, indep, name_column)
-  res <- env_primary_assay_V1_2$pa_binomial_internal(formula, df, name_column, neg_control_name, pval_adj_method)
+  res <- env_primary_assay_V1_2$contrast_vs_control(
+    formula, df, name_column, neg_control_name, pval_adj_method,
+    family = "binomial"
+  )
   env_primary_assay_V1_2$add_fold_change_and_percentage(
     res, df, dep, indep, neg_control_name, name_column
   )
 }
 env_primary_assay_V1_2$pa_binomial <- pa_binomial
 
-pa_count_internal <- function(formula, df, name_column, neg_control_name, pval_adj_method) {
-  fit <- glm(formula, data = df, family = "poisson")
-  emm <- emmeans::emmeans(fit, name_column)
-  res <- emmeans::contrast(
-    emm,
-    method = "trt.vs.ctrl",
-    ref = neg_control_name,
-    adjust = pval_adj_method
-  )
-  res <- broom::tidy(res) |> as.data.frame()
-  res <- res[, c(2, 4, 8)]
-  names(res) <- c("name", "Standard Value", "adj. p value")
-  pattern <- paste0("\\s*-\\s*", neg_control_name, "$")
-  res$name <- gsub(pattern, "", res$name)
-  res
-}
-env_primary_assay_V1_2$pa_count_internal <- pa_count_internal
-
 pa_count <- function(df, formula, name_column, neg_control_name, pval_adj_method) {
   indep <- as.character(formula)[3]
-  dep   <- as.character(formula)[2]
-  res <- env_primary_assay_V1_2$pa_count_internal(
-    formula, df, name_column, neg_control_name, pval_adj_method
+  dep <- as.character(formula)[2]
+  env_primary_assay_V1_2$check_mapping(df, indep, name_column)
+  res <- env_primary_assay_V1_2$contrast_vs_control(
+    formula, df, name_column, neg_control_name, pval_adj_method,
+    family = "poisson"
   )
   env_primary_assay_V1_2$add_fold_change_and_percentage(
     res, df, dep, indep, neg_control_name, name_column
@@ -123,9 +105,7 @@ df <- read.csv("./test_data/primary_data.csv")
 res <- env_primary_assay_V1_2$pa(
   df, values ~ substances, "substances", "neg", "pos", "holm"
 )
-cat("Continous\n")
 print(res)
-cat("=====================\n")
 
 df <- data.frame(
   substances = c(
@@ -146,9 +126,7 @@ df <- data.frame(
 res <- env_primary_assay_V1_2$pa_binomial(
   df, values ~ substances, "substances", "neg", "holm"
 )
-cat("Binomial\n")
 print(res)
-cat("=====================\n")
 
 set.seed(1234)
 df <- data.frame(
@@ -168,7 +146,4 @@ df <- data.frame(
 res <- env_primary_assay_V1_2$pa_count(
   df, counts ~ substances, "substances", "neg", "holm"
 )
-cat("Count\n")
 print(res)
-cat("=====================\n")
-# Missing multinomial primary assay

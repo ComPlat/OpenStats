@@ -17,7 +17,7 @@ path <- "./development/dose_response_input.json"
 import_dose_response_json(path, DataModelState, ResultsState, MethodState)
 
 library(ggplot2)
-res <- ic50(DataModelState$df, 10, "values", "conc", "name", "unit", FALSE, FALSE)
+res <- ic(DataModelState$df, 10, "values", "conc", "name", "unit", FALSE, FALSE)
 df <- lapply(res, function(obj) {
   obj[[1L]]
 })

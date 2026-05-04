@@ -1,7 +1,8 @@
 setClass("MethodDoseResponse",
   slots = c(
     id = "character",
-    request_id = "character"
+    request_id = "character",
+    element_info = "list"
   )
 )
 

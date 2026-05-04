@@ -23,6 +23,7 @@
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
+    "Response type": "continuous",
     "Result name": "DoseResponseNr3"
   },
   {
@@ -33,6 +34,7 @@
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
+    "Response type": "continuous",
     "Result name": "DoseResponseNr4"
   },
   {
@@ -43,6 +45,7 @@
     "Log transform x-axis": false,
     "Log transform y-axis": false,
     "formula": "abs ~ conc",
+    "Response type": "continuous",
     "Result name": "DoseResponseNr5"
   }
 ]

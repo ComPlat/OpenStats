@@ -1,0 +1,570 @@
+{
+  "id": "26",
+  "request_id": "MTT-20260430-binomial-ef34gh",
+  "element_info": {
+    "id": "702",
+    "name": "Binomial primary assay with controls",
+    "endpoint": "percent mitotic cells"
+  },
+  "wellplates": [
+    {
+      "id": "97",
+      "wells": [
+        {
+          "id": 8001,
+          "sample": {
+            "id": 199900,
+            "conc": 1,
+            "short_label": "negative control"
+          },
+          "position": {
+            "x": 1,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8002,
+          "sample": {
+            "id": 199900,
+            "conc": 1,
+            "short_label": "negative control"
+          },
+          "position": {
+            "x": 2,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8003,
+          "sample": {
+            "id": 199900,
+            "conc": 1,
+            "short_label": "negative control"
+          },
+          "position": {
+            "x": 3,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8004,
+          "sample": {
+            "id": 199900,
+            "conc": 1,
+            "short_label": "negative control"
+          },
+          "position": {
+            "x": 4,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8005,
+          "sample": {
+            "id": 199900,
+            "conc": 1,
+            "short_label": "negative control"
+          },
+          "position": {
+            "x": 5,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8006,
+          "sample": {
+            "id": 199901,
+            "conc": 1,
+            "short_label": "positive control"
+          },
+          "position": {
+            "x": 6,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8007,
+          "sample": {
+            "id": 199901,
+            "conc": 1,
+            "short_label": "positive control"
+          },
+          "position": {
+            "x": 7,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8008,
+          "sample": {
+            "id": 199901,
+            "conc": 1,
+            "short_label": "positive control"
+          },
+          "position": {
+            "x": 8,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8009,
+          "sample": {
+            "id": 199901,
+            "conc": 1,
+            "short_label": "positive control"
+          },
+          "position": {
+            "x": 9,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8010,
+          "sample": {
+            "id": 199901,
+            "conc": 1,
+            "short_label": "positive control"
+          },
+          "position": {
+            "x": 10,
+            "y": 1
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8011,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 1,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8012,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 2,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8013,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 3,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8014,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 4,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8015,
+          "sample": {
+            "id": 199729,
+            "conc": 1,
+            "short_label": "CHI-352"
+          },
+          "position": {
+            "x": 5,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8016,
+          "sample": {
+            "id": 199730,
+            "conc": 1,
+            "short_label": "CHI-353"
+          },
+          "position": {
+            "x": 6,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8017,
+          "sample": {
+            "id": 199730,
+            "conc": 1,
+            "short_label": "CHI-353"
+          },
+          "position": {
+            "x": 7,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8018,
+          "sample": {
+            "id": 199730,
+            "conc": 1,
+            "short_label": "CHI-353"
+          },
+          "position": {
+            "x": 8,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8019,
+          "sample": {
+            "id": 199730,
+            "conc": 1,
+            "short_label": "CHI-353"
+          },
+          "position": {
+            "x": 9,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8020,
+          "sample": {
+            "id": 199730,
+            "conc": 1,
+            "short_label": "CHI-353"
+          },
+          "position": {
+            "x": 10,
+            "y": 2
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8021,
+          "sample": {
+            "id": 199731,
+            "conc": 1,
+            "short_label": "CHI-354"
+          },
+          "position": {
+            "x": 1,
+            "y": 3
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8022,
+          "sample": {
+            "id": 199731,
+            "conc": 1,
+            "short_label": "CHI-354"
+          },
+          "position": {
+            "x": 2,
+            "y": 3
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8023,
+          "sample": {
+            "id": 199731,
+            "conc": 1,
+            "short_label": "CHI-354"
+          },
+          "position": {
+            "x": 3,
+            "y": 3
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "1"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8024,
+          "sample": {
+            "id": 199731,
+            "conc": 1,
+            "short_label": "CHI-354"
+          },
+          "position": {
+            "x": 4,
+            "y": 3
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "id": 8025,
+          "sample": {
+            "id": 199731,
+            "conc": 1,
+            "short_label": "CHI-354"
+          },
+          "position": {
+            "x": 5,
+            "y": 3
+          },
+          "readouts": [
+            {
+              "unit": "M",
+              "value": "0"
+            },
+            {
+              "unit": "M",
+              "value": "3"
+            }
+          ]
+        }
+      ],
+      "readoutTitles": [
+        "Readout",
+        "Readout 2"
+      ]
+    }
+  ]
+}

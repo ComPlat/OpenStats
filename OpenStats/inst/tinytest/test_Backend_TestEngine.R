@@ -725,6 +725,7 @@ test_dose_response <- function(in_background) {
     substance_names = "name",
     unit_names = "unit",
     formula = formula,
+    type = "continuous",
     com = OpenStats:::backend_communicator_V1_2
   )
 
@@ -775,6 +776,7 @@ test_primary_assay <- function(in_background) {
     neg_control_name = "neg",
     pos_control_name = "pos",
     pval_adj_method = "holm",
+    fold_or_percentage = "Percentage",
     com = OpenStats:::backend_communicator_V1_2
   )
   pa$eval(ResultsState)

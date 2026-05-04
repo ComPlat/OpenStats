@@ -25,6 +25,26 @@ shapenumber <- function(num) {
 }
 env_lc_V1_2$shapenumber <- shapenumber
 
+get_residuals <- function(model, type) {
+  if (type == "continuous") {
+    return(residuals(model))
+  }
+  resids <- residuals(model)# y - mu, raw
+  mu <- fitted(model)
+  eps<- .Machine$double.eps
+  if (type %in% c("binomial", "quantal")) {
+    n  <- weights(model)
+    if (is.null(n)) n <- 1L
+    mu <- pmin(pmax(mu, eps), 1 - eps)
+    resids / sqrt(mu * (1 - mu) / n)
+  } else if (type == "Poisson") {
+    resids / sqrt(pmax(mu, eps))
+  } else {
+    stop("unsupported type: ", type)
+  }
+}
+env_lc_V1_2$get_residuals <- get_residuals
+
 # calculates the robust 68th percentile of the residuals
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
 robust_68_percentile <- function(residuals) {
@@ -54,31 +74,11 @@ rsdr <- function(residuals, number_of_coefficients_fitted) {
 }
 env_lc_V1_2$rsdr <- rsdr
 
-get_residuals <- function(model, type) {
-  if (type == "continuous") {
-    return(residuals(model))
-  }
-  resids <- residuals(model) # y - mu, raw
-  mu <- fitted(model)
-  eps <- .Machine$double.eps
-  if (type %in% c("binomial", "quantal")) {
-    n <- weights(model)
-    if (is.null(n)) n <- 1L
-    mu <- pmin(pmax(mu, eps), 1 - eps)
-    resids / sqrt(mu * (1 - mu) / n)
-  } else if (type == "Poisson") {
-    resids / sqrt(pmax(mu, eps))
-  } else {
-    stop("unsupported type: ", type)
-  }
-}
-env_lc_V1_2$get_residuals <- get_residuals
-
 # false discovery rate (FDR) approach,
 # returns a T/F vector for selection of valid data points
 # adapted from Motulsky HJ, Brown RE, BMC Bioinformatics 2006, 7:123
 false_discovery_rate <- function(model, type) {
-  res <- env_lc_V1_2$get_residuals(model, type)
+  res <- get_residuals(model, type)
   N <- length(res)
   K <- length(coef(model))
   df <- data.frame(id = seq_along(res), res = res)
@@ -181,88 +181,7 @@ check_fit <- function(model, ic_percentage, min_conc, max_conc,
 }
 env_lc_V1_2$check_fit <- check_fit
 
-drawplot_only_raw_data <- function(df, abs_col, conc_col, title, unit) {
-  conc <- function() stop("Should never be called") # Please R CMD check
-
-  data_measured <- data.frame(conc = df[, conc_col], abs = df[, abs_col])
-  p <- ggplot() +
-    geom_boxplot(
-      data = data_measured,
-      aes(x = conc, y = abs, group = conc)
-    ) +
-    geom_point(
-      data = data_measured,
-      aes(x = conc, y = abs)
-    ) +
-    xlab(paste0("Concentration [", unit, "]")) +
-    ylab("Viability") +
-    ggtitle(title)
-  return(p)
-}
-env_lc_V1_2$drawplot_only_raw_data <- drawplot_only_raw_data
-
-drawplot <- function(df, abs_col, conc_col, unit, model, valid_points, title,
-                     IC_relative, IC_relative_lower, IC_relative_higher,
-                     islog_x, islog_y) {
-
-  conc <- function() stop("Should never be called") # Please R CMD check
-
-  min_conc <- min(df[, conc_col])
-  max_conc <- max(df[, conc_col])
-  grid <- seq(min_conc, max_conc, 0.1)
-  plotFct <- (model$curve)[[1]]
-  res <- plotFct(grid)
-  data <- data.frame(
-    abs = res,
-    conc = grid
-  )
-  p <- env_lc_V1_2$drawplot_only_raw_data(df, abs_col, conc_col, title, unit) +
-    geom_line(data = data, aes(x = conc, y = abs))
-  max_conc <- max(df[, conc_col]) +
-    0.1 * (max(df[, conc_col]) - min(df[, conc_col]))
-  min_conc <- min(df[, conc_col]) - 0.1 * min(df[, conc_col])
-  xmin <- IC_relative_lower
-  xmax <- IC_relative_higher
-  if (!is.na(xmin) && !is.na(xmax)) {
-    ymin <- min(df[, abs_col])
-    ymax <- max(df[, abs_col])
-    yrange <- ymax - ymin
-    butt_height <- yrange * 0.1
-    ymedian <- median(df[, abs_col])
-    if (xmin > min_conc && xmax < max_conc) {
-      p <- p + geom_errorbarh(
-        aes(
-          xmin = xmin,
-          xmax = xmax, y = ymedian
-        ),
-        colour = "darkred", height = butt_height
-      )
-    } else {
-      p <- p + labs(caption = "Confidence intervall not in conc. range") +
-        theme(
-          plot.caption =
-            element_text(color = "darkred", face = "italic", size = 8)
-        )
-    }
-  } else {
-    p <- p + labs(caption = "Confidence intervall could not be calculated") +
-      theme(
-        plot.caption =
-          element_text(color = "darkred", face = "italic", size = 8)
-      )
-  }
-  if (islog_x) {
-    p <- p + scale_x_log10()
-  }
-  if (islog_y) {
-    p <- p + scale_y_log10()
-  }
-  return(p)
-}
-env_lc_V1_2$drawplot <- drawplot
-
-ic_internal <- function(df, ic_percentage, abs, conc,
-                          title, islog_x, islog_y, unit, type) {
+ic_internal <- function(df, ic_percentage, abs, conc, unit, title, type) {
   model <- drc::drm(abs ~ conc,
     data = df, fct = drc::LL.4(),
     robust = "median", type = type
@@ -272,100 +191,93 @@ ic_internal <- function(df, ic_percentage, abs, conc,
     data = df,
     subset = valid_points,
     start = model$coefficients,
-    fct = drc::LL.4(), robust = "mean", type = type
+    fct = drc::LL.4(), robust = "mean",
   )
-  res <- env_lc_V1_2$check_fit(
+  env_lc_V1_2$check_fit(
     model, ic_percentage, min(df[, conc]),
     max(df[, conc]), min(df[, abs]), max(df[, abs]), title, unit, type
   )
-  p <- env_lc_V1_2$drawplot(
-    df, abs, conc, unit, model, valid_points, title,
-    res[[7]], res[[8]], res[[9]],
-    islog_x, islog_y
-  )
-  return(list(res, p))
 }
 env_lc_V1_2$ic_internal <- ic_internal
 
-check_dr_df <- function(df, abs_col,
-                        conc_col, substance_name_col) {
-  if (!is.character(df[, substance_name_col]) &&
-    !is.factor(df[, substance_name_col])) {
-    return(errorClass$new("The substance names are not character"))
-  }
-  substances <- unique(df[, substance_name_col]) # is this even possible?
-  if (length(substances) < 1) {
-    return(errorClass$new("The data for compounds seems to be missing"))
-  }
-  if (!is.numeric(df[, abs_col])) {
-    return(errorClass$new("The absorbance data is not numerical"))
-  }
-  return(NULL)
-}
-env_lc_V1_2$check_dr_df <- check_dr_df
+set.seed(1234)
+df_binomial <- data.frame(
+  conc = c(
+    rep(0.5, 5L),
+    rep(2.5, 5L),
+    rep(5, 5L),
+    rep(10, 5L),
+    rep(15, 5L),
+    rep(20, 5L),
+    rep(25, 5L)
+  ),
+  abs = c(
+    rbinom(5, 1, 0.85),
+    rbinom(5, 1, 0.75),
+    rbinom(5, 1, 0.65),
+    rbinom(5, 1, 0.55),
+    rbinom(5, 1, 0.35),
+    rbinom(5, 1, 0.25),
+    rbinom(5, 1, 0.15)
+  ),
+  unit = "Whatever"
+)
+env_lc_V1_2$ic_internal(df_binomial, 0.5, 2L, 1L, 3L, "Test binomial", "binomial")
 
-transform_conc_dr <- function(conc_col) {
-  temp_conc <- as.numeric(conc_col)
-  if (all(is.na(temp_conc))) {
-    return(errorClass$new(
-      "The concentration data cannot be converted to numerical"
-    ))
-  }
-  if (!is.numeric(temp_conc)) {
-    return(errorClass$new("The concentration data is not numerical")) # is this even possible?
-  }
-  return(temp_conc)
-}
-env_lc_V1_2$transform_conc_dr <- transform_conc_dr
+# continuous: Gaussian-distributed response decreasing with dose
+set.seed(1234)
+df_continuous <- data.frame(
+  conc = rep(c(0.5, 2.5, 5, 10, 15, 20, 25), each = 5),
+  abs = c(
+    rnorm(5, 0.85, 0.05),
+    rnorm(5, 0.75, 0.05),
+    rnorm(5, 0.65, 0.05),
+    rnorm(5, 0.55, 0.05),
+    rnorm(5, 0.35, 0.05),
+    rnorm(5, 0.25, 0.05),
+    rnorm(5, 0.15, 0.05)
+  ),
+  unit = "Whatever"
+)
+env_lc_V1_2$ic_internal(df_continuous, 0.5, 2L, 1L, 3L, "Test continuous", "continuous")
 
-ic <- function(df, ic_percentage, abs_col, conc_col,
-                 substance_name_col, unit_col,
-                 islog_x, islog_y, type) {
-  # Checks
-  err <- env_lc_V1_2$check_dr_df(df, abs_col, conc_col, substance_name_col)
-  if (inherits(err, "errorClass")) {
-    return(err)
-  }
-  substances <- unique(df[, substance_name_col])
-  # Data preparation
-  temp_conc <- env_lc_V1_2$transform_conc_dr(df[, conc_col])
-  if (inherits(temp_conc, "errorClass")) {
-    return(temp_conc)
-  }
-  df[, conc_col] <- temp_conc
-  df <- data.frame(
-    abs = df[, abs_col],
-    conc = df[, conc_col],
-    names = df[, substance_name_col],
-    unit = df[, unit_col]
+# Poisson: counts decreasing with dose
+set.seed(1234)
+df_poisson <- data.frame(
+  conc = rep(c(0.5, 2.5, 5, 10, 15, 20, 25), each = 5),
+  abs = c(
+    rpois(5, 85),
+    rpois(5, 75),
+    rpois(5, 65),
+    rpois(5, 55),
+    rpois(5, 35),
+    rpois(5, 25),
+    rpois(5, 15)
+  ),
+  unit = "Whatever"
+)
+env_lc_V1_2$ic_internal(df_poisson, 0.5, 2L, 1L, 3L, "Test Poisson", "Poisson")
+
+# quantal (0/1 outcomes per individual) is listed in drc::drm's formals but
+# is not actually implemented — the dispatch in drm() has no branch for it,
+# so estMethod is never set and the call fails with
+#   "object 'estMethod' not found".
+# Use type = "binomial" with Bernoulli (size = 1) data instead — see the
+# rbinom(5, 1, p) example at the top of this block.
+if (FALSE) {
+  set.seed(1234)
+  df_quantal <- data.frame(
+    conc = rep(c(0.5, 2.5, 5, 10, 15, 20, 25), each = 5),
+    abs = c(
+      rbinom(5, 1, 0.85),
+      rbinom(5, 1, 0.75),
+      rbinom(5, 1, 0.65),
+      rbinom(5, 1, 0.55),
+      rbinom(5, 1, 0.35),
+      rbinom(5, 1, 0.25),
+      rbinom(5, 1, 0.15)
+    ),
+    unit = "Whatever"
   )
-  res <- list()
-  for (i in seq_along(substances)) {
-    df_temp <- df[df$names == substances[i], ]
-    df_temp <- df_temp[!sapply(df_temp$conc, is.na), ]
-    unit <- unique(df_temp$unit)
-
-    m <- tryCatch(
-      {
-        m <- env_lc_V1_2$ic_internal(
-          df_temp, ic_percentage,
-          "abs", "conc",
-          substances[i],
-          islog_x, islog_y, unit, type
-        )
-      },
-      error = function(err) {
-        retval <- errorClass$new(
-          paste("A warning occurred: ", conditionMessage(err))
-        )
-        retval$object <- env_lc_V1_2$drawplot_only_raw_data(
-          df_temp, "abs", "conc", substances[i], unit
-        )
-        return(retval)
-      }
-    )
-    res[[i]] <- m
-  }
-  return(res)
+  env_lc_V1_2$ic_internal(df_quantal, 0.5, 2L, 1L, 3L, "Test quantal", "quantal")
 }
-env_lc_V1_2$ic <- ic

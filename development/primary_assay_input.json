@@ -4,7 +4,7 @@
   "element_info": {
     "id": "700",
     "name": "New Viability",
-    "endpoint": "IC50"
+    "endpoint": "percent control"
   },
   "wellplates": [
     {

@@ -5,7 +5,7 @@ df <- read.csv(system.file("/test_data/DoseResponse.csv", package = "OpenStats")
 expected <- OpenStats:::ic(
   df, 50, "abs", "conc",
   "names", "units",
-  FALSE, FALSE
+  FALSE, FALSE, "continuous"
 )
 dfs <- lapply(expected, function(x) {
   if (is.list(x)) {
@@ -42,6 +42,7 @@ test_dose_response <- function(app, srv) {
     session$setInputs(`DOSERESPONSE-unitNames` = "units")
     session$setInputs(`DOSERESPONSE-yTransform` = FALSE)
     session$setInputs(`DOSERESPONSE-xTransform` = FALSE)
+    session$setInputs(`DOSERESPONSE-type` = "continuous")
     session$setInputs(`DOSERESPONSE-ic50` = 1)
 
     t0 <- Sys.time()

@@ -69,7 +69,7 @@ check_primary_assay <- function(DataModelState) {
 
   formula <- DataModelState$formula
   if (is.null(formula)) return("You have to define a model in the formula editor")
-  if (!inherits(formula, "LinearFormula")) return("Only linear models are supported.")
+  if (!inherits(formula, "LinearFormula") && !inherits(formula, "GeneralisedLinearFormula")) return("Only (generalised) linear models are supported.")
 
   f <- formula@formula
   response <- all.vars(f[[2]])
