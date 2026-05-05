@@ -89,11 +89,11 @@ resolve_element_info <- function(element_info) {
     "TCID50" = list(kind = "dose-response-binomial", parameter = 50),
     "MTD" = list(kind = "dose-response-binomial", parameter = NA),
 
-    "MIC" = list(kind = "MIC-quantile", parameter = NA),
-    "MIC50" = list(kind = "MIC-quantile", parameter = 50),
-    "MIC80" = list(kind = "MIC-quantile", parameter = 80),
-    "MIC90" = list(kind = "MIC-quantile", parameter = 90),
-
+    # Postponed
+    "MIC" = list(kind = "Default", parameter = NA),
+    "MIC50" = list(kind = "Default", parameter = 50),
+    "MIC80" = list(kind = "Default", parameter = 80),
+    "MIC90" = list(kind = "Default", parameter = 90),
     "TGI" = list(kind = "Default", parameter = NA)
   )
   stopifnot("element_info is not a list cannot import the data" = is.list(element_info))
