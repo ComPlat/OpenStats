@@ -11,8 +11,8 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
     )
     show_dose_response <- shiny::reactive({
       shiny::req(MethodState$method)
-      shiny::req(MethodState$storage_class)
       if (MethodState$method != "Default") {
+        shiny::req(MethodState$storage_class)
         eii <- MethodState$storage_class@element_info$info
         if (!(eii$kind %in% DOSE_RESPONSE_KINDS)) {
           return(FALSE)
@@ -24,8 +24,6 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
     })
     output[["Percentage"]] <- shiny::renderUI({
       if (!show_dose_response()) return()
-      shiny::req(MethodState$method)
-      shiny::req(MethodState$storage_class)
       create_slider <- function(p) {
         p <- as.numeric(p)
         if (is.na(p)) {
@@ -55,8 +53,6 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
     })
     output[["typeSelector"]] <- shiny::renderUI({
       if (!show_dose_response()) return()
-      shiny::req(MethodState$method)
-      shiny::req(MethodState$storage_class)
       free_dropdown <- shiny::selectInput(
         "DOSERESPONSE-type", "Response type",
         choices = c(
@@ -171,8 +167,8 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
     # ----------------------------------------------------------------------------------------
     show_primary_assay <- shiny::reactive({
       shiny::req(MethodState$method)
-      shiny::req(MethodState$storage_class)
       if (MethodState$method != "Default") {
+        shiny::req(MethodState$storage_class)
         eii <- MethodState$storage_class@element_info$info
         if (!(eii$kind %in% c("primary-assay-percentage-continuous", "primary-assay-fold-change", "primary-assay-percentage-binomial"))) {
           return(FALSE)
@@ -235,8 +231,8 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
       )
 
       shiny::req(MethodState$method)
-      shiny::req(MethodState$storage_class)
       if (MethodState$method != "Default") {
+        shiny::req(MethodState$storage_class)
         eii <- MethodState$storage_class@element_info$info
         if (eii$kind == "primary-assay-percentage-continuous") {
           if (!inherits(DataModelState$formula, "LinearFormula")) {
