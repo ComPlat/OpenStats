@@ -717,30 +717,139 @@ test_dose_response <- function(in_background) {
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
   ResultsState$bgp$in_backend <- TRUE
 
-  dr <- OpenStats:::dose_response_V1_2$new(
-    df = df,
-    ic_percentage = 50,
-    is_xlog = FALSE,
-    is_ylog = FALSE,
-    substance_names = "name",
-    unit_names = "unit",
-    formula = formula,
-    type = "continuous",
-    com = OpenStats:::backend_communicator_V1_2
-  )
+  checks <- c()
+  counter <- 0L
+  for (i in c(1, 25, 50, 99)) {
+    dr <- OpenStats:::dose_response_V1_2$new(
+      df = df,
+      ic_percentage = 50,
+      is_xlog = FALSE,
+      is_ylog = FALSE,
+      substance_names = "name",
+      unit_names = "unit",
+      formula = formula,
+      type = "continuous",
+      com = OpenStats:::backend_communicator_V1_2
+    )
 
-  new_name <- "Mock"
-  dr$eval(ResultsState, new_name)
-  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
-  res <- ResultsState$all_data[[length(ResultsState$all_data)]]
-
-  check1 <- expect_true(inherits(res, "doseResponse"))
-  check2 <- expect_equal(ResultsState$counter, 1)
-  check3 <- expect_equal(ResultsState$history[[1]]$type, "DoseResponse")
-  checks <- c(check1, check2, check3)
+    new_name <- "Mock"
+    dr$eval(ResultsState, new_name)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+    counter <- counter + 1L
+    res <- ResultsState$all_data[[length(ResultsState$all_data)]]
+    checks <- c(checks, inherits(res, "doseResponse"))
+    checks <- c(checks, ResultsState$counter == counter)
+    checks <- c(checks, ResultsState$history[[counter]]$type == "DoseResponse")
+  }
   expect_true(all(checks))
 }
 run_test(test_dose_response)
+
+simulate_dr_binomial <- function(name, slope, true_ic50) {
+  set.seed(42)
+  conc_levels <- c(0.1, seq(2.5, 26, by = 2.5))
+  conc <- rep(conc_levels, each = 5)
+  logistic_response <- function(conc, b, c, d, e) {
+    c + (d - c) / (1 + (conc / e)^b)
+  }
+  probs <- logistic_response(conc, slope, 0.05, 1.1, true_ic50)
+  probs <- probs / max(probs)
+  data.frame(response = rbinom(length(conc), 1, probs),
+    dose = conc, name = name, unit = "M")
+}
+
+simulate_dr_poisson <- function(name, slope, true_ic50) {
+  set.seed(42)
+  conc_levels <- c(0.1, seq(2.5, 26, by = 2.5))
+  conc <- rep(conc_levels, each = 5)
+  logistic_response <- function(conc, b, c, d, e) {
+    c + (d - c) / (1 + (conc / e)^b)
+  }
+  lambdas <- logistic_response(conc, slope, 0.05, 1.1, true_ic50) * 100
+  data.frame(response = rpois(length(conc), lambda = lambdas),
+    dose = conc, name = name, unit = "M")
+}
+
+test_dose_response_binomial <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- rbind(
+    simulate_dr_binomial("A", 7, 10),
+    simulate_dr_binomial("B", 5, 12)
+  )
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  formula <- response ~ dose
+  formula <- new("LinearFormula", formula = formula)
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+
+  checks <- c()
+  counter <- 0L
+  for (i in c(1, 25, 50, 99)) {
+    dr <- OpenStats:::dose_response_V1_2$new(
+      df = df,
+      ic_percentage = 50,
+      is_xlog = FALSE,
+      is_ylog = FALSE,
+      substance_names = "name",
+      unit_names = "unit",
+      formula = formula,
+      type = "binomial",
+      com = OpenStats:::backend_communicator_V1_2
+    )
+
+    new_name <- "Mock"
+    dr$eval(ResultsState, new_name)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+    counter <- counter + 1L
+    res <- ResultsState$all_data[[length(ResultsState$all_data)]]
+    checks <- c(checks, inherits(res, "doseResponse"))
+    checks <- c(checks, ResultsState$counter == counter)
+    checks <- c(checks, ResultsState$history[[counter]]$type == "DoseResponse")
+  }
+  expect_true(all(checks))
+}
+run_test(test_dose_response_binomial)
+
+test_dose_response_poisson <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- rbind(
+    simulate_dr_poisson("A", 7, 10),
+    simulate_dr_poisson("B", 5, 12)
+  )
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  formula <- response ~ dose
+  formula <- new("LinearFormula", formula = formula)
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+
+  checks <- c()
+  counter <- 0L
+  for (i in c(1, 25, 50, 99)) {
+    dr <- OpenStats:::dose_response_V1_2$new(
+      df = df,
+      ic_percentage = 50,
+      is_xlog = FALSE,
+      is_ylog = FALSE,
+      substance_names = "name",
+      unit_names = "unit",
+      formula = formula,
+      type = "Poisson",
+      com = OpenStats:::backend_communicator_V1_2
+    )
+    new_name <- "Mock"
+    dr$eval(ResultsState, new_name)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+    counter <- counter + 1L
+    res <- ResultsState$all_data[[length(ResultsState$all_data)]]
+    checks <- c(checks, inherits(res, "doseResponse"))
+    checks <- c(checks, ResultsState$counter == counter)
+    checks <- c(checks, ResultsState$history[[counter]]$type == "DoseResponse")
+  }
+  expect_true(all(checks))
+}
+run_test(test_dose_response_poisson)
 
 test_primary_assay <- function(in_background) {
   options(OpenStats.background = in_background)
