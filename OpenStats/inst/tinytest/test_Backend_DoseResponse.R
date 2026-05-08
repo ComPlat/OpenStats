@@ -1,6 +1,42 @@
 library(tinytest)
 
-simulate <- function(name, slope, true_ic50) {
+# Test check_fit
+simulate_poisson <- function(name, slope, true_ic50) {
+  b  <- slope         # slope
+  c  <- 0.05          # lower limit
+  d  <- 1.1           # upper limit
+  e  <- true_ic50     # IC50
+  set.seed(42)
+  conc_levels <- c(0.1, seq(2.5, 26, by = 2.5))
+  conc <- rep(conc_levels, each = 5)
+  logistic_response <- function(conc, b, c, d, e) {
+    c + (d - c) / (1 + (conc / e)^b)
+  }
+  probs <- logistic_response(conc, b, c, d, e) * 100
+  abs <- rpois(length(conc), lambda = probs)
+  data.frame(
+    substance = rep(name, length(conc)), conc = conc, abs = abs, unit = "M"
+  )
+}
+simulate_binomial <- function(name, slope, true_ic50) {
+  b  <- slope         # slope
+  c  <- 0.05          # lower limit
+  d  <- 1.1           # upper limit
+  e  <- true_ic50     # IC50
+  set.seed(42)
+  conc_levels <- c(0.1, seq(2.5, 26, by = 2.5))
+  conc <- rep(conc_levels, each = 5)
+  logistic_response <- function(conc, b, c, d, e) {
+    c + (d - c) / (1 + (conc / e)^b)
+  }
+  probs <- logistic_response(conc, b, c, d, e)
+  probs <- probs / max(probs)
+  abs <- rbinom(length(conc), 1, probs)
+  data.frame(
+    substance = rep(name, length(conc)), conc = conc, abs = abs, unit = "M"
+  )
+}
+simulate_continous <- function(name, slope, true_ic50) {
   # Define true parameters
   b  <- slope         # slope
   c  <- 0.05          # lower limit
@@ -21,35 +57,77 @@ simulate <- function(name, slope, true_ic50) {
     substance = rep(name, length(conc)), conc = conc, abs = abs, unit = "M"
   )
 }
-
-# Test check fit
-test_check_fit <- function(ic50_true) {
-  df <- simulate("A", 7, ic50_true)
+simulate <- function(name, slope, true_ic50, type) {
+  if (type == "continous") {
+    simulate_continous(name, slope, true_ic50)
+  } else if (type == "binomial") {
+    simulate_binomial(name, slope, true_ic50)
+  } else if (type == "Poisson") {
+    simulate_poisson(name, slope, true_ic50)
+  } else {
+    stop("Encountered unknown type", type)
+  }
+}
+test_check_fit <- function(ic50_true, ic_percentage, type) {
+  ic50_true <- 10
+  ic_percentage <- 50
+  type <- "Poisson"
+  df <- simulate("A", 7, ic50_true, type)
   model <- drc::drm(abs ~ conc,
     data = df, fct = drc::LL.4(),
-    robust = "median"
+    robust = "median", type = type
   )
-  valid_points <- OpenStats:::false_discovery_rate(model, "continuous")
+  valid_points <- OpenStats:::false_discovery_rate(model, type)
   model <- drc::drm(abs ~ conc,
     data = df,
     subset = valid_points,
     start = model$coefficients,
     fct = drc::LL.4(), robust = "mean",
+    type = type
   )
+  ed_res <- drc::ED(
+    model,
+    respLev = ic_percentage,
+    interval = "delta",
+    level = 0.95,
+    type = "relative",
+    display = FALSE
+  )
+  expected <- ed_res[[1L]]
   conc <- "conc"
-  abs <- "abs"
+  y <- "abs"
   title = "Bla"
   res <- OpenStats:::check_fit(
-    model, 50, min(df[, conc]),
-    max(df[, conc]), min(df[, abs]), max(df[, abs]), title, "M", "continuous"
+    model, ic_percentage, min(df[, conc]),
+    max(df[, conc]), min(df[, y]), max(df[, y]), title, "M", type
   )
+  got <- res[[7]]
+  rel_error <- function(a, b) {
+    abs(b - a) / b
+  }
+  tol_percentage <- 0.1
+  expect_true(rel_error(got, expected) < tol_percentage)
   expect_true(is.data.frame(res))
 }
-test_check_fit(10)
+test_check_fit(10, 50, "binomial")
+test_check_fit(10, 25, "binomial")
+test_check_fit(10, 75, "binomial")
+test_check_fit(2, 50, "binomial")
+
+test_check_fit(10, 50, "Poisson")
+test_check_fit(10, 25, "Poisson")
+test_check_fit(10, 75, "Poisson")
+test_check_fit(2, 50, "Poisson")
+
+test_check_fit(10, 25, "continous")
+test_check_fit(10, 1, "continous")
+test_check_fit(10, 50, "continous")
+test_check_fit(10, 75, "continous")
+test_check_fit(10, 99, "continous")
 
 # Test ic50 internal
 test_ic50_internal <- function(ic50_true) {
-  data <- simulate("A", 7, ic50_true)
+  data <- simulate("A", 7, ic50_true, "continous")
   res <- OpenStats:::ic_internal(data, 50, "abs", "conc", "substance", FALSE, FALSE, "M", "continuous")
   res_df <- res[[1]]
   tol_percentage <- 0.1
@@ -138,7 +216,7 @@ test_rsdr()
 # Test cases for env_lc_V1_2$false_discovery_rate
 test_false_discovery_rate <- function() {
   checks <- list()
-  df <- simulate("A", 7, 10)
+  df <- simulate("A", 7, 10, "continous")
   model <- drc::drm(abs ~ conc, data = df, fct = drc::LL.4(), robust = "median")
   include <- OpenStats:::false_discovery_rate(model, "continuous")
   checks[[1]] <- expect_true(is.logical(include))
@@ -149,7 +227,7 @@ test_false_discovery_rate()
 
 # drawplot_only_raw_data
 test_drawplot_only_raw_data <- function() {
-  df <- simulate("A", 7, 2)
+  df <- simulate("A", 7, 2, "continous")
   p <- OpenStats:::drawplot_only_raw_data(df, "abs", "conc", "Bla", "M")
   layers <- p$layers
   expect_true(inherits(layers[[1]]$geom, "GeomBoxplot"))
@@ -172,7 +250,7 @@ test_drawplot_only_raw_data()
 
 # drawplot
 test_drawplot <- function() {
-  df <- simulate("A", 7, 11)
+  df <- simulate("A", 7, 11, "continous")
   model <- drc::drm(abs ~ conc,
     data = df, fct = drc::LL.4(),
     robust = "median"

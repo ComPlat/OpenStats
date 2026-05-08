@@ -148,11 +148,20 @@ check_fit <- function(model, ic_percentage, min_conc, max_conc,
     Problems <- paste(Problems,
       "IC lower than lowest measured concentration", collapse = " , "
     )
+  } else if (type != "continuous") {
+    Problems <- paste(
+      Problems,
+      "Global p-value not available for non-continuous drm fits"
+    )
   }
 
   IC_relative_lower <- ed_res[1, 3]
   IC_relative_higher <- ed_res[1, 4]
-  p_value <- drc::noEffect(model)[3]
+  if (type == "continuous") {
+    p_value <- drc::noEffect(model)[3]
+  } else {
+    p_value <- NA
+  }
   Response_lowestdose_predicted <- env_lc_V1_2$shapenumber(Response_lowestdose_predicted)
   Response_highestdose_predicted <- env_lc_V1_2$shapenumber(Response_highestdose_predicted)
   HillCoefficient <- env_lc_V1_2$shapenumber(HillCoefficient)
