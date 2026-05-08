@@ -276,7 +276,6 @@ visServer <- function(id, DataModelState, ResultsState) {
     })
 
     # Plot model
-    # TODO: add tests for history and backend
     plot_model_fct <- function(method) {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       print_form(DataModelState$formula)

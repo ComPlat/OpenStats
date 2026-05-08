@@ -521,7 +521,7 @@ visualisation_V1_2 <- R6::R6Class(
         ),
         promise_result_name = new_result_name,
         promise_history_entry = promise_history_entry,
-        in_background = TRUE, ResultsState
+        in_background = FALSE, ResultsState
       )
     },
     create_history = function(new_result_name) {
@@ -588,7 +588,7 @@ visualisation_model_V1_2 <- R6::R6Class(
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
-            in_background = TRUE, ResultsState
+            in_background = FALSE, ResultsState
           )
         },
         warning = function(warn) {
@@ -1320,7 +1320,7 @@ diagnostic_plots_V1_2 <- R6::R6Class(
             args = list(df = self$df, formula = self$formula),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
-            in_background = TRUE, ResultsState
+            in_background = FALSE, ResultsState
           )
         },
         warning = function(warn) {

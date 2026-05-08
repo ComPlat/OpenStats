@@ -40,8 +40,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         com = backend_communicator_V1_2
       )
       res$validate()
-      res <- res$eval(ResultsState)
-      get_result(ResultsState)
+      res$eval(ResultsState)
     },
     VisualizationModel = {
       res <- visualisation_model_V1_2$new(
@@ -49,7 +48,6 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       )
       res$validate()
       res$eval(ResultsState)
-      get_result(ResultsState)
     },
     ApplyFilter = {
       res <- apply_filter_V1_2$new(
@@ -147,7 +145,6 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       )
       res$validate()
       res$eval(ResultsState)
-      get_result(ResultsState)
     },
     DoseResponse = {
       response_type <- entry[["Response type"]]
