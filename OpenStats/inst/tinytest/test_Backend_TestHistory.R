@@ -438,6 +438,45 @@ expect_true(
   info = "Dose response result"
 )
 
+# binomial
+dose_response_V1_2 <- read.csv(paste0(test_data_dir, "/DoseResponseBinomial.csv"))
+result <- load_and_eval_history(files[11], dose_response_V1_2)
+result <- result$ResultsState$all_data
+expect_true(
+  inherits(result[[2]], "summaryModel"),
+  info = "summary of a model"
+)
+expect_equal(
+  broom::tidy(glm(abs ~ conc, data = dose_response_V1_2, family = stats::binomial(link = "logit"))),
+  result[[2]]@summary,
+  info = "Result summary"
+)
+expect_true(
+  inherits(result[[3]], "doseResponse"),
+  info = "Dose response result"
+)
+# poisson
+dose_response_V1_2 <- read.csv(paste0(test_data_dir, "/DoseResponsePoisson.csv"))
+result <- load_and_eval_history(files[12], dose_response_V1_2)
+result <- result$ResultsState$all_data
+expect_true(
+  inherits(result[[2]], "summaryModel"),
+  info = "summary of a model"
+)
+expect_equal(
+  broom::tidy(
+    glm(
+      abs ~ conc,
+      data = dose_response_V1_2,
+      family = stats::poisson(link = "log"))),
+  result[[2]]@summary,
+  info = "Result summary"
+)
+expect_true(
+  inherits(result[[3]], "doseResponse"),
+  info = "Dose response result"
+)
+
 # Test formula
 # ========================================================================================
 CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
