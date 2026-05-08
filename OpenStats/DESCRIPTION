@@ -32,7 +32,7 @@ Imports:
   methods,
   utils,
   htmltools,
-  permuco
+  permuco,
   callr
 Suggests:
   tinytest,
