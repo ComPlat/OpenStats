@@ -33,6 +33,7 @@ Imports:
   utils,
   htmltools,
   permuco
+  callr
 Suggests:
   tinytest,
   shinytest2,
