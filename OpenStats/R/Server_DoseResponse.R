@@ -116,7 +116,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
       if (!show_dose_response()) return()
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      shiny::req(inherits(DataModelState$formula, "LinearFormula"))
+      shiny::req(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula"))
       colnames <- names(DataModelState$df)
       tooltip <- "Select the column which contains the names of the different substances"
       htmltools::div(
@@ -159,7 +159,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
       if (!show_dose_response()) return()
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      shiny::req(inherits(DataModelState$formula, "LinearFormula"))
+      shiny::req(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula"))
       render_unit_col("unitNames")
     })
 
@@ -189,8 +189,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
       if (!show_primary_assay()) return()
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      shiny::req(inherits(DataModelState$formula, "LinearFormula") ||
-        inherits(DataModelState$formula, "GeneralisedLinearFormula"))
+      shiny::req(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula"))
 
       indep <- try({
         f <- as.character(DataModelState$formula@formula)
@@ -235,8 +234,8 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
         shiny::req(MethodState$storage_class)
         eii <- MethodState$storage_class@element_info$info
         if (eii$kind == "primary-assay-percentage-continuous") {
-          if (!inherits(DataModelState$formula, "LinearFormula")) {
-            return(info_div("A linear formula is required"))
+          if (!inherits(DataModelState$formula, "LinearFormula") && !inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+            return(info_div("A (generalised) linear formula is required"))
           }
           l[[3L]] <- htmltools::tagList(
             htmltools::tags$label(
@@ -248,8 +247,8 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
             )
           )
         } else if (eii$kind == "primary-assay-fold-change") {
-          if (!inherits(DataModelState$formula, "LinearFormula")) {
-            return(info_div("A linear formula is required"))
+          if (!inherits(DataModelState$formula, "LinearFormula") && !inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+            return(info_div("A (generalised) linear formula is required"))
           }
           l[[3L]] <- htmltools::tagList(
             htmltools::tags$label(
