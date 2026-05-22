@@ -87,6 +87,11 @@ resids_vs_fitted_plot <- function(fitted, resids, n, formula, influential_points
       y = "Residuals", x = "Fitted values",
       title = "Residuals vs Fitted values"
     )
+  } else if (inherits(formula, "LinearMixedFormula")) {
+    resids_vs_fitted <- resids_vs_fitted + labs(
+      y = "Residuals", x = "Fitted values",
+      title = "Residuals vs Fitted values"
+    )
   }
   resids_vs_fitted
 }
@@ -125,6 +130,11 @@ qq_norm_plot <- function(resids, n, formula, influential_points) {
       the more likely the residuals follow a normal distribution."
     )
   } else if (inherits(formula, "GeneralisedLinearFormula")) {
+    resids_vs_quantiles <- resids_vs_quantiles + labs(
+      y = "Standardized residuals", x = "Theoretical Quantiles",
+      title = "Q-Q Residuals"
+    )
+  } else if (inherits(formula, "LinearMixedFormula")) {
     resids_vs_quantiles <- resids_vs_quantiles + labs(
       y = "Standardized residuals", x = "Theoretical Quantiles",
       title = "Q-Q Residuals"
@@ -239,7 +249,39 @@ residuals_vs_leverage_plot <- function(leverage, resids, n, formula, influential
 }
 env_diagnostic_plots_V1_2$residuals_vs_leverage_plot <- residuals_vs_leverage_plot
 
+diagnostic_plots_mixed <- function(df, formula) {
+  x <- function() stop("Should never be called") # Please R CMD check
+  y <- function() stop("Should never be called") # Please R CMD check
+  index <- function() stop("Should never be called") # Please R CMD check
+  quantiles <- function() stop("Should never be called") # Please R CMD check
+
+  model <- lmerTest::lmer(formula@formula, data = df)
+  resids <- residuals(model)
+  fitted <- fitted(model)
+
+  # Identify influential points
+  p <- length(lme4::fixef(model))
+  n <- length(resids)
+  leverage <- hatvalues(model)
+  cooks_dist <- cooks.distance(model)
+  high_leverage_threshold <- (2 * (p + 1)) / n
+  high_cooks_threshold <- 4 / n
+  influential_points <- which(
+    leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
+  )
+
+  cowplot::plot_grid(
+    env_diagnostic_plots_V1_2$resids_vs_fitted_plot(fitted, resids, n, formula, influential_points),
+    env_diagnostic_plots_V1_2$qq_norm_plot(resids, n, formula, influential_points)
+  )
+}
+env_diagnostic_plots_V1_2$diagnostic_plots_mixed <- diagnostic_plots_mixed
+
 diagnostic_plots <- function(df, formula) {
+  if (inherits(formula, "LinearMixedFormula")) {
+    return(env_diagnostic_plots_V1_2$diagnostic_plots_mixed(df, formula))
+  }
+
   x <- function() stop("Should never be called") # Please R CMD check
   y <- function() stop("Should never be called") # Please R CMD check
   index <- function() stop("Should never be called") # Please R CMD check

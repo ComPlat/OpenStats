@@ -292,7 +292,7 @@ env_summarising_model_V1_2$create_model_plot_no_ci <- create_model_plot_no_ci
 
 plot_pred_linear_mixed <- function(data, formula) {
   formula <- formula@formula
-  fixed_formula <- lme4::nobars(formula)
+  fixed_formula <- reformulas::nobars(formula)
   f_split <- env_utils_V1_2$split_formula(fixed_formula)
   predictors <- env_utils_V1_2$vars_rhs(f_split$right_site)
   response <- all.vars(f_split$response)

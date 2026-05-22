@@ -1247,7 +1247,7 @@ shapiro_on_residuals_V1_2 <- R6::R6Class(
     },
 
     validate = function() {
-      stopifnot("Formula is not of type linear" = inherits(self$formula, "LinearFormula"))
+      stopifnot("Formula is not of type linear or linear mixed" = (inherits(self$formula, "LinearFormula") || inherits(self$formula, "LinearMixedFormula")))
     },
 
     eval = function(ResultsState) {
@@ -1257,8 +1257,13 @@ shapiro_on_residuals_V1_2 <- R6::R6Class(
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
             fun = function(df, formula) {
-              fit <- lm(formula@formula, data = df)
-              r <- resid(fit)
+              if (inherits(formula, "LinearFormula")) {
+                fit <- lm(formula@formula, data = df)
+                r <- resid(fit)
+              } else if (inherits(formula, "LinearMixedFormula")) {
+                fit <- lmerTest::lmer(formula@formula, data = df)
+                r <- residuals(fit)
+              }
               res <- broom::tidy(shapiro.test(r))
               res$`Residuals normal distributed` <- res$p.value > 0.05
               res

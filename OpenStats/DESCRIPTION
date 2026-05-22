@@ -36,7 +36,8 @@ Imports:
   callr,
   lme4,
   lmerTest,
-  permutes
+  permutes,
+  reformulas
 Suggests:
   tinytest,
   shinytest2,

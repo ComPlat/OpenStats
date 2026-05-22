@@ -15,7 +15,7 @@ assServer <- function(id, DataModelState, ResultsState) {
           shiny::actionButton("ASS-shapiro",
             "Shapiro test for individual groups",
             title =
-            "Use this test if you have a formula like 'response ~ pred1 * pred2' (two-way ANOVA) to check normality of values within each group."
+            "Use this test if you have want to check whether your data itself is normally distributed"
           ),
           class = "var-box-output"
         )
@@ -25,7 +25,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       shiny::req(DataModelState$formula)
-      if(inherits(DataModelState$formula, "LinearFormula")) {
+      if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "LinearMixedFormula")) {
         htmltools::div(
           htmltools::h4(htmltools::strong("Test of normal distribution")),
           shiny::actionButton("ASS-shapiroResiduals", "Shapiro test for residuals of linear model",
@@ -76,7 +76,7 @@ assServer <- function(id, DataModelState, ResultsState) {
     })
     output[["DiagnosticPlotUI"]] <- shiny::renderUI({
 
-      if(inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+      if(inherits(DataModelState$formula, c("LinearFormula", "GeneralisedLinearFormula", "LinearMixedFormula"))) {
         htmltools::div(
           htmltools::h4(htmltools::strong("Visual tests")),
           shiny::actionButton("ASS-DiagnosticPlot", "diagnostic plots"),
@@ -127,6 +127,7 @@ assServer <- function(id, DataModelState, ResultsState) {
       df <- DataModelState$df
       print_req(is.data.frame(df), "The dataset is missing")
       print_form(DataModelState$formula)
+      print_req(inherits(DataModelState$formula, "LinearFormula"), "The formula has to be a linear model")
       res <- try({
         l <- get_levene()$new(DataModelState$df,DataModelState$formula, input$center)
         l$validate()
