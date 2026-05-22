@@ -1012,6 +1012,34 @@ summarise_model_V1_2 <- R6::R6Class(
       )
     },
 
+    eval_linear_mixed = function(ResultsState, new_name, promise_history_entry) {
+      withCallingHandlers(
+        {
+          expr = {
+            ResultsState$bgp$start(
+              fun = function(df, formula) {
+                p <- OpenStats:::env_summarising_model_V1_2$plot_pred_linear_mixed(df, formula)
+                ggplot2::ggplot_build(p)
+                p <- new("plot", p = p, width = 15, height = 15, resolution = 600)
+                model <- lmerTest::lmer(formula@formula, data = df)
+                summary <- broom::tidy(model)
+                ic <- OpenStats:::env_summarising_model_V1_2$create_information_criterions(model)
+                new("summaryModel", p = p, summary = summary, information_criterions = ic)
+              },
+              args = list(df = self$df, formula = self$formula),
+              promise_result_name = new_name,
+              promise_history_entry = promise_history_entry,
+              in_background = FALSE, ResultsState
+            )
+          }
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
     eval = function(ResultsState) {
       new_name <- paste0(ResultsState$counter + 1, " Model summary")
       promise_history_entry <- self$create_history(new_name)
@@ -1021,6 +1049,8 @@ summarise_model_V1_2 <- R6::R6Class(
         res <- self$eval_glm(ResultsState, new_name, promise_history_entry)
       } else if (inherits(self$formula, "OptimFormula")) {
         res <- self$eval_optim(ResultsState, new_name, promise_history_entry)
+      } else if (inherits(self$formula, "LinearMixedFormula")) {
+        res <- self$eval_linear_mixed(ResultsState, new_name, promise_history_entry)
       }
     },
     create_history = function(new_name) {
@@ -1103,6 +1133,24 @@ create_formula_V1_2 <- R6::R6Class(
           method = method,
           lower = lower, upper = upper, seed = seed,
           "Model Type" = "Optimization Model"
+        )
+      } else if (model_type == "Linear Mixed Model") {
+        formula <- paste(self$response_var, " ~ ", self$right_site)
+        formula <- as.formula(formula)
+        env_check_ast_V1_2$check_ast(formula, colnames(self$df))
+        DataModelState$formula <- new("LinearMixedFormula", formula = formula)
+        model <- lmerTest::lmer(formula, data = self$df)
+        eq <- try(equatiomatic::extract_eq(model, wrap = TRUE), silent = TRUE)
+        if (inherits(eq, "try-error")) {
+          eq <- sprintf(
+            "Failed to create the equation from the formula (due to %s)",
+            attributes(eq)$condition$message)
+        }
+        ResultsState$history[[length(ResultsState$history) + 1]] <- list(
+          type = "CreateFormula",
+          formula = deparse(formula),
+          "Model Type" = "Linear Mixed Model",
+          details = ""
         )
       }
 

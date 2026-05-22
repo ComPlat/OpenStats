@@ -275,6 +275,43 @@ plot_pred_glm <- function(data, formula) {
 }
 env_summarising_model_V1_2$plot_pred_glm <- plot_pred_glm
 
+create_model_plot_no_ci <- function(pred_df, types, predictors, response, r2_label) {
+  pred_df$conf.low <- pred_df$predicted
+  pred_df$conf.high <- pred_df$predicted
+  p <- env_summarising_model_V1_2$create_model_plot(
+    pred_df, types, predictors, response, r2_label
+  )
+  # remove CI layers: ribbons and error bars
+  p$layers <- Filter(function(layer) {
+    !inherits(layer$geom, "GeomRibbon") &&
+      !inherits(layer$geom, "GeomErrorbar")
+  }, p$layers)
+  p
+}
+env_summarising_model_V1_2$create_model_plot_no_ci <- create_model_plot_no_ci
+
+plot_pred_linear_mixed <- function(data, formula) {
+  formula <- formula@formula
+  fixed_formula <- lme4::nobars(formula)
+  f_split <- env_utils_V1_2$split_formula(fixed_formula)
+  predictors <- env_utils_V1_2$vars_rhs(f_split$right_site)
+  response <- all.vars(f_split$response)
+  model <- lmerTest::lmer(formula, data = data)
+  new_data <- env_summarising_model_V1_2$create_new_data(
+    fixed_formula, data, predictors, n = 100
+  )
+  types <- env_summarising_model_V1_2$determine_types(predictors, data)
+  pred_df <- data.frame(
+    new_data,
+    predicted = predict(model, newdata = new_data, re.form = NA)
+  )
+  env_summarising_model_V1_2$create_model_plot_no_ci(
+    pred_df, types, predictors, response,
+    r2_label = "LMM: population-level prediction"
+  )
+}
+env_summarising_model_V1_2$plot_pred_linear_mixed <- plot_pred_linear_mixed
+
 create_information_criterions <- function(model) {
   out <- data.frame(AIC = AIC(model), BIC = BIC(model))
   if (inherits(model, "glm")) {

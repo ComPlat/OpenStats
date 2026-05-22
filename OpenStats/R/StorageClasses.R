@@ -30,6 +30,11 @@ setClass("OptimFormula",
     seed = "numeric"
   )
 )
+setClass("LinearMixedFormula",
+  slots = c(
+    formula = "formula"
+  )
+)
 
 setClass("doseResponse",
   slots = c(

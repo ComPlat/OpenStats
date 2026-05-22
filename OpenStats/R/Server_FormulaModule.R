@@ -33,6 +33,11 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
           class = "add-button",
           title = "Includes nested effects (both variable levels) in the model"
         )
+      } else if (input$model_type == "Linear Mixed Model") {
+        button_list[[length(button_list) + 1]]  <- shiny::actionButton("FO-htmltools::line", "|",
+          class = "add-button",
+          title = "Includes hierarchical structures"
+        )
       }
       htmltools::div(
         htmltools::div(
@@ -51,7 +56,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         if(input$PredefinedModels != "free") return(NULL)
       }
       colnames <- ""
-      if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
+      if (input$model_type %in% c("Linear", "Generalised Linear Model", "Linear Mixed Model")) {
         colnames <- names(DataModelState$df)
       } else if (input$model_type == "Optimization Model") {
         indices <- sapply(DataModelState$df, is.numeric) |> which()
@@ -82,7 +87,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
         if(input$PredefinedModels != "free") return(NULL)
       }
       colnames <- ""
-      if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
+      if (input$model_type %in% c("Linear", "Generalised Linear Model", "Linear Mixed Model")) {
         colnames <- names(DataModelState$df)
       } else if (input$model_type == "Optimization Model") {
         indices <- sapply(DataModelState$df, is.numeric) |> which()
@@ -127,7 +132,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     output[["rhs"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
+      if (input$model_type %in% c("Linear", "Generalised Linear Model", "Linear Mixed Model")) {
         htmltools::div(
           htmltools::hr(),
           shiny::textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
@@ -316,7 +321,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
     })
     # Optim UI
     output[["optim_boundaries_and_method"]] <- shiny::renderUI({
-      if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
+      if (input$model_type %in% c("Linear", "Generalised Linear Model", "Linear Mixed Model")) {
         NULL
       } else if (input$model_type == "Optimization Model") {
         htmltools::div(
@@ -455,6 +460,8 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
                 ResultsState, DataModelState, input$model_type,
                 input$optim_method ,input$LowerBoundary, input$UpperBoundary, input$Seed
               )
+            } else if (input$model_type == "Linear Mixed Model") {
+              model_latex <- cf$eval(ResultsState, DataModelState, input$model_type)
             }
             output$model <- shiny::renderUI({
               shiny::withMathJax(htmltools::HTML(paste0("$$", model_latex, "$$")))

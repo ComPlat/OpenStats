@@ -16,7 +16,7 @@ env_check_ast_V1_2$allowed_fcts <- function() {
     "Sum", "diff", "Min", "Max", "scale",
     "C", "Seq", "DataFrame", "vector", "length", "matrix", "~",
     "get_rows", "get_cols", "get_elem",
-    "as.char", "as.int", "as.real", "as.fact"
+    "as.char", "as.int", "as.real", "as.fact", "|"
   )
 }
 

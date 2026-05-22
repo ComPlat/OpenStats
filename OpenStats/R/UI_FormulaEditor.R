@@ -12,6 +12,7 @@ FormulaEditorUI <- function(id) {
             c(
               "Linear" = "Linear",
               "Generalised Linear Model" = "Generalised Linear Model",
+              "Linear Mixed Model" = "Linear Mixed Model",
               "Optimization Model" = "Optimization Model"
             ),
             selectize = FALSE
