@@ -554,6 +554,17 @@ app <- function() {
                 # )
               )
             )
+          } else if (inherits(DataModelState$formula, "LinearMixedFormula")) {
+            htmltools::div(
+              class = "var-box-output",
+              shiny::fluidRow(
+                shiny::column(
+                  width = 6,
+                  htmltools::p("Linear Mixed model"),
+                  deparse(DataModelState$formula@formula),
+                )
+              )
+            )
           } else {
             ""
           }

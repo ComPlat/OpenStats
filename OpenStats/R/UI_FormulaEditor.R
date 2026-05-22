@@ -15,7 +15,7 @@ FormulaEditorUI <- function(id) {
               "Linear Mixed Model" = "Linear Mixed Model",
               "Optimization Model" = "Optimization Model"
             ),
-            selectize = FALSE
+            selectize = TRUE
           ),
           shiny::uiOutput(shiny::NS(id, "glm_family_dropdown")),
           shiny::uiOutput(shiny::NS(id, "glm_link_fct_dropdown")),
