@@ -1,0 +1,34 @@
+<div class="boxed-output">
+  <h4><strong>📖 History Tab - Replay Past Analyses</strong></h4>
+  <p>
+    The History tab allows you to reproduce a previous analysis by loading its associated <strong>history JSON</strong>.
+  </p>
+  <div class="box">
+    <strong>Step 1:</strong> Paste a valid history JSON string into the input box labeled <code>History-JSON</code>.<br>
+    You can generate this string by exporting or saving a previous analysis session.
+  </div>
+  <div class="box">
+    <strong>Step 2:</strong> Click <code>Replay history</code> to apply the full analysis to your current dataset.
+  </div>
+  <div class="box">
+    <strong>Step 3:</strong> Confirm that you want to overwrite your current analysis in the confirmation dialog.
+  </div>
+  <p>
+    The application will then re-run each step of the analysis — including:
+  </p>
+  <ul>
+    <li>Creating intermediate variables</li>
+    <li>Applying filters</li>
+    <li>Adding new columns</li>
+    <li>Fitting statistical models</li>
+    <li>Running tests and creating plots</li>
+  </ul>
+  <h2>🛠 Notes</h2>
+  <ul>
+    <li>The current dataset must be loaded before replaying a history.</li>
+    <li>Replay will overwrite all existing results and settings.</li>
+    <li>Malformed or incompatible history JSON will show an error with the failing step number.</li>
+  </ul>
+  <p>For reproducibility, a history JSON is always saved along with your results.</p>
+</div>
+

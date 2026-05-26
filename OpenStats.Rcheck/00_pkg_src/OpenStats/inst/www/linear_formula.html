@@ -1,0 +1,304 @@
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #f2f2f2;
+}
+.info-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.documentation {
+  max-width: 200px;
+}
+</style>
+<div class="info-container">
+  <div class="boxed-output">
+    <h4><strong>1. Overview</strong></h4>
+    <p>
+      A formula describes how the columns of your dataset are mapped in the statistical model.
+      For example the table shows three columns: CO2Uptake, Fertilization, and waterStress.
+      Here the CO2Uptake would be the response variable i.e. the left side of your model.
+      The Fertilization and WaterStress would be the predictors i.e. the right side of the model.
+      The idea is to see how the predictors affect the response variable. In the example, the effect of
+      Fertilization and WaterStress on the CO2Uptake would be of interest.
+    </p>
+  </div>
+  <table>
+    <tr> <th>CO2Uptake</th> <th>Fertilization</th>       <th>WaterStress</th>       </tr>
+    <tr> <td>0.01</td>       <td>0.5</td>                 <td>yes</td>              </tr>
+    <tr> <td>0.01</td>       <td>0.5</td>                 <td>yes</td>              </tr>
+    <tr> <td>0.6</td>        <td>0.5</td>                 <td>no</td>               </tr>
+    <tr> <td>0.6</td>        <td>0.5</td>                 <td>no</td>               </tr>
+    <tr> <td>0.3</td>        <td>10</td>                  <td>yes</td>              </tr>
+    <tr> <td>0.2</td>        <td>10</td>                  <td>yes</td>              </tr>
+    <tr> <td>0.01</td>       <td>10</td>                  <td>no</td>               </tr>
+    <tr> <td>0.01</td>       <td>10</td>                  <td>no</td>               </tr>
+  </table>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>2. Getting Started</strong></h4>
+  <p>To create your statistical model:</p>
+  <ol>
+    <li>Select a variable from the dropdown for the left side of your model.</li>
+    <li>Choose predictor variables from the right side using the buttons provided.</li>
+    <li>Add any necessary arithmetic operations using the operator buttons.</li>
+    <li>Click the <strong>Create Statistical Model</strong> button to build your model.</li>
+  </ol>
+</div>
+
+
+<div class="boxed-output">
+  <h4><strong>3. Left Side of Statistical Model</strong></h4>
+  <p>This section allows you to define the left side of your statistical model, which typically represents the dependent variable (the outcome you want to predict).</p>
+
+  <h5><strong>Features:</strong></h5>
+  <ul>
+    <li><strong>Variable Selection:</strong> Use the dropdown menu to choose a variable for your model.</li>
+    <li><strong>Create Model Button:</strong> Click this button to build the statistical model once you have selected your variables.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>4. Right Side of Statistical Model</strong></h4>
+  <p>The right side represents the independent variables (predictors) that explain the outcome.</p>
+
+  <h5><strong>Features:</strong></h5>
+  <ul>
+    <li><strong>Variable buttons:</strong> Displays the selected predictor variables for your model.</li>
+    <li><strong>Arithmetic Operators:</strong> Use the provided buttons to include mathematical operations between variables. Each operator button serves a specific purpose:</li>
+    <ul>
+      <li><strong>Add (+):</strong> Include an additional predictor variable.</li>
+      <li><strong>Subtract (-):</strong> Remove a predictor variable from the model.</li>
+      <li><strong>Multiply (*):</strong> Assess interactions between variables.</li>
+      <li><strong>Colon (:):</strong> Include interactions between two variables.</li>
+      <li><strong>Divide (/):</strong> Include nested effects that consider both variable levels.</li>
+    </ul>
+    <li><strong>Editable Code Area:</strong> A text area where you can manually edit the right side of the model if needed. This is useful for users who want to refine their formulas directly.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>Basic Formula Using <code>~</code></strong></h4>
+  <p><strong>Model:</strong> <em>weight = α + β<sub>1</sub>(height) + ε</em></p>
+
+  <h5>Sample Data</h5>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:right;">Height</th>
+        <th style="text-align:right;">Weight</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>150</td><td>50.72</td></tr>
+      <tr><td>160</td><td>60.08</td></tr>
+      <tr><td>170</td><td>70.42</td></tr>
+      <tr><td>180</td><td>80.13</td></tr>
+      <tr><td>190</td><td>90.86</td></tr>
+    </tbody>
+  </table>
+
+  <h5>Formula</h5>
+  <p><code>weight ~ height</code></p>
+
+  <h5>Model Output</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th style="text-align:right;">Estimate => The ßs in the model</th>
+        <th style="text-align:right;">Std. Error => Standard Error</th>
+        <th style="text-align:right;">t-value => t statistic value => ßs / Standard error of ßs</th>
+        <th style="text-align:right;">p-value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Intercept => Predicted weight if size = 0</td>
+        <td style="text-align:right;">-100.14</td>
+        <td style="text-align:right;">2.13</td>
+        <td style="text-align:right;">-46.91</td>
+        <td style="text-align:right;">2.13e-05</td>
+      </tr>
+      <tr>
+        <td>height => Effect of height on weight</td>
+        <td style="text-align:right;">1.00</td>
+        <td style="text-align:right;">0.01</td>
+        <td style="text-align:right;">80.19</td>
+        <td style="text-align:right;">4.30e-06</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <summary><strong>Interpretation</strong></summary>
+  <ul>
+    <li><strong>Intercept:</strong> The estimated weight when height is 0 is -100.14. This value is not meaningful physically but required mathematically.</li>
+    <li><strong>height coefficient:</strong> Each cm increase in height is associated with ~1 kg increase in predicted weight.</li>
+    <li><strong>p-values:</strong> Both terms are statistically significant.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>Adding Multiple Predictors Using <code>+</code></strong></h4>
+  <p><strong>Model:</strong> <em>price = α + β<sub>1</sub>(size) + β<sub>2</sub>(bedrooms) + ε</em></p>
+
+  <h5>Sample Data</h5>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:right;">Size</th>
+        <th style="text-align:right;">Bedrooms</th>
+        <th style="text-align:right;">Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1000</td><td>2</td><td>200.18</td></tr>
+      <tr><td>1500</td><td>3</td><td>250.54</td></tr>
+      <tr><td>2000</td><td>3</td><td>300.04</td></tr>
+      <tr><td>2500</td><td>4</td><td>350.91</td></tr>
+      <tr><td>3000</td><td>4</td><td>400.17</td></tr>
+    </tbody>
+  </table>
+
+  <h5>Formula</h5>
+  <p><code>price ~ size + bedrooms</code></p>
+
+  <h5>Model Output</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th style="text-align:right;">Estimate => The ßs in the model</th>
+        <th style="text-align:right;">Std. Error => Standard Error</th>
+        <th style="text-align:right;">t-value => ßs / Standard Error</th>
+        <th style="text-align:right;">p-value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Intercept => Baseline price (when size = 0 and bedrooms = 0)</td>
+        <td style="text-align:right;">98.79</td>
+        <td style="text-align:right;">0.49</td>
+        <td style="text-align:right;">202.24</td>
+        <td style="text-align:right;">0.0000244</td>
+      </tr>
+      <tr>
+        <td>size => Effect of size on price</td>
+        <td style="text-align:right;">0.099</td>
+        <td style="text-align:right;">0.00037</td>
+        <td style="text-align:right;">269.12</td>
+        <td style="text-align:right;">0.0000138</td>
+      </tr>
+      <tr>
+        <td>bedrooms => Effect of bedrooms on price</td>
+        <td style="text-align:right;">1.20</td>
+        <td style="text-align:right;">0.35</td>
+        <td style="text-align:right;">3.44</td>
+        <td style="text-align:right;">0.07493</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <summary><strong>Interpretation</strong></summary>
+  <ul>
+    <li><strong>Intercept:</strong> The expected price of a property when size and number of bedrooms are both 0. Not meaningful in practice, but mathematically necessary.</li>
+    <li><strong>Size:</strong> For each additional square foot, the price increases by ~0.099 units (e.g., $/ft²).</li>
+    <li><strong>Bedrooms:</strong> Each additional bedroom increases the price by ~1.20 units, though this effect is not statistically significant (p > 0.05).</li>
+  </ul>
+</div>
+
+
+<div class="boxed-output">
+  <h4><strong>Model with Main Effects and Interaction Using <code>*</code></strong></h4>
+  <p><strong>Model:</strong> <em>yield = α + β<sub>1</sub>(fertilizer<sub>Low</sub>) + β<sub>2</sub>(water<sub>Low</sub>) + β<sub>3</sub>(fertilizer<sub>Low</sub> × water<sub>Low</sub>) + ε</em></p>
+
+  <h5>Sample Data</h5>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:right;">Yield</th>
+        <th style="text-align:left;">Fertilizer</th>
+        <th style="text-align:left;">Water</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>80</td><td>High</td><td>High</td></tr>
+      <tr><td>55</td><td>High</td><td>Low</td></tr>
+      <tr><td>77</td><td>High</td><td>High</td></tr>
+      <tr><td>56</td><td>High</td><td>Low</td></tr>
+      <tr><td>35</td><td>Low</td><td>High</td></tr>
+      <tr><td>40</td><td>Low</td><td>Low</td></tr>
+      <tr><td>48</td><td>Low</td><td>High</td></tr>
+      <tr><td>53</td><td>Low</td><td>Low</td></tr>
+    </tbody>
+  </table>
+
+  <h5>Formula</h5>
+  <p><code>yield ~ fertilizer * water</code></p>
+
+  <h5>Model Output</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th style="text-align:right;">Estimate => The ßs in the model</th>
+        <th style="text-align:right;">Std. Error => Standard Error</th>
+        <th style="text-align:right;">t-value => ßs / Standard Error</th>
+        <th style="text-align:right;">p-value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Intercept => Yield when fertilizer = High and water = High</td>
+        <td style="text-align:right;">78.5</td>
+        <td style="text-align:right;">4.66</td>
+        <td style="text-align:right;">16.83</td>
+        <td style="text-align:right;">0.000073</td>
+      </tr>
+      <tr>
+        <td>fertilizerLow => Effect of Low vs High Fertilizer</td>
+        <td style="text-align:right;">-37.0</td>
+        <td style="text-align:right;">6.60</td>
+        <td style="text-align:right;">-5.61</td>
+        <td style="text-align:right;">0.00496</td>
+      </tr>
+      <tr>
+        <td>waterLow => Effect of Low vs High Water</td>
+        <td style="text-align:right;">-23.0</td>
+        <td style="text-align:right;">6.60</td>
+        <td style="text-align:right;">-3.49</td>
+        <td style="text-align:right;">0.0252</td>
+      </tr>
+      <tr>
+        <td>fertilizerLow:waterLow => Interaction: extra effect of both Low</td>
+        <td style="text-align:right;">28.0</td>
+        <td style="text-align:right;">9.33</td>
+        <td style="text-align:right;">3.00</td>
+        <td style="text-align:right;">0.0399</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <summary><strong>Interpretation</strong></summary>
+  <ul>
+    <li><strong>Intercept:</strong> Expected yield when both fertilizer and water are at their reference levels (High).</li>
+    <li><strong>fertilizerLow:</strong> Applying low fertilizer instead of high reduces yield by ~37 units.</li>
+    <li><strong>waterLow:</strong> Applying low water instead of high reduces yield by ~23 units.</li>
+    <li><strong>Interaction:</strong> The combination of low fertilizer and low water increases yield by ~28 units *relative to what the sum of the main effects would predict*. This suggests a non-additive effect: the impact of fertilizer depends on the water level (or vice versa).</li>
+  </ul>
+
+  <h5>Alternative Formula Representation</h5>
+  <p><code>yield ~ fertilizer + water + fertilizer:water</code></p>
+
+  <ul>
+    <li>This version separates main effects and the interaction explicitly.</li>
+    <li>An interaction means the effect of one predictor depends on the level of the other.</li>
+  </ul>
+</div>

@@ -11,38 +11,14 @@ Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
 Description: Offering a shiny app to conduct common tasks encountered in the analysis of datasets in biology or chemistry.
 License: GPL-3
 Depends: R (>= 4.1.0)
-Imports:
-  R6,
-  shiny,
-  DT,
-  broom,
-  ggplot2 (>= 3.3.0),
-  shinyjs,
-  shinyWidgets,
-  agricolae,
-  drc,
-  cowplot,
-  equatiomatic,
-  openxlsx,
-  car,
-  jsonlite,
-  emmeans,
-  readxl,
-  stats,
-  methods,
-  utils,
-  htmltools,
-  permuco,
-  callr,
-  lme4,
-  lmerTest,
-  permutes,
-  reformulas,
-  buildmer
-Suggests:
-  tinytest,
-  shinytest2,
-  COMELN,
-  writexl
+Imports: R6, shiny, DT, broom, ggplot2 (>= 3.3.0), shinyjs,
+        shinyWidgets, agricolae, drc, cowplot, equatiomatic, openxlsx,
+        car, jsonlite, emmeans, readxl, stats, methods, utils,
+        htmltools, permuco, callr, lme4, lmerTest, permutes,
+        reformulas, buildmer
+Suggests: tinytest, shinytest2, COMELN, writexl
 Encoding: UTF-8
-
+NeedsCompilation: no
+Packaged: 2026-05-26 11:15:28 UTC; konrad
+Author: Krämer Konrad [aut, cre]
+Built: R 4.6.0; ; 2026-05-26 11:16:04 UTC; unix

@@ -1,0 +1,82 @@
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #f2f2f2;
+}
+.info-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.documentation {
+  max-width: 200px;
+}
+</style>
+
+<div class="info-container">
+  <div class="boxed-output">
+    <h4><strong>1. Overview</strong></h4>
+    <p>
+      A formula describes how the columns of your dataset are mapped in the statistical model.
+      For example the table shows three columns: CO2Uptake, Fertilization, and waterStress.
+      Here the CO2Uptake would be the response variable, i.e., the left side of your model.
+      The Fertilization and WaterStress would be the predictors, i.e., the right side of the model.
+    </p>
+    <p>
+      <strong>Generalised Linear Models (GLMs)</strong> extend linear models to handle non-normal outcomes, like:
+    </p>
+    <ul>
+      <li><strong>Counts</strong> (Poisson, quasi-Poisson)</li>
+      <li><strong>Binary data</strong> (yes/no, 0/1) using logistic regression</li>
+      <li><strong>Proportions</strong> (binomial)</li>
+    </ul>
+    <p>
+      You must choose both a <strong>distribution family</strong> (e.g., binomial) and a <strong>link function</strong> (e.g., logit) when using a GLM.
+    </p>
+  </div>
+  <table>
+    <tr> <th>CO2Uptake</th> <th>Fertilization</th>       <th>WaterStress</th>       </tr>
+    <tr> <td>0.01</td>       <td>0.5</td>                 <td>yes</td>              </tr>
+    <tr> <td>0.01</td>       <td>0.5</td>                 <td>yes</td>              </tr>
+    <tr> <td>0.6</td>        <td>0.5</td>                 <td>no</td>               </tr>
+    <tr> <td>0.6</td>        <td>0.5</td>                 <td>no</td>               </tr>
+    <tr> <td>0.3</td>        <td>10</td>                  <td>yes</td>              </tr>
+    <tr> <td>0.2</td>        <td>10</td>                  <td>yes</td>              </tr>
+    <tr> <td>0.01</td>       <td>10</td>                  <td>no</td>               </tr>
+    <tr> <td>0.01</td>       <td>10</td>                  <td>no</td>               </tr>
+  </table>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>2. Getting Started</strong></h4>
+  <ol>
+    <li>Select a dependent variable (left side).</li>
+    <li>Select one or more predictors (right side).</li>
+    <li>Use operators (e.g., <code>+</code>, <code>*</code>) to combine predictors.</li>
+    <li>Choose a <strong>family</strong> and <strong>link function</strong> matching your data type.</li>
+    <li>Click <strong>Create Statistical Model</strong>.</li>
+  </ol>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>3. Left Side of Statistical Model</strong></h4>
+  <ul>
+    <li>This is your <strong>response variable</strong> (e.g., 0/1 for logistic regression).</li>
+    <li>Use the dropdown to choose a column from your dataset.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>4. Right Side of Statistical Model</strong></h4>
+  <ul>
+    <li>Choose predictors by clicking on variable buttons.</li>
+    <li>Use the <code>+</code>, <code>*</code>, or <code>:</code> operators for combinations and interactions.</li>
+    <li>Edit the formula in the code area if needed.</li>
+  </ul>
+</div>
+

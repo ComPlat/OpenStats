@@ -1,0 +1,105 @@
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+.info-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.documentation {
+  max-width: 400px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+table, th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+th {
+  background-color: #f2f2f2;
+  text-align: center;
+}
+td {
+  text-align: center;
+}
+</style>
+
+<div class="info-container">
+  <div class="boxed-output documentation">
+    <p><strong>Importing Multiple Tables:</strong></p>
+    <p>You can import multiple tables from a single file in OpenStats. This allows you to structure experimental data flexibly in Excel or CSV files.</p>
+    <p><strong>How to structure your data:</strong></p>
+    <ul>
+      <li>Each table must be separated from other tables by at least <strong>one completely empty column</strong> and <strong>one completely empty row</strong>.</li>
+      <li>The <strong>first row of each table is used as column names</strong> (headers).</li>
+      <li>All data below the first row is treated as the dataset.</li>
+    </ul>
+    <p><strong>Supported file types:</strong></p>
+    <ul>
+      <li><strong>CSV files:</strong> All tables are read from the file if properly separated.</li>
+      <li><strong>Excel files (.xlsx):</strong> All sheets are checked. OpenStats reads all tables from each sheet if they are properly separated.</li>
+    </ul>
+    <p><strong>What is not supported:</strong></p>
+    <ul>
+      <li><strong>Merged cells are not supported.</strong></li>
+      <li><strong>Plots, images, or embedded objects in Excel are ignored.</strong></li>
+    </ul>
+    <p><strong>Example layout:</strong></p>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Value</th>
+        <th></th>
+        <th>Sample</th>
+        <th>Time</th>
+        <th>Group</th>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>10.5</td>
+        <td></td>
+        <td>S1</td>
+        <td>5</td>
+        <td>A</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>7.8</td>
+        <td></td>
+        <td>S2</td>
+        <td>10</td>
+        <td>B</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>12.4</td>
+        <td></td>
+        <td>S3</td>
+        <td>15</td>
+        <td>A</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>9.3</td>
+        <td></td>
+        <td>S4</td>
+        <td>20</td>
+        <td>C</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>11.7</td>
+        <td></td>
+        <td>S5</td>
+        <td>25</td>
+        <td>B</td>
+      </tr>
+    </table>
+    <p>In this example, two tables are detected because of the empty column between <strong>Value</strong> and <strong>Sample</strong>.</p>
+  </div>
+</div>
