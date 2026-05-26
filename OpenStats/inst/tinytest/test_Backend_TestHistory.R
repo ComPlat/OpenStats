@@ -513,7 +513,7 @@ CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[8], CO2)
 result <- result$ResultsState$all_data
 expect_true(
-  length(result) == 3, info = "Permutation ANOVA"
+  length(result) == 5, info = "Permutation ANOVA"
 )
 set.seed(954388)
 P <- permuco::Pmat(np = 5000L, n = nrow(CO2))
@@ -524,6 +524,16 @@ expect_equal(
   result[[3]], expected
 )
 
+set.seed(954388)
+perm <- 5000L
+expected <- permutes::perm.lmer(uptake ~ Treatment + (1 | Type), data = CO2, np = perm, type = 'anova')
+expected <- as.data.frame(expected)
+result[[5L]] <- as.data.frame(result[[5L]])
+for (i in seq_len(5L)) {
+  expect_equal(
+    result[[5]][[i]], expected[[i]]
+  ) |> print()
+}
 # Wilcox Rank sum test
 # ========================================================================================
 CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
@@ -536,11 +546,20 @@ expect_equal(
 
 # Test Pairwise Comparison
 # ========================================================================================
+library(tinytest)
+test_data_dir <- system.file("test_data", package = "OpenStats")
+files <- list.files(test_data_dir, pattern = "\\.json$", full.names = TRUE)
+
+load_and_eval_history <- function(file, df) {
+  json <- readLines(file, n = -1)
+  OpenStats:::eval_history(json, df, list(df0 = df), TRUE)
+}
+
 CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[10], CO2)
 result <- result$ResultsState$all_data
 expect_true(
-  length(result) == 4, info = "Pairwise comparison"
+  length(result) == 6, info = "Pairwise comparison"
 )
 
 p_val <- 0.05
@@ -555,3 +574,14 @@ res <- pairwise.t.test(CO2$uptake, interaction(CO2[c("Treatment", "conc")]),
 res <- broom::tidy(res)
 expected <- res[res$p.value <= p_val, ]
 expect_equal(result[[4]], expected)
+
+expected <- {
+  model <- lmerTest::lmer(uptake ~ conc + (1 | Type), data = CO2)
+  trend <- emmeans::emtrends(model, specs = ~ 1, var = "conc")
+  trend <- as.data.frame(trend)
+  trend$trend_variable <- "conc"
+  res <- trend
+  rownames(res) <- NULL
+  res
+}
+expect_equal(result[[6]], expected)

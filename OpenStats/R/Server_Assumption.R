@@ -68,7 +68,7 @@ assServer <- function(id, DataModelState, ResultsState) {
               "Mean" = "mean",
               "Median" = "median"
             ),
-            selectize = FALSE
+            selectize = TRUE
           ),
           class = "var-box-output"
         )

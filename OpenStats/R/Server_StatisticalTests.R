@@ -14,7 +14,7 @@ pairwise_comparisons_ui <- function(ParametricOrNonParametric) {
   }
   htmltools::div(
     title,
-    shiny::selectInput("TESTS-padjPairwise", "Adjusted p method", p_value_correction_methods(), selectize = FALSE),
+    shiny::selectInput("TESTS-padjPairwise", "Adjusted p method", p_value_correction_methods(), selectize = TRUE),
     shiny::selectInput("TESTS-altHypPairwise", "Alternative hypothesis", alt_hyp_2_groups()),
     shiny::sliderInput("TESTS-pvalPairwise", "P-value",
       min = 0, max = 0.15, value = 0.05
@@ -191,7 +191,7 @@ LinearParametricTestsUISidebarServer <- function(id, DataModelState, ResultsStat
       shiny::req(inherits(DataModelState$formula, "LinearFormula"))
       if (input$PostHocTests == "kruskalTest" || input$PostHocTests == "LSD") {
         return(
-          shiny::selectInput(shiny::NS(id, "padj"), "Adjusted p method", p_value_correction_methods(), selectize = FALSE)
+          shiny::selectInput(shiny::NS(id, "padj"), "Adjusted p method", p_value_correction_methods(), selectize = TRUE)
         )
       }
     })
@@ -352,7 +352,7 @@ LinearNonParametricTestsUISidebarServer <- function(id, DataModelState, ResultsS
       shiny::req(inherits(DataModelState$formula, "LinearFormula"))
       if (input$PostHocTests == "kruskalTest" || input$PostHocTests == "LSD") {
         return(
-          shiny::selectInput(shiny::NS(id, "padj"), "Adjusted p method", p_value_correction_methods(), selectize = FALSE)
+          shiny::selectInput(shiny::NS(id, "padj"), "Adjusted p method", p_value_correction_methods(), selectize = TRUE)
         )
       }
     })
@@ -406,6 +406,89 @@ GeneralizedLinearTestsUISidebarServer <- function(id, DataModelState, ResultsSta
       }
       if (inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
         glm_sidebar()
+      }
+    })
+
+  })
+}
+
+# -----------------------------------------------------------------------------------
+# Server which renders the sidebar for linear mixed models
+# -----------------------------------------------------------------------------------
+LinearMixedTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
+  shiny::moduleServer(id, function(input, output, session) {
+
+    sidebar <- function() {
+      if ((is.null(DataModelState$formula) || !inherits(DataModelState$formula, "LinearMixedFormula"))) {
+        return()
+      }
+      htmltools::div(
+        htmltools::div(
+          shiny::actionButton(
+            shiny::NS(id, "aovTest"),
+            "ANOVA",
+            title = ""
+          ),
+          class = "var-box-output"
+        ),
+        htmltools::div(
+          shiny::sliderInput(shiny::NS(id, "perm"), "Number of Permutations",
+            min = 1000, max = 20000, value = 5000
+          ),
+          shiny::numericInput(shiny::NS(id, "Seed"), "Seed (start value for random number generation)", value = sample(1:10^6, 1)),
+          htmltools::div(
+            shiny::actionButton(
+              shiny::NS(id, "PermANOVATest"),
+              "Permutation ANOVA",
+              title = "Uses permutation resampling to compute the p-value for the ANOVA test statistic. Useful when the normality assumption is doubtful. Observations must still be independent and exchangeable under the null hypothesis."
+            )
+          ),
+          class = "var-box-output"
+        )
+      )
+    }
+
+    linear_mixed_sidebar <- function() {
+      if (input$TestsConditionedPanels == "More than two groups") {
+        sidebar()
+      }
+      else if (input$TestsConditionedPanels == "Multiple Comparisons") {
+        htmltools::div(
+          shiny::selectInput(shiny::NS(id, "CorrectionMethod"), "Choose an adjustment method",
+            choices = c(
+              "tukey" = "tukey",
+              "sidak" = "sidak",
+              "bonferroni" = "bonferroni",
+              "scheffe" = "scheffe",
+              "none" = "none",
+              "fdr" = "fdr",
+              "holm" = "holm",
+              "hochberg" = "hochberg",
+              "hommel" = "hommel"
+            )
+          ),
+          shiny::sliderInput(shiny::NS(id, "pval"), "P-value",
+            min = 0, max = 1.0, value = 0.05
+          ),
+          shiny::actionButton(
+            shiny::NS(id, "pairwise_test_linear_mixed"),
+            "Pairwise comparisons",
+            title = ""
+          )
+        )
+      }
+    }
+
+    output$SidebarTestsLinearMixedUI <- shiny::renderUI({
+      shiny::req(input$TestsConditionedPanels)
+      message <- check_statistical_tests(DataModelState)
+      if (!is.null(message)) {
+        return(
+          info_div(message)
+        )
+      }
+      if (inherits(DataModelState$formula, "LinearMixedFormula")) {
+        linear_mixed_sidebar()
       }
     })
 
@@ -496,7 +579,7 @@ testsServer <- function(id, DataModelState, ResultsState) {
 
       res <- try({
         st <- get_permutation_anova()$new(
-          DataModelState$df, DataModelState$formula, input$perm, input$Seed
+          DataModelState$df, DataModelState$formula, input$perm, input$Seed, class(DataModelState$formula)
         )
         st$validate()
         st$eval(ResultsState)
@@ -531,15 +614,33 @@ testsServer <- function(id, DataModelState, ResultsState) {
         print_err(err)
       }
     }
+    conductPairwiseLinearMixedComparison <- function() {
+      print_req(is.data.frame(DataModelState$df), "The dataset is missing")
+      print_form(DataModelState$formula)
+      res <- try({
+        st <- get_pairwise_linear_mixed_tests()$new(DataModelState$df, DataModelState$formula, input$CorrectionMethod, input$pval)
+        st$validate()
+        st$eval(ResultsState)
+      }, silent = TRUE)
+      if (inherits(res, "try-error")) {
+        err <- conditionMessage(attr(res, "condition"))
+        err <- paste0(err, "\n", "Test did not run successfully")
+        print_err(err)
+      }
+    }
+
     shiny::observeEvent(input$pairwise_test, {
       conductPairwiseComparison()
     })
     shiny::observeEvent(input$PostHocTest, {
       conductTests(input$PostHocTests)
     })
-
     shiny::observeEvent(input$PostHocEmmeansTest, {
       conductTests(input$PostHocEmmeans)
     })
+    shiny::observeEvent(input$pairwise_test_linear_mixed, {
+      conductPairwiseLinearMixedComparison()
+    })
+
   })
 }

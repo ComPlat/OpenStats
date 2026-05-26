@@ -504,6 +504,7 @@ test_permutation_anova <- function(in_background) {
   perm <- 20000L
   pa <- OpenStats:::perm_ANOVA_V1_2$new(
     df = df, formula = formula, perm = perm, seed = 1234,
+    model_type = "LinearFormula",
     com = OpenStats:::backend_communicator_V1_2
   )
 
@@ -519,6 +520,67 @@ test_permutation_anova <- function(in_background) {
   expect_equal(result, expected)
 }
 run_test(test_permutation_anova)
+
+test_statistical_methods_linear_mixed_models <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- lme4::sleepstudy
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  formula <- as.formula("Reaction ~ Days + (1 | Subject)")
+  formula <- new("LinearMixedFormula", formula = formula)
+
+  outer_checks <- c()
+
+  # ANOVA on the linear mixed model
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  st <- OpenStats:::statistical_tests_V1_2$new(
+    df = df,
+    formula = formula,
+    balanced_design = NULL,
+    p_val = NULL,
+    p_val_adj_method = NULL,
+    com = OpenStats:::backend_communicator_V1_2
+  )
+  st$eval(ResultsState, method = "aov")
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+  result <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+  expected <- broom::tidy(
+    anova(lmerTest::lmer(Reaction ~ Days + (1 | Subject), data = df))
+  ) |> as.data.frame()
+  check1 <- expect_equal(result, expected)
+  check2 <- expect_equal(ResultsState$counter, 1)
+  check3 <- expect_equal(ResultsState$history[[1]]$type, "ANOVA Linear Mixed")
+  check4 <- expect_true(length(ResultsState$all_data) == 2)
+  outer_checks <- c(outer_checks, all(c(check1, check2, check3, check4)))
+
+  # Permutation ANOVA on the linear mixed model
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  perm <- 50L
+  pa <- OpenStats:::perm_ANOVA_V1_2$new(
+    df = df, formula = formula, perm = perm, seed = 1234,
+    model_type = "LinearMixedFormula",
+    com = OpenStats:::backend_communicator_V1_2
+  )
+  pa$eval(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+  result <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+  set.seed(1234)
+  expected <- permutes::perm.lmer(
+    Reaction ~ Days + (1 | Subject), data = df, np = perm, type = "anova"
+  )
+  check5 <- expect_equal(result, expected)
+  check6 <- expect_equal(ResultsState$counter, 1)
+  check7 <- expect_equal(ResultsState$history[[1]]$type, "Permutation ANOVA")
+  check8 <- expect_true(length(ResultsState$all_data) == 2)
+  outer_checks <- c(outer_checks, all(c(check5, check6, check7, check8)))
+
+  expect_true(all(outer_checks))
+}
+run_test(test_statistical_methods_linear_mixed_models)
 
 test_pairwise_comparison <- function(in_background) {
   options(OpenStats.background = in_background)
@@ -554,6 +616,87 @@ test_pairwise_comparison <- function(in_background) {
   expect_true(all(checks))
 }
 run_test(test_pairwise_comparison)
+
+test_pairwise_comparison_linear_mixed <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- lme4::sleepstudy
+  df$Group <- factor(ifelse(as.integer(df$Subject) %% 2 == 0, "A", "B"))
+
+  method <- "tukey"
+  p_val <- 1
+
+  # Each scenario exercises one branch of the predictor handling:
+  #   - only factor predictors  -> emmeans + pairs
+  #   - only numeric predictors -> emtrends
+  #   - mixed predictors        -> emtrends + pairs
+  scenarios <- list(
+    factor_only  = Reaction ~ Group + (1 | Subject),
+    numeric_only = Reaction ~ Days + (1 | Subject),
+    mixed        = Reaction ~ Days * Group + (Days | Subject)
+  )
+
+  outer_checks <- c()
+  for (nm in names(scenarios)) {
+    f <- scenarios[[nm]]
+    formula <- new("LinearMixedFormula", formula = f)
+
+    ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+    ResultsState$bgp$in_backend <- TRUE
+    pc <- OpenStats:::pairwise_comparisons_linear_mixed_V1_2$new(
+      df = df, formula = formula, method = method, p_val = p_val,
+      com = OpenStats:::backend_communicator_V1_2
+    )
+    pc$eval(ResultsState)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+    result <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+    # Reproduce the expected result mirroring the engine logic
+    model <- lmerTest::lmer(f, data = df)
+    fixed_formula <- reformulas::nobars(f)
+    rhs_vars <- all.vars(fixed_formula[[3]])
+    factor_vars <- rhs_vars[vapply(df[rhs_vars], is.factor, logical(1))]
+    numeric_vars <- rhs_vars[vapply(df[rhs_vars], is.numeric, logical(1))]
+    if (length(factor_vars) == length(rhs_vars)) {
+      emm <- emmeans::emmeans(
+        model, specs = stats::as.formula(paste("~", paste(factor_vars, collapse = " * ")))
+      )
+      expected <- as.data.frame(pairs(emm, adjust = method))
+      expected <- expected[expected$p.value <= p_val, ]
+    } else if (length(numeric_vars) == length(rhs_vars)) {
+      out <- list()
+      for (num_var in numeric_vars) {
+        trend <- as.data.frame(emmeans::emtrends(model, specs = ~ 1, var = num_var))
+        trend$trend_variable <- num_var
+        out[[num_var]] <- trend
+      }
+      expected <- do.call(rbind, out)
+      rownames(expected) <- NULL
+    } else {
+      out <- list()
+      for (num_var in numeric_vars) {
+        trend <- emmeans::emtrends(
+          model, specs = stats::as.formula(paste("~", paste(factor_vars, collapse = " * "))), var = num_var
+        )
+        fit <- as.data.frame(pairs(trend, adjust = method))
+        fit$trend_variable <- num_var
+        out[[num_var]] <- fit
+      }
+      expected <- do.call(rbind, out)
+      rownames(expected) <- NULL
+      expected <- expected[expected$p.value <= p_val, ]
+    }
+
+    check1 <- expect_equal(result, expected)
+    check2 <- expect_true(is.data.frame(result))
+    check3 <- expect_equal(ResultsState$counter, 1)
+    check4 <- expect_equal(ResultsState$history[[1]]$type, "PairwiseComparisonLinearMixedModel")
+    check5 <- expect_true(length(ResultsState$all_data) == 2)
+    outer_checks <- c(outer_checks, all(c(check1, check2, check3, check4, check5)))
+  }
+  expect_true(all(outer_checks))
+}
+run_test(test_pairwise_comparison_linear_mixed)
 
 test_statistical_methods_glm <- function(in_background) {
   options(OpenStats.background = in_background)

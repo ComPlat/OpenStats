@@ -46,7 +46,7 @@ visSidebarUI <- function(id) {
           "Set2" = "Set2",
           "Set3" = "Set3"
         ),
-        selectize = FALSE
+        selectize = TRUE
       )
     ),
     htmltools::div(

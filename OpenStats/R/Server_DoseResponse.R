@@ -60,7 +60,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
           "binomial" = "binomial",
           "Poisson" = "Poisson"
         ),
-        selectize = FALSE
+        selectize = TRUE
       )
       if (MethodState$method == "Default") {
         return(free_dropdown)

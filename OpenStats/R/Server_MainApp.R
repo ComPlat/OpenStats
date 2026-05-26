@@ -255,6 +255,7 @@ app <- function() {
     LinearParametricTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     LinearNonParametricTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     GeneralizedLinearTestsUISidebarServer("TESTS", DataModelState, ResultsState)
+    LinearMixedTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     testsServer("TESTS", DataModelState, ResultsState)
     DoseResponseServer("DOSERESPONSE", DataModelState, ResultsState, MethodState)
     FormulaEditorServer("FO", DataModelState, ResultsState)

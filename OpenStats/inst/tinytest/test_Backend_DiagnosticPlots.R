@@ -287,3 +287,46 @@ test_synthetic_influential_dataset <- function() {
   expect_true(4 %in% text_data$label)
 }
 test_synthetic_influential_dataset()
+
+# Diagnostic plots for linear mixed models
+# -----------------------------------------------------------------------
+test_diagnostic_plots_mixed <- function() {
+  df <- lme4::sleepstudy
+  formula <- new("LinearMixedFormula", formula = Reaction ~ Days + (1 | Subject))
+  p <- OpenStats:::diagnostic_plots_mixed(df, formula)
+  expect_true(inherits(p, "ggplot"))
+}
+test_diagnostic_plots_mixed()
+
+test_diagnostic_plots_mixed_subplots <- function() {
+  df <- lme4::sleepstudy
+  formula <- new("LinearMixedFormula", formula = Reaction ~ Days + (1 | Subject))
+
+  model <- lmerTest::lmer(formula@formula, data = df)
+  resids <- residuals(model)
+  fitted <- fitted(model)
+  p <- length(lme4::fixef(model))
+  n <- length(resids)
+  leverage <- hatvalues(model)
+  cooks_dist <- cooks.distance(model)
+  high_leverage_threshold <- (2 * (p + 1)) / n
+  high_cooks_threshold <- 4 / n
+  influential_points <- which(
+    leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
+  )
+  rvf <- OpenStats:::resids_vs_fitted_plot(fitted, resids, n, formula, influential_points)
+  test_resids_vs_fitted_plot_layers(rvf)
+  test_resids_vs_fitted_mapping(rvf)
+  qq <- OpenStats:::qq_norm_plot(resids, n, formula, influential_points)
+  test_qq_norm_layers(qq)
+  test_qq_norm_mapping(qq)
+}
+test_diagnostic_plots_mixed_subplots()
+
+test_diagnostic_plots_dispatch_mixed <- function() {
+  df <- lme4::sleepstudy
+  formula <- new("LinearMixedFormula", formula = Reaction ~ Days + (1 | Subject))
+  p <- OpenStats:::diagnostic_plots(df, formula)
+  expect_true(inherits(p, "ggplot"))
+}
+test_diagnostic_plots_dispatch_mixed()

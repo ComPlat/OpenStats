@@ -189,6 +189,11 @@ get_pairwise_tests <- function(version = VERSION) {
     `1.2` = pairwise_comparisons_V1_2
   )[[version]]
 }
+get_pairwise_linear_mixed_tests <- function(version = VERSION) {
+  list(
+    `1.2` = pairwise_comparisons_linear_mixed_V1_2 
+  )[[version]]
+}
 get_remove_results <- function(version = VERSION) {
   list(
     `1.2` = remove_result_V1_2

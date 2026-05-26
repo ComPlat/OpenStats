@@ -123,7 +123,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             "Two-hot binding kinetics" = "two_hot_binding",
             "Free formula (custom)" = "free"
           ),
-          selectize = FALSE
+          selectize = TRUE
         )
       }
     })
@@ -257,7 +257,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
             "quasibinomial" = "quasibinomial",
             "quasipoisson" = "quasipoisson"
           ),
-          selectize = FALSE
+          selectize = TRUE
         )
       }
     })
@@ -272,7 +272,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               "probit" = "probit",
               "cauchit" = "cauchit"
             ),
-            selectize = FALSE
+            selectize = TRUE
           )
         } else if (input[["Family"]] %in% c("gaussian", "Gamma")) {
           shiny::selectInput("FO-Link_function", "The link function",
@@ -281,7 +281,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               "log" = "log",
               "inverse" = "inverse"
             ),
-            selectize = FALSE
+            selectize = TRUE
           )
         } else if (input[["Family"]] == "inverse.gaussian") {
           shiny::selectInput("FO-Link_function", "The link function",
@@ -291,7 +291,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               "inverse" = "inverse",
               "1/mu^2" = "1/mu^2"
             ),
-            selectize = FALSE
+            selectize = TRUE
           )
         } else if (input[["Family"]] == "poisson") {
           shiny::selectInput("FO-Link_function", "The link function",
@@ -300,7 +300,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               "log" = "log",
               "sqrt" = "sqrt"
             ),
-            selectize = FALSE
+            selectize = TRUE
           )
         } else if (input[["Family"]] %in% c("quasi", "quasibinomial", "quasipoisson")) {
           shiny::selectInput("FO-Link_function", "The link function",
@@ -314,7 +314,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               "1/mu^2" = "1/mu^2",
               "sqrt" = "sqrt"
             ),
-            selectize = FALSE
+            selectize = TRUE
           )
         }
       }
@@ -331,7 +331,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               "general purpose optimization" = "general purpose optimization",
               "nonlinear least squares" = "nonlinear least squares"
             ),
-            selectize = FALSE
+            selectize = TRUE
           ),
           shiny::numericInput("FO-LowerBoundary", "Lower boundary of parameters", value = 0),
           shiny::numericInput("FO-UpperBoundary", "Upper boundary of parameters", value = 100),

@@ -17,6 +17,7 @@ env_utils_V1_2$vars_rhs <- vars_rhs
 num_to_factor <- function(df, cols) {
   for (i in seq_along(cols)) {
     if (is.numeric(df[, cols[i]])) {
+      warning(sprintf("Converted column %s to factors", names(df)[i]))
       df[, cols[i]] <- as.factor(df[, cols[i]])
     }
   }

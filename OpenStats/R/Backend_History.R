@@ -111,6 +111,8 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       } else if (entry[["Model Type"]] == "Optimization Model") {
         res$eval(ResultsState, DataModelState, entry[["Model Type"]],
           entry[["lower"]], entry[["upper"]], entry[["seed"]])
+      } else if (entry[["Model Type"]] == "Linear Mixed Model") {
+        res$eval(ResultsState, DataModelState, entry[["Model Type"]])
       }
     },
     ShapiroOnData = {
@@ -217,6 +219,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         DataModelState$formula,
         entry[["number of permutations"]],
         entry[["seed"]],
+        entry[["Model type"]],
         backend_communicator_V1_2
       )
       res$validate()
@@ -396,6 +399,16 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       res$eval(ResultsState, "hommel")
       get_result(ResultsState)
     },
+    `ANOVA Linear Mixed` = {
+      res <- statistical_tests_V1_2$new(
+        DataModelState$df,
+        DataModelState$formula,
+        NULL, NULL, NULL, backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState, "aov")
+      get_result(ResultsState)
+    },
     PairwiseComparison = {
       if (entry[["Method"]] == "T-Test") {
         parametric <- "parametric"
@@ -407,6 +420,16 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         entry[["P-value"]], entry[["alternative hypothesis"]],
         entry[["Adjusted p value method"]],
         parametric, backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+      get_result(ResultsState)
+    },
+    PairwiseComparisonLinearMixedModel = {
+      res <- get_pairwise_linear_mixed_tests()$new(
+        DataModelState$df, DataModelState$formula,
+        entry[["Adjusted p value method"]],
+        entry[["P-value"]], backend_communicator_V1_2
       )
       res$validate()
       res$eval(ResultsState)

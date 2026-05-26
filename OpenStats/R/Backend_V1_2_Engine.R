@@ -1908,6 +1908,31 @@ statistical_tests_V1_2 <- R6::R6Class(
         })
     },
 
+    eval_linear_mixed = function(method, new_name, ResultsState) {
+      withCallingHandlers(
+        expr = {
+          promise_history_entry <- self$create_history(new_name, method)
+          ResultsState$bgp$start(
+            fun = function(formula, df, method) {
+              fit <- NULL
+              switch(method,
+                aov = {
+                  m <- lmerTest::lmer(formula@formula, data = df)
+                  fit <- broom::tidy(anova(m)) |> as.data.frame()
+                }
+              )
+              fit
+            },
+            args = list(
+              formula = self$formula, df = self$df, method = method),
+            promise_result_name = new_name,
+            promise_history_entry = promise_history_entry,
+            in_background = FALSE, ResultsState
+          )
+        }
+      )
+    },
+
     eval = function(ResultsState, method) {
       e <- try({
         self$indep <- as.character(self$formula@formula)[3]
@@ -1929,6 +1954,8 @@ statistical_tests_V1_2 <- R6::R6Class(
             self$eval_lm(method, new_name, ResultsState)
           } else if (inherits(self$formula, "GeneralisedLinearFormula")) {
             self$eval_glm(method, new_name, ResultsState)
+          } else if (inherits(self$formula, "LinearMixedFormula")) {
+            self$eval_linear_mixed(method, new_name, ResultsState)
           }
         },
         warning = function(warn) {
@@ -2030,11 +2057,25 @@ statistical_tests_V1_2 <- R6::R6Class(
       }
       history_data
     },
+    create_history_linear_mixed = function(new_name, method) {
+      history_data <- NULL
+      switch(method,
+        aov = {
+          history_data <- list(
+            type = "ANOVA Linear Mixed",
+            formula = deparse(self$formula@formula),
+            "Result name" = new_name
+          )
+        }
+      )
+    },
     create_history = function(new_name, method) {
       if (inherits(self$formula, "LinearFormula")) {
         self$create_history_lm(new_name, method)
       } else if (inherits(self$formula, "GeneralisedLinearFormula")) {
         self$create_history_glm(new_name, method)
+      } else if (inherits(self$formula, "LinearMixedFormula")) {
+        self$create_history_linear_mixed(new_name, method)
       }
     }
   )
@@ -2047,13 +2088,15 @@ perm_ANOVA_V1_2 <- R6::R6Class(
     formula = NULL,
     perm = NULL,
     seed = 1234,
+    model_type = NULL,
     com = NULL,
 
-    initialize = function(df, formula, perm, seed, com = communicator_V1_2) {
+    initialize = function(df, formula, perm, seed, model_type, com = communicator_V1_2) {
       self$df <- df
-      self$formula <- formula@formula
+      self$formula <- formula
       self$perm <- perm
       self$seed <- seed
+      self$model_type <- model_type
       self$com = com$new()
     },
 
@@ -2065,14 +2108,19 @@ perm_ANOVA_V1_2 <- R6::R6Class(
           new_name <- paste0( ResultsState$counter + 1, " Permutation ANOVA")
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
-            fun = function(formula, df, perm, seed) {
+            fun = function(formula, df, perm, seed, model_type) {
               set.seed(seed)
-              P <- permuco::Pmat(np = perm, n = nrow(df))
-              fit <- permuco::aovperm(formula, data = df, P = P)
-              as.data.frame(summary(fit))
+              if (model_type == "LinearFormula") {
+                P <- permuco::Pmat(np = perm, n = nrow(df))
+                fit <- permuco::aovperm(formula@formula, data = df, P = P)
+                as.data.frame(summary(fit))
+              } else if (model_type == "LinearMixedFormula") {
+                fit <- permutes::perm.lmer(formula@formula, data = df, np = perm, type = 'anova')
+                fit
+              }
             },
             args = list(
-              formula = self$formula, df = self$df, perm = self$perm, seed = self$seed
+              formula = self$formula, df = self$df, perm = self$perm, seed = self$seed, model_type = self$model_type
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,
@@ -2089,9 +2137,10 @@ perm_ANOVA_V1_2 <- R6::R6Class(
     create_history = function(new_name) {
       list(
         type = "Permutation ANOVA",
-        formula = deparse(self$formula),
+        formula = deparse(self$formula@formula),
         "number of permutations" = self$perm,
         "seed" = self$seed,
+        "Model type" = self$model_type,
         "Result name" = new_name
       )
     }
@@ -2176,6 +2225,111 @@ pairwise_comparisons_V1_2 <- R6::R6Class(
         "alternative hypothesis" = self$alternative_hyp,
         "Adjusted p value method" = self$p_val_adj_method,
         "Method" = self$method,
+        "Result name" = new_name
+      )
+    }
+  )
+)
+
+pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
+  "pairwise_comparisons_linear_mixed_V1_2",
+  public = list(
+    df = NULL,
+    formula = NULL,
+    method = NULL,
+    p_val = NULL,
+    com = NULL,
+
+    initialize = function(df, formula, method, p_val, com = communicator_V1_2) {
+      self$df <- df
+      self$formula <- formula
+      self$method <- method
+      self$p_val<- p_val
+      self$com <- com$new()
+    },
+
+    validate = function() {},
+
+    eval = function(ResultsState) {
+      withCallingHandlers(
+        {
+          new_name <- paste0( ResultsState$counter + 1, " Pairwise Comparisons Linear Mixed Model")
+          promise_history_entry <- self$create_history(new_name)
+          ResultsState$bgp$start(
+            fun = function(formula, df, method, p_val) {
+              model <- lmerTest::lmer(formula@formula, data = df)
+              fixed_formula <- reformulas::nobars(formula@formula)
+              f_split <- OpenStats:::env_utils_V1_2$split_formula(fixed_formula)
+              rhs_vars <- OpenStats:::env_utils_V1_2$vars_rhs(f_split$right_site)
+              factor_vars <- rhs_vars[vapply(df[rhs_vars], is.factor, logical(1))]
+              numeric_vars <- rhs_vars[vapply(df[rhs_vars], is.numeric, logical(1))]
+              # Predictors are all of type factor
+              if (length(factor_vars) == length(rhs_vars)) {
+                emm <- emmeans::emmeans(
+                  model,
+                  specs = stats::as.formula(
+                    paste("~", paste(factor_vars, collapse = " * "))
+                  )
+                )
+                fit <- pairs(emm, adjust = method)
+                fit <- as.data.frame(fit)
+                res <- fit[fit$p.value <= p_val, ]
+              }
+              # Predictors are all of type numeric
+              else if (length(numeric_vars) == length(rhs_vars)) {
+                out <- list()
+                for (num_var in numeric_vars) {
+                  trend <- emmeans::emtrends(model, specs = ~ 1, var = num_var)
+                  trend <- as.data.frame(trend)
+                  trend$trend_variable <- num_var
+                  out[[num_var]] <- trend
+                }
+                res <- do.call(rbind, out)
+                rownames(res) <- NULL
+              }
+              # Mixed
+              else {
+                out <- list()
+                for (num_var in numeric_vars) {
+                  trend <- emmeans::emtrends(
+                    model,
+                    specs = stats::as.formula(
+                      paste("~", paste(factor_vars, collapse = " * "))
+                    ),
+                    var = num_var
+                  )
+                  fit <- pairs(trend, adjust = method)
+                  fit <- as.data.frame(fit)
+                  fit$trend_variable <- num_var
+                  out[[num_var]] <- fit
+                }
+                res <- do.call(rbind, out)
+                rownames(res) <- NULL
+                res <- res[res$p.value <= p_val, ]
+              }
+              return(res)
+            },
+            args = list(
+              formula = self$formula, df = self$df, method = self$method, p_val = self$p_val
+            ),
+            promise_result_name = new_name,
+            promise_history_entry = promise_history_entry,
+            in_background = FALSE, ResultsState
+          )
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "PairwiseComparisonLinearMixedModel",
+        formula = deparse(self$formula@formula),
+        "P-value" = self$p_val,
+        "Adjusted p value method" = self$method,
         "Result name" = new_name
       )
     }
