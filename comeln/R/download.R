@@ -19,6 +19,7 @@ download <- function(session, folder) {
   url <- paste0(ipaddress)
 
   url <- sub("0.0.0.0", "172.17.0.1", url) # Only for testing when running on local host
+  url <- sub("localhost", "172.17.0.1", url) # Only for testing when running on local host
 
   res <- tryCatch(
     {
