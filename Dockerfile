@@ -45,6 +45,9 @@ RUN install2.r --error --skipinstalled \
   quarto \
   emmeans \
   callr \
+  lmerTest \
+  permutes \
+  buildmer \
   permuco
 
 # Create writable directories as root and assign them to shiny

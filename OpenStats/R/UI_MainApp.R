@@ -4,7 +4,7 @@ main_app_ui <- function() {
     if (Sys.getenv("RUN_MODE") != "SERVER") {
       res <- shiny::conditionalPanel(
         condition = "input.conditionedPanels == 'Data'",
-        shiny::fileInput("file", "Choose CSV File",
+        shiny::fileInput("DOWNLOAD-file", "Choose CSV File",
           accept = c(
             "text/csv",
             "text/comma-separated-values,text/plain",
@@ -45,11 +45,12 @@ main_app_ui <- function() {
           )
         ),
 
-        shiny::uiOutput("open_formula_editor_main"),
-        shiny::uiOutput("formulaUI"),
-        shiny::uiOutput("open_split_by_groupUI"),
-        shiny::uiOutput("data_splitted"),
-        shiny::verbatimTextOutput("applied_filter"),
+        shiny::uiOutput("OPENFORMULA-open_formula_editor_main"),
+        shiny::uiOutput("OPENFORMULA-formulaUI"),
+        shiny::uiOutput("OPENSPLITBYGROUP-open_split_by_groupUI"),
+        shiny::uiOutput("OPENSPLITBYGROUP-data_splitted"),
+        shiny::verbatimTextOutput("OPENSPLITBYGROUP-applied_filter"),
+
         shiny::uiOutput("active_df"),
 
         htmltools::div(
@@ -130,7 +131,7 @@ main_app_ui <- function() {
           ),
           id = "conditionedPanels"
         ),
-        shiny::uiOutput("Results")
+        resultsUI("RESULTS")
       )
     )
   )
