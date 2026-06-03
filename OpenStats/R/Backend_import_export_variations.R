@@ -12,7 +12,7 @@ read_variations <- function(path, DataModelState, ResultsState) {
   sanitize <- function(obj) {
     if (is.null(obj) || length(obj) == 0L || is.na(obj)) return(NA_character_)
     obj <- as.character(obj)
-    obj <- gsub("[µµ]", "u", obj)
+    obj <- gsub("[\u00B5\u00B5]", "u", obj)
     obj <- gsub("-", "", obj)
     obj <- gsub("[^A-Za-z0-9]+", "_", obj)
     obj <- gsub("^_+|_+$", "", obj)
@@ -24,12 +24,12 @@ read_variations <- function(path, DataModelState, ResultsState) {
       return(NA_character_)
     }
     units <- list(
-      "g" = "g", "mg" = "mg", "µg" = "ug", "μg" = "ug",
+      "g" = "g", "mg" = "mg", "\u00B5g" = "ug",
       "mol" = "mol", "mmol" = "mmol",
-      "l" = "l", "ml" = "ml", "µl" = "ul", "μl" = "ul",
+      "l" = "l", "ml" = "ml", "\u00B5l" = "ul",
       "Second(s)" = "s", "Minute(s)" = "min", "Hour(s)" = "h",
       "Day(s)" = "d", "Week(s)" = "wk",
-      "K" = "K", "°C" = "degC", "°F" = "degF",
+      "K" = "K", "\u00B0C" = "degC", "\u00B0F" = "degF",
       "ppm" = "ppm", "%" = "pct",
       "turnoverNumber" = "turnover_num",
       "turnoverFrequency" = "turnover_freq"

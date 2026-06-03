@@ -149,7 +149,7 @@ app <- function() {
 
     # Other servers
     # ----------------------------------------------------------
-    downloadServer("DOWNLOAD", DataModelState, ResultsState, MethodState)
+    downloadServer("DOWNLOAD", DataModelState, ResultsState, MethodState) # its called download because of the connection to the ELN. Using it locally is actully an upload
     OperationEditorServer("OP", DataModelState, ResultsState, DataWranglingState)
     corrServer("CORR", DataModelState, ResultsState)
     visServer("VIS", DataModelState, ResultsState)
