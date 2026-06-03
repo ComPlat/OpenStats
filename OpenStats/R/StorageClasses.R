@@ -5,6 +5,13 @@ setClass("MethodDoseResponse",
     element_info = "list"
   )
 )
+setClass("MethodVariationStatistics",
+  slots = c(
+    id = "character",
+    request_id = "character",
+    element_info = "list"
+  )
+)
 
 setClass("LinearFormula",
   slots = c(
@@ -73,5 +80,11 @@ setClass("optimResult",
     message = "character",
     predicted_df = "data.frame",
     x_vars = "character"
+  )
+)
+
+setClass("summaryDataFrame",
+  slots = c(
+    summary = "data.frame"
   )
 )

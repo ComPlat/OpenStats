@@ -3,6 +3,7 @@ ExportResultsServer <- function(id, DataModelState, ResultsState, MethodState) {
     shiny::observeEvent(input$download, {
 
       e <- try({
+
         if (MethodState$method == "Default") {
           if (!env_utils$is_valid_filename(input$user_filename)) {
             shinyjs::runjs("document.getElementById('user_filename').focus();")
@@ -52,6 +53,25 @@ ExportResultsServer <- function(id, DataModelState, ResultsState, MethodState) {
           }
           else if (MethodState$method == "DoseResponse") {
             jsonFile <- try(env_import_dose_response$dose_response_to_json(MethodState, ResultsState$all_data))
+            excelFile <- try(env_utils$create_excel_file(l))
+            if (!is.character(jsonFile) || length(jsonFile) != 1L || !file.exists(jsonFile)) {
+              print_err("Cannot convert results to json")
+            }
+            if (!is.character(excelFile) || length(excelFile) != 1L || !file.exists(excelFile)) {
+              print_err("Cannot store the results in an excelFile")
+            }
+            fn <- tempfile(fileext = ".zip")
+            utils::zip(fn, c(jsonFile, excelFile))
+            if (!file.exists(fn) || file.info(fn)$size <= 0) {
+              print_err("Could not create the zip archive storing the final results")
+            }
+            uploader(session, fn, new_name = "result.zip")
+            unlink(fn)
+            unlink(excelFile)
+            unlink(jsonFile)
+          }
+          else if (MethodState$method == "VariationStatistics") {
+           jsonFile <- try(env_import_export_variations_V1_2$summary_data_frame_to_json(MethodState, ResultsState$all_data), silent = TRUE)
             excelFile <- try(env_utils$create_excel_file(l))
             if (!is.character(jsonFile) || length(jsonFile) != 1L || !file.exists(jsonFile)) {
               print_err("Cannot convert results to json")

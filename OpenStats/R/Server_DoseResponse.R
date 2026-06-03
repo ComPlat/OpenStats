@@ -11,7 +11,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
     )
     show_dose_response <- shiny::reactive({
       shiny::req(MethodState$method)
-      if (MethodState$method != "Default") {
+      if (MethodState$method == "DoseResponse") {
         shiny::req(MethodState$storage_class)
         eii <- MethodState$storage_class@element_info$info
         if (!(eii$kind %in% DOSE_RESPONSE_KINDS)) {
@@ -167,7 +167,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
     # ----------------------------------------------------------------------------------------
     show_primary_assay <- shiny::reactive({
       shiny::req(MethodState$method)
-      if (MethodState$method != "Default") {
+      if (MethodState$method == "DoseResponse") {
         shiny::req(MethodState$storage_class)
         eii <- MethodState$storage_class@element_info$info
         if (!(eii$kind %in% c("primary-assay-percentage-continuous", "primary-assay-fold-change", "primary-assay-percentage-binomial"))) {

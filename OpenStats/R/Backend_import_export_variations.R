@@ -1,7 +1,12 @@
 env_import_export_variations_V1_2 <- new.env(parent = getNamespace("OpenStats"))
 
-read_variations <- function(path, DataModelState, ResultsState) {
+read_variations <- function(path, DataModelState, ResultsState, MethodState) {
   data <- jsonlite::read_json(path)
+
+  stopifnot("id is NULL cannot import the data" = !is.null(data$id))
+  stopifnot("request_id is NULL cannot import the data" = !is.null(data$request_id))
+  MethodState$storage_class@id <- data$id
+  MethodState$storage_class@request_id <- data$request_id
 
   resolve_column_order <- function(column_order) {
     lapply(column_order, \(c) {
@@ -120,5 +125,32 @@ read_variations <- function(path, DataModelState, ResultsState) {
   ResultsState$all_data[[name]] <- DataModelState$df
   ResultsState$counter <- ResultsState$counter + 1
 }
-
 env_import_export_variations_V1_2$read_variations <- read_variations
+
+summary_data_frame_to_json <- function(MethodState, all_data) {
+  Output <- list()
+
+  for (k in seq_along(all_data)) {
+    elem <- all_data[[k]]
+
+    if (!inherits(elem, "summaryDataFrame")) next
+
+    Output[[length(Output) + 1L]] <- list(
+      id = as.character(length(Output)),
+      items = elem@summary
+    )
+  }
+
+  out <- list(
+    id = as.character(MethodState$storage_class@id),
+    request_id = as.character(MethodState$storage_class@request_id),
+    element_info = MethodState$storage_class@element_info,
+    Output = Output
+  )
+
+  output_json <- jsonlite::toJSON(out, pretty = TRUE, auto_unbox = TRUE, null = "null")
+  path <- tempfile(fileext = ".json")
+  writeLines(output_json, con = path)
+  return(path)
+}
+env_import_export_variations_V1_2$summary_data_frame_to_json <- summary_data_frame_to_json

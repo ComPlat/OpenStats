@@ -24,7 +24,8 @@ downloadServer <- function(id, DataModelState, ResultsState, MethodState) {
         MethodState$storage_class <- new("MethodDoseResponse", id = "", request_id = "", element_info = list())
         env_import_dose_response$import_dose_response_json(file, DataModelState, ResultsState, MethodState)
       } else if (MethodState$method == "VariationStatistics") {
-        env_import_export_variations_V1_2$read_variations(file, DataModelState, ResultsState)
+        MethodState$storage_class <- new("MethodVariationStatistics", id = "", request_id = "", element_info = list())
+        env_import_export_variations_V1_2$read_variations(file, DataModelState, ResultsState, MethodState)
       }
       print_req(
         is.data.frame(DataModelState$df),
@@ -65,6 +66,10 @@ downloadServer <- function(id, DataModelState, ResultsState, MethodState) {
         )
       } else if (m == "VariationStatistics") {
         MethodState$method <- "VariationStatistics"
+        MethodState$storage_class <- new(
+          "MethodVariationStatistics",
+          id = "", request_id = "", element_info = list()
+        )
       }
     })
 

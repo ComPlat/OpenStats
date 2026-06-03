@@ -148,6 +148,16 @@ create_excel_file <- function(l) {
         cols = 1:dim(l[[i]]@summary)[2],
         gridExpand = TRUE
       )
+    } else if (inherits(l[[i]], "summaryDataFrame")) {
+      s <- l[[i]]@summary
+      openxlsx::writeData(wb, "Results", s, startRow = curr_row)
+      curr_row <- curr_row + dim(s)[1] + 1
+      openxlsx::addStyle(
+        wb, sheet = "Results", style = line_style, rows = curr_row,
+        cols = 1:dim(s)[2],
+        gridExpand = TRUE
+      )
+      curr_row <- curr_row + 5
     } else if (inherits(l[[i]], "data.frame")) {
       openxlsx::writeData(wb, "Results", l[[i]], startRow = curr_row)
       curr_row <- curr_row + dim(l[[i]])[1] + 1
@@ -246,6 +256,9 @@ create_js_string <- function(l) {
 
       jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]@information_criterions))
       js_names <- c(js_names, paste0(names_l[i], " Information criterions"))
+    } else if (inherits(l[[i]], "summaryDataFrame")) {
+      jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]@summary))
+      js_names <- c(js_names, names_l[i])
     } else if (inherits(l[[i]], "data.frame")) {
       jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]))
       js_names <- c(js_names, names_l[i])

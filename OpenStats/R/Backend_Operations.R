@@ -102,9 +102,18 @@ DataFrame <- function(...) {
   columns <- list(...)
   s <- substitute(list(...))
   args <- as.list(s[-1])
+
+  names_args <- names(args)
   args <- lapply(args, function(x) {
     make.names(deparse(x))
   })
+  if (is.null(names_args)) {
+    names_args <- args
+  } else {
+    ids <- which(names_args == "")
+    names_args[ids] <- args[ids]
+  }
+
   sapply(columns, function(x) {
     if (length(x) == 0) stop("Found empty column")
   })
@@ -121,7 +130,8 @@ DataFrame <- function(...) {
     env_utils_V1_2$elongate_col(col, rows)
   })
   df <- do.call(cbind, columns) |> as.data.frame()
-  names(df) <- args
+
+  names(df) <- names_args
   return(df)
 }
 env_operations_V1_2$DataFrame <- DataFrame

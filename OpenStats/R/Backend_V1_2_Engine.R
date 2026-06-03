@@ -740,15 +740,33 @@ create_intermediate_var_V1_2 <- R6::R6Class(
             env_utils_V1_2$check_rls(ResultsState$all_data, temp)
             res <- data.frame(name = g)
             if (length(temp) > 1L) {
-              for (i in seq_len(length(temp))) {
-                res[[paste0("value", i)]] <- temp[[i]]
+              if (is.data.frame(temp)) {
+                res <- cbind(res, temp)
+              } else {
+                if (length(names(temp)) == length(temp)) {
+                  res <- cbind(res, as.data.frame(t(temp)))
+                } else {
+                  for (i in seq_len(length(temp))) {
+                    res[[paste0("value", i)]] <- temp[[i]]
+                  }
+                }
               }
             } else {
-              res <- data.frame(name = g, value = temp)
+              if (is.data.frame(temp)) {
+                res <- cbind(res, temp)
+              } else {
+                if (length(names(temp)) == length(temp)) {
+                  res <- cbind(res, as.data.frame(t(temp)))
+                } else {
+                  res <- data.frame(name = g, value = temp)
+                }
+              }
             }
             res
           })
           new <- Reduce(rbind, new)
+          new <- new("summaryDataFrame", summary = new)
+          new
         } else {
           eval_env <- create_run_env()
           list2env(self$intermediate_vars, envir = eval_env)
@@ -765,10 +783,12 @@ create_intermediate_var_V1_2 <- R6::R6Class(
         stop("Error in create intermediate variable")
       } else {
         DataWranglingState$intermediate_vars[[self$var_name]] <- new
-        ResultsState$counter <- ResultsState$counter + 1
 
+        ResultsState$counter <- ResultsState$counter + 1
         # NOTE: for better saving the results
-        if (!inherits(new, "data.frame")) {
+        if (inherits(new, "summaryDataFrame")) {
+          new_df <- new
+        } else if (!inherits(new, "data.frame")) {
           new_df <- setNames(data.frame(new), self$name)
         } else {
           new_df <- new
