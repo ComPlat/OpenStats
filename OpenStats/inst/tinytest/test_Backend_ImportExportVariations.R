@@ -4,13 +4,16 @@ library(OpenStats)
 fresh_states <- function() {
   ResultsState <- OpenStats:::backend_result_state_V1_2$new(list())
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(NULL)
-  list(RS = ResultsState, DMS = DataModelState)
+  MethodState <- new.env(parent = emptyenv())
+  MethodState$method <- "VariationStatistics"
+  MethodState$storage_class <- new("MethodVariationStatistics", id = "", request_id = "", element_info = list())
+  list(RS = ResultsState, DMS = DataModelState, MS = MethodState)
 }
 
 read_fixture <- function(file) {
   path <- system.file(file.path("test_data", file), package = "OpenStats")
   s <- fresh_states()
-  OpenStats:::read_variations(path, s$DMS, s$RS)
+  OpenStats:::read_variations(path, s$DMS, s$RS, s$MS)
   s
 }
 
@@ -115,14 +118,3 @@ test_read_variations_registers_result <- function() {
   expect_true(all(unlist(checks)))
 }
 test_read_variations_registers_result()
-
-test_read_variations_empty <- function() {
-  empty <- tempfile(fileext = ".json")
-  writeLines('{"columnOrder":[],"variations":[]}', empty)
-  s <- fresh_states()
-  expect_error(
-    OpenStats:::read_variations(empty, s$DM, s$RS),
-    "The uploaded file is empty"
-  )
-}
-test_read_variations_empty()

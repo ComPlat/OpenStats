@@ -107,7 +107,7 @@ expected <- Reduce(rbind, lapply(unique(CO2$conc), function(g) {
 }))
 expected$name <- as.factor(expected$name)
 expect_equal(
-  result[[4]], expected,
+  result[[4]]@summary, expected,
   info = "by conc mean(uptake)"
 )
 
@@ -118,7 +118,7 @@ expected <- Reduce(rbind, lapply(unique(int), function(g) {
 }))
 expected$name <- as.factor(expected$name)
 expect_equal(
-  result[[5]], expected,
+  result[[5]]@summary, expected,
   info = "by conc mean(uptake)"
 )
 
