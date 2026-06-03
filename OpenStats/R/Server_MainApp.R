@@ -93,10 +93,6 @@ app <- function() {
     # ----------------------------------------------------------
     show_docu(input, DataModelState)
 
-    # upload local file from user or download from ELN
-    # ----------------------------------------------------------
-    downloadServer("DOWNLOAD", DataModelState, ResultsState, MethodState)
-
     # dataset
     # ----------------------------------------------------------
     output$df <- DT::renderDT({
@@ -151,8 +147,9 @@ app <- function() {
       sat$eval(ResultsState, DataModelState)
     })
 
-    # Other tabs
+    # Other servers
     # ----------------------------------------------------------
+    downloadServer("DOWNLOAD", DataModelState, ResultsState, MethodState)
     OperationEditorServer("OP", DataModelState, ResultsState, DataWranglingState)
     corrServer("CORR", DataModelState, ResultsState)
     visServer("VIS", DataModelState, ResultsState)

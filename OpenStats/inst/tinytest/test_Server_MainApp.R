@@ -13,7 +13,9 @@ test_main_server <- function(app, srv) {
     tmp <- tempfile(fileext = ".csv")
     utils::write.csv(as.data.frame(CO2), tmp, row.names = FALSE)
     session$setInputs(conditionedPanels = "Data")
-    session$setInputs(file = data.frame(name="CO2.csv", size=file.info(tmp)$size,
+    session$setInputs(
+      `DOWNLOAD-file` = data.frame(name="CO2.csv",
+        size=file.info(tmp)$size,
       type="text/csv", datapath=tmp))
     session$flushReact()
     checks[1] <<- is.data.frame(DataModelState$df)

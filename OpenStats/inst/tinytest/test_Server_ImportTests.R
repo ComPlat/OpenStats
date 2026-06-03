@@ -16,7 +16,7 @@ test_import <- function(app, srv) {
   shiny::testServer(srv, {
     session$setInputs(conditionedPanels = "Data")
     session$setInputs(
-      file = list(
+      `DOWNLOAD-file` = list(
         name = "CO2.csv",
         size = file.size(tmp),
         type = "text/csv",
