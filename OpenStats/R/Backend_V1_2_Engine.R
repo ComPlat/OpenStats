@@ -1069,7 +1069,7 @@ create_summary_plot_V1_2 <- R6::R6Class(
                       labeller = ggplot2::label_both,
                       scales = "free"
                     ) +
-                    theme(text = element_text(size = 12))
+                    ggplot2::theme(text = ggplot2::element_text(size = 12))
                 }
                 res <- lapply(for_which, function(i) {
                   summary_plot(df, i, column_by)
