@@ -73,14 +73,18 @@ ExportResultsServer <- function(id, DataModelState, ResultsState, MethodState) {
           else if (MethodState$method == "VariationStatistics") {
            jsonFile <- try(env_import_export_variations_V1_2$summary_data_frame_to_json(MethodState, ResultsState$all_data), silent = TRUE)
             excelFile <- try(env_utils$create_excel_file(l))
+            plotFiles <- try(env_import_export_variations_V1_2$summary_plots_to_files(ResultsState$all_data), silent = TRUE)
             if (!is.character(jsonFile) || length(jsonFile) != 1L || !file.exists(jsonFile)) {
               print_err("Cannot convert results to json")
             }
             if (!is.character(excelFile) || length(excelFile) != 1L || !file.exists(excelFile)) {
               print_err("Cannot store the results in an excelFile")
             }
+            if (!is.character(plotFiles) || !all(file.exists(plotFiles))) {
+              print_err("Cannot store the summary plots")
+            }
             fn <- tempfile(fileext = ".zip")
-            utils::zip(fn, c(jsonFile, excelFile))
+            utils::zip(fn, c(jsonFile, excelFile, plotFiles))
             if (!file.exists(fn) || file.info(fn)$size <= 0) {
               print_err("Could not create the zip archive storing the final results")
             }
@@ -88,6 +92,7 @@ ExportResultsServer <- function(id, DataModelState, ResultsState, MethodState) {
             unlink(fn)
             unlink(excelFile)
             unlink(jsonFile)
+            unlink(plotFiles)
           }
         }
 

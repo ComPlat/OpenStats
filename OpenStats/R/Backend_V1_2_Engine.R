@@ -731,6 +731,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
           eval_env <- create_run_env()
           list2env(self$intermediate_vars, envir = eval_env)
           ints <- interaction(DataWranglingState$df[, self$group_apply])
+          groups_col_names <- paste0(self$group_apply, collapse = "_")
           new <- lapply(unique(ints), function(g) {
             block <- DataWranglingState$df[ints == g, ]
             list2env(block, envir = eval_env) # NOTE: this adds each column as own variable
@@ -739,6 +740,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
             check_type_res(temp)
             env_utils_V1_2$check_rls(ResultsState$all_data, temp)
             res <- data.frame(name = g)
+            names(res)[[1L]] <- groups_col_names
             if (length(temp) > 1L) {
               if (is.data.frame(temp)) {
                 res <- cbind(res, temp)
@@ -759,6 +761,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
                   res <- cbind(res, as.data.frame(t(temp)))
                 } else {
                   res <- data.frame(name = g, value = temp)
+                  names(res)[[1L]] <- groups_col_names
                 }
               }
             }
@@ -929,6 +932,172 @@ create_new_col_V1_2 <- R6::R6Class(
           "column name" = self$name
         )
       }
+    }
+  )
+)
+
+create_summary_V1_2 <- R6::R6Class(
+  "create_summary_V1_2",
+  public = list(
+    df = NULL,
+    column_by = NULL,
+    for_which = NULL,
+    what_to_do = NULL,
+    com = NULL,
+
+    initialize = function(df, column_by, for_which, what_to_do, com = communicator_V1_2) {
+      self$df <- df
+      self$column_by <- column_by
+      self$for_which <- for_which
+      self$what_to_do <- what_to_do
+      self$com <- com$new()
+    },
+
+    validate = function() {
+      check_is_invalid <- function(a) {
+        if (length(a) == 0 || (length(a) == 1L && a == "")) return(TRUE)
+        return(FALSE)
+      }
+      if (check_is_invalid(self$column_by)) {
+        stop("You have to define at least one column across which to summarize the data")
+      }
+      if (check_is_invalid(self$for_which)) {
+        stop("You have to define at least one column across which should be summarized")
+      }
+      if (check_is_invalid(self$what_to_do)) {
+        stop("You have to set at least one operation")
+      }
+    },
+
+    eval = function(ResultsState) {
+      new_name <- paste0(ResultsState$counter + 1, " Dataset summary")
+      promise_history_entry <- self$create_history(new_name)
+      withCallingHandlers(
+        {
+          expr = {
+            ResultsState$bgp$start(
+              fun = function(df, column_by, for_which, what_to_do) {
+                ints <- interaction(df[, column_by])
+                res <- lapply(unique(ints), function(i) {
+                  block <- df[ints == i, for_which, drop = FALSE]
+                  m <- matrix(NA, nrow = length(what_to_do), ncol = ncol(block))
+                  for (col in seq_len(ncol(block))) {
+                    for (op in seq_len(length(what_to_do))) {
+                      eval_env <- create_run_env()
+                      eval_env$col <- block[, col]
+                      operation <- paste0(what_to_do[[op]], "(col)")
+                      m[op, col] <- eval(parse(text = operation), eval_env)
+                    }
+                  }
+                  m <- as.data.frame(m)
+                  names(m) <- for_which
+                  m$operations <- what_to_do
+                  m[paste0(column_by, collapse = "_")] <- as.character(levels(i)[i])
+                  m
+                })
+                res <- Reduce(rbind, res)
+                new("summaryDataFrame", summary = res)
+              },
+              args = list(df = self$df, column_by = self$column_by, for_which = self$for_which, what_to_do = self$what_to_do),
+              promise_result_name = new_name,
+              promise_history_entry = promise_history_entry,
+              in_background = FALSE, ResultsState
+            )
+          }
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "DatasetSummary",
+        column_by = paste0(self$column_by, collapse = ","),
+        for_which = paste0(self$for_which, collapse = ","),
+        what_to_do = paste0(self$what_to_do, collapse = ","),
+        "Result name" = new_name
+      )
+    }
+  )
+)
+
+create_summary_plot_V1_2 <- R6::R6Class(
+  "create_summary_plot_V1_2",
+  public = list(
+    df = NULL,
+    column_by = NULL,
+    for_which = NULL,
+    com = NULL,
+
+    initialize = function(df, column_by, for_which, com = communicator_V1_2) {
+      self$df <- df
+      self$column_by <- column_by
+      self$for_which <- for_which
+      self$com <- com$new()
+    },
+
+    validate = function() {
+      check_is_invalid <- function(a) {
+        if (length(a) == 0 || (length(a) == 1L && a == "")) return(TRUE)
+        return(FALSE)
+      }
+      if (check_is_invalid(self$column_by)) {
+        stop("You have to define at least one column across which to summarize the data")
+      }
+      if (check_is_invalid(self$for_which)) {
+        stop("You have to define at least one column across which should be summarized")
+      }
+    },
+
+    eval = function(ResultsState) {
+      new_name <- paste0(ResultsState$counter + 1, " Dataset summary plot")
+      promise_history_entry <- self$create_history(new_name)
+      withCallingHandlers(
+        {
+          expr = {
+            ResultsState$bgp$start(
+              fun = function(df, column_by, for_which) {
+
+                summary_plot <- function(df, for_which, column_by) {
+                  ggplot2::ggplot(df, ggplot2::aes(y = .data[[for_which]])) +
+                    ggplot2::geom_boxplot() +
+                    ggplot2::facet_wrap(
+                      facets = ggplot2::vars(!!!rlang::syms(column_by)),
+                      labeller = ggplot2::label_both,
+                      scales = "free"
+                    ) +
+                    theme(text = element_text(size = 12))
+                }
+                res <- lapply(for_which, function(i) {
+                  summary_plot(df, i, column_by)
+                })
+                p <- cowplot::plot_grid(plotlist = res, nrow = length(res))
+                new("summaryPlotDataFrame", p = p)
+              },
+              args = list(df = self$df, column_by = self$column_by, for_which = self$for_which),
+              promise_result_name = new_name,
+              promise_history_entry = promise_history_entry,
+              in_background = FALSE, ResultsState
+            )
+          }
+        },
+        warning = function(warn) {
+          self$com$print_warn(warn$message)
+          invokeRestart("muffleWarning")
+        }
+      )
+    },
+
+    create_history = function(new_name) {
+      list(
+        type = "DatasetSummaryPlot",
+        column_by = paste0(self$column_by, collapse = ","),
+        for_which = paste0(self$for_which, collapse = ","),
+        "Result name" = new_name
+      )
     }
   )
 )

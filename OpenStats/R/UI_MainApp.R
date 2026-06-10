@@ -63,6 +63,7 @@ main_app_ui <- function() {
           shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Data'",
             uploadUIField,
+            shiny::uiOutput("summaryUI"),
             shiny::tags$hr()
           ),
           shiny::conditionalPanel(

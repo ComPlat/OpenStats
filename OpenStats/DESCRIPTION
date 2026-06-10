@@ -38,7 +38,8 @@ Imports:
   lmerTest,
   permutes,
   reformulas,
-  buildmer
+  buildmer,
+  rlang
 Suggests:
   tinytest,
   shinytest2,

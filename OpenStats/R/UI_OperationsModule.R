@@ -7,7 +7,7 @@ OperatorEditorSidebar <- function(id) {
       class = "boxed-output"
     ),
     htmltools::div(
-      htmltools::h3("Apply by groups"),
+      htmltools::h3("Apply by groups (Create Summaries)"),
       shiny::uiOutput(shiny::NS(id, "column_apply")),
       class = "boxed-output"
     ),

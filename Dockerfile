@@ -48,6 +48,7 @@ RUN install2.r --error --skipinstalled \
   lmerTest \
   permutes \
   buildmer \
+  rlang \
   permuco
 
 # Create writable directories as root and assign them to shiny

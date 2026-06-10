@@ -88,3 +88,8 @@ setClass("summaryDataFrame",
     summary = "data.frame"
   )
 )
+setClass("summaryPlotDataFrame",
+  slots = c(
+    p = "ANY"
+  )
+)

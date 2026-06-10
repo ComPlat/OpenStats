@@ -65,6 +65,13 @@ ResultsListServer <- function(id, DataModelState, ResultsState, MethodState, con
             DT::DTOutput(paste0("RESULTS-res_summary_", name)),
             shiny::actionButton(paste0("RESULTS-remove_res_", name), "Remove", class = "btn-danger")
           )
+        } else if (inherits(temp, "summaryPlotDataFrame")) {
+          htmltools::div(
+            class = "var-box-output",
+            htmltools::div(class = "var-box-name", name),
+            shiny::plotOutput(paste0("RESULTS-res_summary_plot_", name), width = "100%", height = "800px"),
+            shiny::actionButton(paste0("RESULTS-remove_res_summary_plot_", name), "Remove", class = "btn-danger")
+          )
         } else {
           htmltools::div(
             class = "var-box-output",
@@ -131,6 +138,8 @@ ResultsListServer <- function(id, DataModelState, ResultsState, MethodState, con
             output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
           } else if (inherits(temp, "summaryDataFrame")) {
             output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
+          } else if (inherits(temp, "summaryPlotDataFrame")) {
+            output[[paste0("res_summary_plot_", name)]] <- shiny::renderPlot(temp@p)
           } else {
             output[[paste0("res_", name)]] <- shiny::renderPrint(temp)
           }

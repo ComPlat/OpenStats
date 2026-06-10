@@ -443,6 +443,27 @@ eval_entry_V1_2 <- function(entry, DataModelState,
     SetActiveTable = {
       res <- set_active_table_V1_2$new(entry[["NewActiveTable"]])
       res$eval(ResultsState, DataModelState)
+    },
+    DatasetSummary = {
+      res <- create_summary_V1_2$new(
+        DataModelState$df,
+        strsplit(entry[["column_by"]], ",")[[1L]],
+        strsplit(entry[["for_which"]], ",")[[1L]],
+        strsplit(entry[["what_to_do"]], ",")[[1L]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    DatasetSummaryPlot = {
+      res <- create_summary_plot_V1_2$new(
+        DataModelState$df,
+        strsplit(entry[["column_by"]], ",")[[1L]],
+        strsplit(entry[["for_which"]], ",")[[1L]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
     }
   )
   if (is.null(res)) {

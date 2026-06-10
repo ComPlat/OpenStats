@@ -214,4 +214,14 @@ get_replay_history <- function(version = VERSION) {
     `1.2` = replay_history_V1_2
   )[[version]]
 }
+get_summary <- function(version = VERSION) {
+  list(
+    `1.2` = create_summary_V1_2
+  )[[version]]
+}
+get_summary_plot <- function(version = VERSION) {
+  list(
+    `1.2` = create_summary_plot_V1_2
+  )[[version]]
+}
 # nocov end getter

@@ -154,3 +154,16 @@ summary_data_frame_to_json <- function(MethodState, all_data) {
   return(path)
 }
 env_import_export_variations_V1_2$summary_data_frame_to_json <- summary_data_frame_to_json
+
+summary_plots_to_files <- function(all_data) {
+  plot_files <- character(0)
+  for (k in seq_along(all_data)) {
+    elem <- all_data[[k]]
+    if (!inherits(elem, "summaryPlotDataFrame")) next
+    fn <- tempfile(fileext = ".png")
+    ggsave(plot = elem@p, filename = fn)
+    plot_files <- c(plot_files, fn)
+  }
+  return(plot_files)
+}
+env_import_export_variations_V1_2$summary_plots_to_files <- summary_plots_to_files

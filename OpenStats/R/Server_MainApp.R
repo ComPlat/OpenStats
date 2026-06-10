@@ -146,6 +146,69 @@ app <- function() {
       sat <- get_set_active_table()$new(input[["tables-dropdown"]])
       sat$eval(ResultsState, DataModelState)
     })
+    output[["summaryUI"]] <- shiny::renderUI({
+      shiny::req(DataModelState$df)
+
+      tooltip <- "Choose grouping variables"
+      cols <- names(DataModelState$df)
+      fcts <- c("Mean", "Median", "SD")
+      htmltools::div(
+        shiny::tags$label(
+          class = "tooltip",
+          title = tooltip,
+          `data-toggle` = "tooltip"
+        ),
+        shiny::selectInput(
+          inputId = "column_by",
+          label = "Variables to group your data",
+          choices = cols,
+          selected = NULL,
+          multiple = TRUE
+        ),
+        shiny::selectInput(
+          inputId = "for_which",
+          label = "Which Variables to summarize",
+          choices = cols,
+          selected = NULL,
+          multiple = TRUE
+        ),
+        shiny::selectInput(
+          inputId = "what_to_do",
+          label = "Which functions should be applied",
+          choices = fcts,
+          selected = NULL,
+          multiple = TRUE
+        ),
+        shiny::actionButton("summarize", "summarize", class = "add-button"),
+        shiny::actionButton("summarize_plot", "summarize plot", class = "add-button"),
+        class = "var-box-output"
+      )
+    })
+
+    shiny::observeEvent(input$summarize, {
+      print_req(is.data.frame(DataModelState$df), "The dataset is missing")
+      background <- !getOption("OpenStats.background", TRUE)
+      s <- get_summary()$new(DataModelState$df, input$column_by, input$for_which, input$what_to_do)
+      e <- try({
+        s$validate()
+        s$eval(ResultsState)
+      }, silent = TRUE)
+      if (inherits(e, "try-error")) {
+        print_err(attributes(e)$condition$message)
+      }
+    })
+    shiny::observeEvent(input$summarize_plot, {
+      print_req(is.data.frame(DataModelState$df), "The dataset is missing")
+      background <- !getOption("OpenStats.background", TRUE)
+      s <- get_summary_plot()$new(DataModelState$df, input$column_by, input$for_which)
+      e <- try({
+        s$validate()
+        s$eval(ResultsState)
+      }, silent = TRUE)
+      if (inherits(e, "try-error")) {
+        print_err(attributes(e)$condition$message)
+      }
+    })
 
     # Other servers
     # ----------------------------------------------------------
