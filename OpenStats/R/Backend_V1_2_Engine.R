@@ -1062,14 +1062,15 @@ create_summary_plot_V1_2 <- R6::R6Class(
               fun = function(df, column_by, for_which) {
 
                 summary_plot <- function(df, for_which, column_by) {
-                  ggplot2::ggplot(df, ggplot2::aes(y = .data[[for_which]])) +
+                  df$INTERACTION_INTERNALLY_ <- interaction(df[, column_by], sep = " + ")
+                  xlab <- paste0(column_by, collapse = " + ")
+                  ggplot2::ggplot(
+                    df, ggplot2::aes(y = .data[[for_which]], x = INTERACTION_INTERNALLY_)
+                  ) +
                     ggplot2::geom_boxplot() +
-                    ggplot2::facet_wrap(
-                      facets = ggplot2::vars(!!!rlang::syms(column_by)),
-                      labeller = ggplot2::label_both,
-                      scales = "free"
-                    ) +
-                    ggplot2::theme(text = ggplot2::element_text(size = 12))
+                    ggplot2::xlab(xlab) +
+                    ggplot2::theme(text = ggplot2::element_text(size = 12),
+                      axis.text.x = ggplot2::element_text(angle = 90))
                 }
                 res <- lapply(for_which, function(i) {
                   summary_plot(df, i, column_by)

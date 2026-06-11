@@ -70,7 +70,7 @@ ResultsListServer <- function(id, DataModelState, ResultsState, MethodState, con
             class = "var-box-output",
             htmltools::div(class = "var-box-name", name),
             shiny::plotOutput(paste0("RESULTS-res_summary_plot_", name), width = "100%", height = "800px"),
-            shiny::actionButton(paste0("RESULTS-remove_res_summary_plot_", name), "Remove", class = "btn-danger")
+            shiny::actionButton(paste0("RESULTS-remove_res_", name), "Remove", class = "btn-danger")
           )
         } else {
           htmltools::div(
