@@ -26,298 +26,106 @@ calc_possible_swaps <- function(blocks_i) {
 # --------------------------------------------------------------------------------------------
 # Loss function
 # --------------------------------------------------------------------------------------------
-loss_m2cov_vs_all_perm <- function(groups, blocks, perm, lambda_m2, lambda_cov, UNUSED) {
+loss_m2cov_vs_all_perm <- function(groups, blocks, perm, lambda_m2, lambda_cov, w, UNUSED) {
   # groups |> type(mat(double)) |> ref()
   # blocks |> type(vec(int))    |> ref()
   # perm   |> type(vec(int))    |> ref()
+  # w      |> type(vec(double)) |> ref()   # length ncols, per-covariate weight
   # UNUSED |> type(int)
 
-  nrows <- length(perm)
-  ncols <- ncol(groups)
+  nrows    <- length(perm)
+  ncols    <- ncol(groups)
+  n_groups <- max(blocks)
 
-  # ---------------- Helpers -----------------------------------
-  calc_n_groups <- fn(
-    f_args = function(nrows, blocks) {
-      nrows  |> type(int)
-      blocks |> type(vec(int)) |> ref()
-    },
-    return_value = type(int),
-    block = function(nrows, blocks) {
-      n_groups <- 0L
-      for (row in seq_len(nrows)) {
-        bi <- blocks[row]
-        if (bi > n_groups) n_groups <- bi
+  # NA mask over rows 1..nrows: Z = values with NA->0, M = present indicator
+  Z <- matrix(0.0, nrows, ncols)
+  M <- matrix(0.0, nrows, ncols)
+  for (row in seq_len(nrows)) {
+    for (col in seq_len(ncols)) {
+      x <- groups[row, col]
+      if (!is.na(x)) {
+        Z[row, col] <- x
+        M[row, col] <- 1.0
       }
-      return(n_groups)
     }
-  )
-  n_groups <- calc_n_groups(nrows, blocks)
+  }
 
-  calc_n_pairs <- fn(
-    f_args = function(ncols) {
-      ncols |> type(int)
-    },
-    return_value = type(int),
-    block = function(ncols) {
-      n_pairs |> type(int) <- (ncols * (ncols - 1L)) / 2L
-      if (n_pairs == 0L) n_pairs <- 1L
-      return(n_pairs)
+  # global stats: diag = sum2/count, off-diag = cross/paircount, ones%*%Z = sums
+  GramAll <- t(Z) %*% Z
+  CntAll  <- t(M) %*% M
+  SumAll  <- matrix(1.0, 1L, nrows) %*% Z   # 1 x ncols
+
+  mu_all <- numeric(ncols)
+  m2_all <- numeric(ncols)
+  for (col in seq_len(ncols)) {
+    cc <- CntAll[col, col]
+    if (cc > 0.0) {
+      mu_all[col] <- SumAll[1L, col] / cc
+      m2_all[col] <- GramAll[col, col] / cc
     }
-  )
-  n_pairs <- calc_n_pairs(ncols)
+  }
 
-  safe_mean <- fn(
-    f_args = function(s, cnt) {
-      s   |> type(double)
-      cnt |> type(int)
-    },
-    return_value = type(double),
-    block = function(s, cnt) {
-      if (cnt > 0L) return(s / cnt)
-      return(0.0)
-    }
-  )
+  L <- 0.0
+  for (g in seq_len(n_groups)) {
+    if (g != UNUSED) {
+      rows_g <- perm[blocks == g]          # data rows assigned to group g
+      ng     <- length(rows_g)
+      if (ng > 0L) {
+        Zg <- Z[rows_g, ]
+        Mg <- M[rows_g, ]
+        Gg <- t(Zg) %*% Zg
+        Cg <- t(Mg) %*% Mg
+        Sg <- matrix(1.0, 1L, ng) %*% Zg   # 1 x ncols
 
-  calc_mu_and_mu2 <- fn(
-    f_args = function(nrows, ncols, groups) {
-      nrows  |> type(int)
-      ncols  |> type(int)
-      groups |> type(mat(double)) |> ref()
-    },
-    return_value = type(mat(double)),
-    block = function(nrows, ncols, groups) {
-      res <- matrix(0.0, ncols, 2L)
-      for (col in seq_len(ncols)) {
-        s <- 0.0
-        s2 <- 0.0
-        cnt <- 0L
-        for (row in seq_len(nrows)) {
-          x <- groups[row, col]
-          if (!is.na(x)) {
-            s <- s + x
-            s2 <- s2 + x * x
-            cnt <- cnt + 1L
-          }
-        }
-        res[col, 1L] <- safe_mean(s,  cnt)
-        res[col, 2L] <- safe_mean(s2, cnt)
-      }
-      return(res)
-    }
-  )
-  mus <- calc_mu_and_mu2(nrows, ncols, groups)
-  mu_all <- c(mus[, 1L])
-  m2_all <- c(mus[, 2L])
-
-  calc_cross_all <- fn(
-    f_args = function(nrows, ncols, n_pairs, groups) {
-      nrows   |> type(int)
-      ncols   |> type(int)
-      n_pairs |> type(int)
-      groups  |> type(mat(double)) |> ref()
-    },
-    return_value = type(vec(double)),
-    block = function(nrows, ncols, n_pairs, groups) {
-      cross_all <- numeric(n_pairs)
-      t <- 1L
-      a <- 1L
-      while (a <= (ncols - 1L)) {
-        b <- a + 1L
-        while (b <= ncols) {
-          sxy <- 0.0
-          cnt <- 0L
-          for (row in seq_len(nrows)) {
-            xa <- groups[row, a]
-            xb <- groups[row, b]
-            if (!is.na(xa) && !is.na(xb)) {
-              sxy <- sxy + xa * xb
-              cnt <- cnt + 1L
-            }
-          }
-          cross_all[t] <- safe_mean(sxy, cnt)
-          t <- t + 1L
-          b <- b + 1L
-        }
-        a <- a + 1L
-      }
-      return(cross_all)
-    }
-  )
-  cross_all <- calc_cross_all(nrows, ncols, n_pairs, groups)
-
-  # ---------------- Accumulators --------------------------------------
-  accumulate_one_ref <- fn(
-    f_args = function(nrows, ncols, blocks, groups, perm, sum_g, sum2_g, cnt_g) {
-      nrows  |> type(int)
-      ncols  |> type(int)
-      blocks |> type(vec(int))    |> ref()
-      groups |> type(mat(double)) |> ref()
-      perm   |> type(vec(int))    |> ref()
-      sum_g  |> type(vec(double)) |> ref()
-      sum2_g |> type(vec(double)) |> ref()
-      cnt_g  |> type(vec(int))    |> ref()
-    },
-    return_value = type(void),
-    block = function(nrows, ncols, blocks, groups, perm, sum_g, sum2_g, cnt_g) {
-      for (sidx in seq_len(nrows)) {
-        g <- blocks[sidx]
-        r <- perm[sidx]
-        g0 <- (g - 1L) * ncols
+        # mean + m2 (matrix diagonal), weighted per covariate
         for (col in seq_len(ncols)) {
-          x <- groups[r, col]
-          if (!is.na(x)) {
-            idx <- g0 + col
-            sum_g[idx]  <- sum_g[idx]  + x
-            sum2_g[idx] <- sum2_g[idx] + x * x
-            cnt_g[idx]  <- cnt_g[idx]  + 1L
+          cc <- Cg[col, col]
+          if (cc > 0.0) {
+            dmu <- Sg[1L, col] / cc - mu_all[col]
+            dm2 <- Gg[col, col] / cc - m2_all[col]
+            L <- L + w[col] * (dmu * dmu + lambda_m2 * (dm2 * dm2))
           }
         }
-      }
-    }
-  )
-
-  accumulate_two_ref <- fn(
-    f_args = function(nrows, ncols, n_pairs, blocks, groups, perm, sumc_g, cntc_g) {
-      nrows   |> type(int)
-      ncols   |> type(int)
-      n_pairs |> type(int)
-      blocks  |> type(vec(int))    |> ref()
-      groups  |> type(mat(double)) |> ref()
-      perm    |> type(vec(int))    |> ref()
-      sumc_g  |> type(vec(double)) |> ref()
-      cntc_g  |> type(vec(int))    |> ref()
-    },
-    return_value = type(void),
-    block = function(nrows, ncols, n_pairs, blocks, groups, perm, sumc_g, cntc_g) {
-      for (sidx in seq_len(nrows)) {
-        g <- blocks[sidx]
-        r <- perm[sidx]
-        g0 <- (g - 1L) * n_pairs
-
-        t <- 1L
+        # cross (matrix off-diagonal), weighted by product w[a] * w[b]
         a <- 1L
         while (a <= (ncols - 1L)) {
           b <- a + 1L
-          xa <- groups[r, a]
           while (b <= ncols) {
-            xb <- groups[r, b]
-            if (!is.na(xa) && !is.na(xb)) {
-              idx <- g0 + t
-              sumc_g[idx] <- sumc_g[idx] + xa * xb
-              cntc_g[idx] <- cntc_g[idx] + 1L
+            cc <- Cg[a, b]
+            if (cc > 0.0) {
+              dc <- Gg[a, b] / cc - GramAll[a, b] / CntAll[a, b]
+              L <- L + lambda_cov * w[a] * w[b] * (dc * dc)
             }
-            t <- t + 1L
             b <- b + 1L
           }
           a <- a + 1L
         }
       }
     }
-  )
-
-  # allocate typed accumulators
-  sum_g  <- numeric(n_groups * ncols)
-  sum2_g <- numeric(n_groups * ncols)
-  cnt_g  <- integer(n_groups * ncols)
-
-  sumc_g <- numeric(n_groups * n_pairs)
-  cntc_g <- integer(n_groups * n_pairs)
-
-  accumulate_one_ref(nrows, ncols, blocks, groups, perm, sum_g, sum2_g, cnt_g)
-  accumulate_two_ref(nrows, ncols, n_pairs, blocks, groups, perm, sumc_g, cntc_g)
-
-  # ---------------- Loss (separate) ---------------------------
-  calc_loss_from_accs <- fn(
-    f_args = function(n_groups, ncols, n_pairs,
-                      UNUSED, lambda_m2, lambda_cov,
-                      sum_g, sum2_g, cnt_g,
-                      sumc_g, cntc_g,
-                      mu_all, m2_all, cross_all) {
-      n_groups   |> type(int)
-      ncols      |> type(int)
-      n_pairs    |> type(int)
-      UNUSED     |> type(int)
-      lambda_m2  |> type(double)
-      lambda_cov |> type(double)
-
-      sum_g   |> type(vec(double)) |> ref()
-      sum2_g  |> type(vec(double)) |> ref()
-      cnt_g   |> type(vec(int))    |> ref()
-
-      sumc_g  |> type(vec(double)) |> ref()
-      cntc_g  |> type(vec(int))    |> ref()
-
-      mu_all    |> type(vec(double)) |> ref()
-      m2_all    |> type(vec(double)) |> ref()
-      cross_all |> type(vec(double)) |> ref()
-    },
-    return_value = type(double),
-    block = function(n_groups, ncols, n_pairs,
-                     UNUSED, lambda_m2, lambda_cov,
-                     sum_g, sum2_g, cnt_g,
-                     sumc_g, cntc_g,
-                     mu_all, m2_all, cross_all) {
-      L <- 0.0
-      for (g in seq_len(n_groups)) {
-        if (g != UNUSED) {
-          # mean + m2
-          for (col in seq_len(ncols)) {
-            idx <- (g - 1L) * ncols + col
-            c <- cnt_g[idx]
-            if (c > 0L) {
-              mu_g <- sum_g[idx] / c
-              m2_g <- sum2_g[idx] / c
-              dmu <- mu_g - mu_all[col]
-              dm2 <- m2_g - m2_all[col]
-              L <- L + dmu * dmu + lambda_m2 * (dm2 * dm2)
-            }
-          }
-
-          # cross
-          for (p in seq_len(n_pairs)) {
-            idx <- (g - 1L) * n_pairs + p
-            c <- cntc_g[idx]
-            if (c > 0L) {
-              cg <- sumc_g[idx] / c
-              dc <- cg - cross_all[p]
-              L <- L + lambda_cov * (dc * dc)
-            }
-          }
-        }
-      }
-      return(L)
-    }
-  )
-
-  L <- calc_loss_from_accs(
-    n_groups, ncols, n_pairs,
-    UNUSED, lambda_m2, lambda_cov,
-    sum_g, sum2_g, cnt_g,
-    sumc_g, cntc_g,
-    mu_all, m2_all, cross_all
-  )
-
+  }
   return(L)
 }
 
-loss_m2cov_args <- function(groups, blocks, perm, lambda_m2, lambda_cov, UNUSED) {
+
+loss_m2cov_args <- function(groups, blocks, perm, lambda_m2, lambda_cov, w, UNUSED) {
   groups |> type(mat(double))
   blocks |> type(vec(int))
   perm |> type(vec(int))
   lambda_m2 |> type(double)
   lambda_cov |> type(double)
+  w |> type(vec(double))
   UNUSED |> type(int)
 }
 
 one_swap <- function(swaps, perm, best_loss, X, blocks_i,
-                     tol = 1e-12, lambda_m2 = 1.0, lambda_cov = 1.0, UNUSED, loss_ast) {
+                     tol = 1e-12, lambda_m2 = 1.0, lambda_cov = 1.0, w, UNUSED, loss_ast) {
   best_k <- NA_integer_
   for (k in seq_len(nrow(swaps))) {
     i <- swaps[k, 1L]
     j <- swaps[k, 2L]
     perm2 <- perm
     perm2[c(i, j)] <- perm2[c(j, i)]
-    L <- loss_ast(X, blocks_i, perm2, lambda_m2, lambda_cov, UNUSED)
+    L <- loss_ast(X, blocks_i, perm2, lambda_m2, lambda_cov, w, UNUSED)
     if (L < (best_loss - tol)) {
       best_loss <- L
       best_k <- k
@@ -336,154 +144,59 @@ loss_mahal_perm <- function(groups, blocks, perm, P, UNUSED) {
   # P      |> type(mat(double)) |> ref()
   # UNUSED |> type(int)
 
-  nrows <- length(perm)
-  ncols <- ncol(groups)
+  nrows    <- length(perm)
+  ncols    <- ncol(groups)
+  n_groups <- max(blocks)
 
-  # ---------------- Helpers -----------------------------------
-  calc_n_groups <- fn(
-    f_args = function(nrows, blocks) {
-      nrows  |> type(int)
-      blocks |> type(vec(int)) |> ref()
-    },
-    return_value = type(int),
-    block = function(nrows, blocks) {
-      n_groups <- 0L
-      for (row in seq_len(nrows)) {
-        bi <- blocks[row]
-        if (bi > n_groups) n_groups <- bi
+  # NA mask over rows 1..nrows: Z = values with NA->0, M = present indicator
+  Z <- matrix(0.0, nrows, ncols)
+  M <- matrix(0.0, nrows, ncols)
+  for (row in seq_len(nrows)) {
+    for (col in seq_len(ncols)) {
+      x <- groups[row, col]
+      if (!is.na(x)) {
+        Z[row, col] <- x
+        M[row, col] <- 1.0
       }
-      return(n_groups)
     }
-  )
-  n_groups <- calc_n_groups(nrows, blocks)
+  }
 
-  safe_mean <- fn(
-    f_args = function(s, cnt) {
-      s   |> type(double)
-      cnt |> type(int)
-    },
-    return_value = type(double),
-    block = function(s, cnt) {
-      if (cnt > 0L) return(s / cnt)
-      return(0.0)
-    }
-  )
+  # global per-column mean (only first moments are needed here)
+  ones_all <- matrix(1.0, 1L, nrows)
+  SumAll   <- ones_all %*% Z   # 1 x ncols
+  CntAll   <- ones_all %*% M   # 1 x ncols
+  mu_all   <- numeric(ncols)
+  for (col in seq_len(ncols)) {
+    cc <- CntAll[1L, col]
+    if (cc > 0.0) mu_all[col] <- SumAll[1L, col] / cc
+  }
 
-  calc_mu_all <- fn(
-    f_args = function(nrows, ncols, groups) {
-      nrows  |> type(int)
-      ncols  |> type(int)
-      groups |> type(mat(double)) |> ref()
-    },
-    return_value = type(vec(double)),
-    block = function(nrows, ncols, groups) {
-      mu_all <- numeric(ncols)
-      for (col in seq_len(ncols)) {
-        s <- 0.0
-        cnt <- 0L
-        for (row in seq_len(nrows)) {
-          x <- groups[row, col]
-          if (!is.na(x)) {
-            s <- s + x
-            cnt <- cnt + 1L
-          }
-        }
-        mu_all[col] <- safe_mean(s, cnt)
-      }
-      return(mu_all)
-    }
-  )
-  mu_all <- calc_mu_all(nrows, ncols, groups)
+  L <- 0.0
+  for (g in seq_len(n_groups)) {
+    if (g != UNUSED) {
+      rows_g <- perm[blocks == g]
+      ng     <- length(rows_g)
+      if (ng > 0L) {
+        Zg <- Z[rows_g, ]
+        Mg <- M[rows_g, ]
+        Sg <- matrix(1.0, 1L, ng) %*% Zg   # 1 x ncols
+        Cg <- matrix(1.0, 1L, ng) %*% Mg   # 1 x ncols
 
-  # ---------------- Accumulator ----------------------
-  accumulate_sum_cnt_ref <- fn(
-    f_args = function(nrows, ncols, blocks, groups, perm, sum_g, cnt_g) {
-      nrows  |> type(int)
-      ncols  |> type(int)
-      blocks |> type(vec(int))    |> ref()
-      groups |> type(mat(double)) |> ref()
-      perm   |> type(vec(int))    |> ref()
-      sum_g  |> type(vec(double)) |> ref()
-      cnt_g  |> type(vec(int))    |> ref()
-    },
-    return_value = type(int),
-    block = function(nrows, ncols, blocks, groups, perm, sum_g, cnt_g) {
-      sidx <- 1L
-      while (sidx <= nrows) {
-        g <- blocks[sidx]
-        r <- perm[sidx]
-        g0 <- (g - 1L) * ncols
+        # z = mu_g - mu_all (column vector); empty columns keep mu_g = 0
+        z <- matrix(0.0, ncols, 1L)
         for (col in seq_len(ncols)) {
-          x <- groups[r, col]
-          if (!is.na(x)) {
-            idx <- g0 + col
-            sum_g[idx] <- sum_g[idx] + x
-            cnt_g[idx] <- cnt_g[idx] + 1L
-          }
+          cc <- Cg[1L, col]
+          mu_gj <- 0.0
+          if (cc > 0.0) mu_gj <- Sg[1L, col] / cc
+          z[col, 1L] <- mu_gj - mu_all[col]
         }
-        sidx <- sidx + 1L
+
+        # d2 = z^T P z
+        Pz <- P %*% z          # ncols x 1
+        L <- L + sum(z * Pz)
       }
-      return(0L)
     }
-  )
-
-  sum_g <- numeric(n_groups * ncols)
-  cnt_g <- integer(n_groups * ncols)
-  dummy <- accumulate_sum_cnt_ref(nrows, ncols, blocks, groups, perm, sum_g, cnt_g)
-
-  # ---------------- Loss ---------------------------
-  calc_loss_mahal_from_accs <- fn(
-    f_args = function(n_groups, ncols, UNUSED, sum_g, cnt_g, mu_all, P) {
-      n_groups |> type(int)
-      ncols    |> type(int)
-      UNUSED   |> type(int)
-
-      sum_g  |> type(vec(double)) |> ref()
-      cnt_g  |> type(vec(int))    |> ref()
-      mu_all |> type(vec(double)) |> ref()
-      P      |> type(mat(double)) |> ref()
-    },
-    return_value = type(double),
-    block = function(n_groups, ncols, UNUSED, sum_g, cnt_g, mu_all, P) {
-      L <- 0.0
-
-      for (g in seq_len(n_groups)) {
-        if (g != UNUSED) {
-          # z = mu_g - mu_all
-          z <- numeric(ncols)
-          for (col in seq_len(ncols)) {
-            idx <- (g - 1L) * ncols + col
-            c <- cnt_g[idx]
-            mu_gj <- 0.0
-            if (c > 0L) mu_gj <- sum_g[idx] / c
-            z[col] <- mu_gj - mu_all[col]
-          }
-
-          # w = P %*% z
-          w <- numeric(ncols)
-          for (i in seq_len(ncols)) {
-            acc <- 0.0
-            for (j in seq_len(ncols)) {
-              acc <- acc + P[i, j] * z[j]
-            }
-            w[i] <- acc
-          }
-
-          # d2 = z^T w
-          d2 <- 0.0
-          for (j in seq_len(ncols)) {
-            d2 <- d2 + z[j] * w[j]
-          }
-
-          L <- L + d2
-        }
-      }
-
-      return(L)
-    }
-  )
-
-  L <- calc_loss_mahal_from_accs(n_groups, ncols, UNUSED, sum_g, cnt_g, mu_all, P)
+  }
   return(L)
 }
 
@@ -517,12 +230,14 @@ one_swap_mahal <- function(swaps, perm, best_loss, X, blocks_i, P,
 # ---------------------------------------------------------------------
 greedy_optimize <- function(groups_inp, blocks, perm_init,
                             max_iter = 200L, tol = 1e-12, verbose = TRUE,
-                            ridge = 1e-8, loss_ast, loss_function) {
+                            ridge = 1e-8, loss_ast, loss_function, w = NULL) {
 
   X <- as.matrix(normalize_df(groups_inp))
 
   C <- stats::cov(X)
   P <- solve(C + diag(ridge, ncol(X)))
+
+  if (is.null(w)) w <- rep(1.0, ncol(X))   # per-covariate weights (Default loss)
 
   blocks_i <- as.integer(factor(blocks))
   UNUSED <- -1L
@@ -537,14 +252,14 @@ greedy_optimize <- function(groups_inp, blocks, perm_init,
   lambda_m2 <- 1.0
   lambda_cov <- 1.0
   if (loss_function == "Default") {
-    cur <- loss_ast(X, blocks_i, perm, lambda_m2, lambda_cov, UNUSED)
+    cur <- loss_ast(X, blocks_i, perm, lambda_m2, lambda_cov, w, UNUSED)
   } else if (loss_function == "Mahalanobis") {
     cur <- loss_ast(X, blocks_i, perm, P, UNUSED)
   }
 
   for (it in seq_len(max_iter)) {
     if (loss_function == "Default") {
-      step <- one_swap(swaps, perm, cur, X, blocks_i, tol, lambda_m2, lambda_cov, UNUSED, loss_ast)
+      step <- one_swap(swaps, perm, cur, X, blocks_i, tol, lambda_m2, lambda_cov, w, UNUSED, loss_ast)
     } else if (loss_function == "Mahalanobis") {
       step <- one_swap_mahal(swaps, perm, cur, X, blocks_i, P, tol = tol, UNUSED = UNUSED, loss_ast = loss_ast)
     }
@@ -568,7 +283,9 @@ greedy_optimize <- function(groups_inp, blocks, perm_init,
   )
 }
 
-random_finite_assign <- function(seed, groups, design, max_iter = 50L, ridge = 1e-8, loss_function = "Default", verbose = TRUE, ids = NULL) {
+random_finite_assign <- function(seed, groups, design, max_iter = 50L,
+                                 ridge = 1e-8, loss_function = "Default",
+                                 verbose = TRUE, ids = NULL, w = NULL) {
   stopifnot(
     is.numeric(seed), length(seed) == 1L,
     is.data.frame(groups),
@@ -576,7 +293,8 @@ random_finite_assign <- function(seed, groups, design, max_iter = 50L, ridge = 1
     is.numeric(max_iter), length(max_iter) == 1L,
     is.null(ids) || (length(ids) == nrow(groups)),
     is.numeric(ridge), length(ridge) == 1L,
-    loss_function %in% c("Default", "Mahalanobis")
+    loss_function %in% c("Default", "Mahalanobis"),
+    is.null(w) || (is.numeric(w) && length(w) == ncol(groups))
   )
 
   if (loss_function == "Mahalanobis") {
@@ -597,7 +315,8 @@ random_finite_assign <- function(seed, groups, design, max_iter = 50L, ridge = 1
 
   perm_init <- sample.int(N)
   res <- greedy_optimize(groups, blocks, perm_init,
-    max_iter = max_iter, tol = 1e-12, verbose = verbose, ridge = ridge, loss_ast, loss_function)
+    max_iter = max_iter, tol = 1e-12, verbose = verbose, ridge = ridge,
+    loss_ast = loss_ast, loss_function = loss_function, w = w)
 
   res$unit_index <- res$perm
   if (!is.null(ids)) {

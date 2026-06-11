@@ -364,3 +364,37 @@ test_1_finite_group_with_surplus <- function() {
   all(checks)
 }
 test_1_finite_group_with_surplus() |> expect_true()
+
+# 2 finite groups; linear independent; with different weights
+# --------------------------------------------------------------------------------------------
+test_2_independent_groups_with_weights <- function() {
+  n_blocks <- data.frame(
+    treatment = rep(c("control", "one", "two"), each = 36L),
+    location = rep(rep(c("A", "B", "C", "D"), each = 9L), 3L)
+  )
+  set.seed(333)
+  groups <- data.frame(
+    weights = rnorm(108, mean = 1000, sd = 100),
+    blood = rnorm(108, mean = 1000, sd = 100)
+  )
+  w <- c(0.1, 1.0)
+  res <- Randomization::random_finite_assign(
+    42, groups, n_blocks, max_iter = 8L, loss_function = "Default", w = w
+  )
+  df <- res$assigned
+  df$treatment <- n_blocks$treatment
+  df$location <- n_blocks$location
+
+  w <- aggregate(weights ~ treatment*location, df, function(x)
+    c(mean = mean(x), sd = sd(x))) |> (\(df) {
+      res <- data.frame(treatment = df$treatment, location = df$location,
+        mean = df[, 3][, 1], sd = df[, 3][, 2])
+    })()
+  b <- aggregate(blood ~ treatment*location, df, function(x)
+    c(mean = mean(x), sd = sd(x))) |> (\(df) {
+      res <- data.frame(treatment = df$treatment, location = df$location,
+        mean = df[, 3][, 1], sd = df[, 3][, 2])
+    })()
+  sum(abs(w$mean - 1000)) > sum(abs(b$mean - 1000))
+}
+test_2_independent_groups_with_weights() |> expect_true()
