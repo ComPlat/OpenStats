@@ -214,6 +214,16 @@ The choices below define the app's character. Keep them in mind before
   output instead of scattering it per-tab (and putting the latest on top) was a
   large, deliberate UX win.
 
+- **Reproducible, transportable analyses (history + replay).** Every action emits
+  both a human-readable step (an audit trail / methods record) and a JSON entry
+  (§7). The JSON replays the whole analysis on fresh data, and is **version-tagged**:
+  replay dispatches to the engine version that produced it (get_correct_eval), so
+  an analysis archived under 1.2 stays replayable after 1.3 ships. This is the
+  deeper payoff of the §2 versioning discipline — the results list, the
+  human-readable history, and the replay JSON are one append-only event stream
+  viewed three ways. (For exact replay, every stochastic step must record + restore
+  its seed.)
+
 - **Multi-table import.** Backend_Import.R detects and extracts *multiple*
   tables from a single file (scanning for blank separator rows/columns), not just
   one sheet --> one frame.
@@ -235,4 +245,4 @@ The choices below define the app's character. Keep them in mind before
 - **Minimal dependencies.** New external packages are added reluctantly; prefer
   base R or deps already in use.
 
-- **Heavily tested.** 1000+ tinytest cases, >80% coverage
+- **Heavily tested.** 1000+ tinytest cases
