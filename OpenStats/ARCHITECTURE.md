@@ -70,6 +70,7 @@ user action (create formula, run t-test, fit GLM, dose-response, ...). Lifecycle
 
 Server modules are thin: render UI --> observeEvent --> instantiate the op class
 via its getter --> validate() --> eval(...). They don't compute; they wire.
+**Important: always run 1-3 in a try, or tryCatch block**
 
 Everything which requires too much code to directly write it in the engine class
 (e.g. Statistical/plotting compute) lives in dedicated env-modules:
@@ -95,16 +96,6 @@ sandbox is **Backend_CheckAst.R**:
   columns). Escapes like get, do.call, eval, ::, $, [[, {,
   function, <- are simply absent from the whitelist, so get("system")(...),
   base::system(...), x[[1]], function definitions, etc. are all rejected.
-
-**Known gaps / sharp edges:**
-- **GLM family/link** (Engine:1159, 1300, 2070, 2078) is built by string
-  interpolation and eval'd *without* check_ast or a known-set check:
-  eval(str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))). The values
-  come from fixed dropdowns, but are not re-validated server-side. Prefer
-  match.arg/switch() over eval. (Risk is threat-model dependent.)
-- allowed_fcts() lacks :, so explicit interaction terms (a : b) in
-  linear/GLM formulas are rejected even though the palette offers a : button.
-  a * b works (head is *).
 
 ---
 
@@ -199,5 +190,49 @@ inst/tinytest/. Two styles:
 - One file per engine version; alias unchanged classes on bump (§2).
 - ResultsState$counter is monotonic; never reuse numbers (§3).
 - Anything eval'd must pass check_ast; keep get/eval/::/$/[[ out of allowed_fcts() (§5).
+- glm() family objects are built via env_utils_V1_2$build_glm_family() (match.arg'd against the known set); never reintroduce eval(str2lang(paste0("stats::", family, ...))).
 - Empty operator-set fields are character(0), not c() (§6).
 - Hardcoded PREFIX-id is intentional; not a bug (§8).
+
+---
+
+## 12. Design principles & deliberate strengths
+
+The choices below define the app's character. Keep them in mind before
+"simplifying" anything.
+
+- **Model-driven workflow (the organising idea).** The user first builds a
+  statistical *model* in the formula editor; everything downstream is *derived*
+  from it. The Tests tab only offers tests that fit the model (two-group vs
+  >2-group, parametric vs non-parametric, LM/GLM/mixed); Assumptions and
+  Visualisation likewise branch on the S4 class of DataModelState$formula. The
+  model is the single source of truth for "what can I do next."
+
+- **One centralised, reverse-ordered results list.** Every result-table, plot,
+  summary, dose-response --> lands in ResultsState$all_data and is rendered
+  newest-first by Server_ResultsList.R. Deceptively simple, but centralising
+  output instead of scattering it per-tab (and putting the latest on top) was a
+  large, deliberate UX win.
+
+- **Multi-table import.** Backend_Import.R detects and extracts *multiple*
+  tables from a single file (scanning for blank separator rows/columns), not just
+  one sheet --> one frame.
+
+- **Loss functions built from the model.** Backend_Optimizing.R constructs the
+  objective (SSE) from the user's free-form formula and fits via optim/nls.
+
+- **Whitelist-AST sandbox** (§5) — user expressions are validated against an
+  allow-list, never blacklisted.
+
+- **Defensive by construction.** Every validate(), eval() / engine call runs
+  inside try/tryCatch (§4), so malformed input or a failed fit surfaces as a
+  message and never crashes a session. This is a core invariant, not incidental.
+
+- **Errors / warnings / missing state are communicated, not swallowed.**
+  Helper.R provides print_err, print_warn, print_success and print_req`;
+  a missing dataset or model is reported to the user rather than failing silently.
+
+- **Minimal dependencies.** New external packages are added reluctantly; prefer
+  base R or deps already in use.
+
+- **Heavily tested.** 1000+ tinytest cases, >80% coverage

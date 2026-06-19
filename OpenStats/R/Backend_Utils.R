@@ -9,6 +9,18 @@ split_formula <- function(formula) {
 }
 env_utils_V1_2$split_formula <- split_formula
 
+# Build a glm() family object from validated names instead of eval(str2lang(...)).
+# match.arg restricts family to the known set; the family function itself
+# validates link_fct (via make.link), so no string is ever evaluated as code.
+build_glm_family <- function(family, link_fct) {
+  family <- match.arg(as.character(family), c(
+    "binomial", "gaussian", "Gamma", "inverse.gaussian",
+    "poisson", "quasi", "quasibinomial", "quasipoisson"
+  ))
+  do.call(get(family, envir = asNamespace("stats")), list(link = link_fct))
+}
+env_utils_V1_2$build_glm_family <- build_glm_family
+
 vars_rhs <- function(rhs) {
  all.vars(rhs)
 }

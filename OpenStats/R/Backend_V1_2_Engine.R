@@ -1156,8 +1156,7 @@ summarise_model_V1_2 <- R6::R6Class(
                 p <- new("plot", p = p, width = 15, height = 15, resolution = 600)
                 family <- self$formula@family
                 link_fct <- self$formula@link_fct
-                family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
-                model <- glm(self$formula@formula, data = self$df, family = eval(family))
+                model <- glm(self$formula@formula, data = self$df, family = OpenStats:::env_utils_V1_2$build_glm_family(family, link_fct))
                 summary <- broom::tidy(model)
                 ic <- OpenStats:::env_summarising_model_V1_2$create_information_criterions(model)
                 new("summaryModel", p = p, summary = summary, information_criterions = ic)
@@ -1297,8 +1296,7 @@ create_formula_V1_2 <- R6::R6Class(
         DataModelState$formula <- new("GeneralisedLinearFormula",
           formula = formula, family = family, link_fct = link_fct
         )
-        family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
-        model <- glm(formula, data = self$df, family = eval(family))
+        model <- glm(formula, data = self$df, family = env_utils_V1_2$build_glm_family(family, link_fct))
         eq <- equatiomatic::extract_eq(model, wrap = TRUE)
         ResultsState$history[[length(ResultsState$history) + 1]] <- list(
           type = "CreateFormula",
@@ -2067,15 +2065,13 @@ statistical_tests_V1_2 <- R6::R6Class(
                 aov = {
                   family <- formula@family
                   link_fct <- formula@link_fct
-                  family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
-                  model <- glm(formula@formula, data = df, family = eval(family))
+                  model <- glm(formula@formula, data = df, family = OpenStats:::env_utils_V1_2$build_glm_family(family, link_fct))
                   fit <- broom::tidy(anova(model, test = "Chisq"))
                 }
               )
               if (is.null(fit)) { # This covers all the emmeans post hoc tests
                 family <- formula@family
                 link_fct <- formula@link_fct
-                family <- str2lang(paste0("stats::", family, "(\"", link_fct, "\")"))
 
                 f_split <- OpenStats:::env_utils_V1_2$split_formula(formula@formula)
                 rhs_vars <- OpenStats:::env_utils_V1_2$vars_rhs(f_split$right_site)
@@ -2083,7 +2079,7 @@ statistical_tests_V1_2 <- R6::R6Class(
                 if (any(apply(df, 2, is.numeric))) {
                   warning(paste0("Found numeric predictors and converted them to factors"))
                 }
-                model <- glm(formula@formula, data = df_temp, family = eval(family))
+                model <- glm(formula@formula, data = df_temp, family = OpenStats:::env_utils_V1_2$build_glm_family(family, link_fct))
                 emm <- emmeans::emmeans(model, rhs_vars)
                 fit <- pairs(emm, adjust = method)
                 fit <- as.data.frame(fit)
