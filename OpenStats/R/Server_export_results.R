@@ -24,7 +24,7 @@ ExportResultsServer <- function(id, DataModelState, ResultsState, MethodState) {
         l_history <- c("HistoryTable" = history_table)
         l <- c(l_history, l)
         l <- c(l, "HistoryJSON" = history_json)
-        versions <- env_utils_V1_2$get_packages_w_versions()
+        versions <- env_utils$get_packages_w_versions()
         l <- c(l, list(Versions = versions))
 
         # Sent data to ChemotionELN
@@ -71,9 +71,9 @@ ExportResultsServer <- function(id, DataModelState, ResultsState, MethodState) {
             unlink(jsonFile)
           }
           else if (MethodState$method == "VariationStatistics") {
-           jsonFile <- try(env_import_export_variations_V1_2$summary_data_frame_to_json(MethodState, ResultsState$all_data), silent = TRUE)
+           jsonFile <- try(env_import_export_variations$summary_data_frame_to_json(MethodState, ResultsState$all_data), silent = TRUE)
             excelFile <- try(env_utils$create_excel_file(l))
-            plotFiles <- try(env_import_export_variations_V1_2$summary_plots_to_files(ResultsState$all_data), silent = TRUE)
+            plotFiles <- try(env_import_export_variations$summary_plots_to_files(ResultsState$all_data), silent = TRUE)
             if (!is.character(jsonFile) || length(jsonFile) != 1L || !file.exists(jsonFile)) {
               print_err("Cannot convert results to json")
             }

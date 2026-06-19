@@ -25,7 +25,7 @@ downloadServer <- function(id, DataModelState, ResultsState, MethodState) {
         env_import_dose_response$import_dose_response_json(file, DataModelState, ResultsState, MethodState)
       } else if (MethodState$method == "VariationStatistics") {
         MethodState$storage_class <- new("MethodVariationStatistics", id = "", request_id = "", element_info = list())
-        env_import_export_variations_V1_2$read_variations(file, DataModelState, ResultsState, MethodState)
+        env_import_export_variations$read_variations(file, DataModelState, ResultsState, MethodState)
       }
       print_req(
         is.data.frame(DataModelState$df),

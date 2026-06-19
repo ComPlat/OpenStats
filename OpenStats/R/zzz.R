@@ -5,6 +5,7 @@
   env_diagnostic_plots <<- get_env_diagnostic_plots(VERSION)
   env_import <<- get_env_import(VERSION)
   env_import_dose_response <<- get_env_import_export_dose_response(VERSION)
+  env_import_export_variations <<- get_env_import_export_variations(VERSION)
   env_lc50 <<- get_env_lc50(VERSION)
   env_operations <<- get_env_operations(VERSION)
   env_optim <<- get_env_optim(VERSION)
