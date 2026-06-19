@@ -46,7 +46,7 @@ into every module (modules mutate them directly — there is no getter/setter
 layer; the contract is implicit and held by convention):
 
 | State                       |                           Key fields                                       |               Role                                                                   |
-|-----------------------------|----------------------|-----------------------------------------------------|--------------------------------------------------------------------------------------|
+|-----------------------------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
 | DataModelState              | df, formula, backup_df, active_df_name, rhs_string, counter_id             | active dataset + the current model formula                                           |
 | ResultsState                | all_data (named list), history, counter, bgp, registered_pagers            | every computed result + the action log                                               |
 | DataWranglingState          | df, df_name, intermediate_vars, code_string, counter_id                    | the data-wrangling working set                                                       |
