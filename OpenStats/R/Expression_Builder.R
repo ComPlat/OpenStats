@@ -301,7 +301,7 @@ expr_builder_ui <- function(id, operators, colnames) {
     htmltools::div(
       id = paste0(id, "-expr"),
       class = "expr-builder",
-      `data-placeholder` = "Drop buttons here to build an expression…",
+      `data-placeholder` = "Drop buttons here to build an expression...",
       ondragover = "allowDrop(event)",
       ondragleave = "dragLeave(event)",
       ondrop = "dropToken(event)"
@@ -312,7 +312,7 @@ expr_builder_ui <- function(id, operators, colnames) {
         id = paste0(id, "-expr-text"),
         type = "text",
         class = "expr-text",
-        placeholder = "Type to build an expression…",
+        placeholder = "Type to build an expression...",
         autocomplete = "off"
       ),
       htmltools::div(
@@ -332,7 +332,7 @@ expr_builder_ui <- function(id, operators, colnames) {
         class = "expr-docs-header",
         htmltools::span("Documentation", class = "expr-docs-heading"),
         shiny::tags$button(
-          "–",
+          "-",
           type = "button",
           class = "expr-docs-toggle",
           onclick = "toggleDocs(event)",
@@ -408,7 +408,7 @@ data_wrangling_expr_builder_ui <- function(id, operators, colnames, df_name = NU
       htmltools::div(
         id = paste0(id, "-expr"),
         class = "expr-builder",
-        `data-placeholder` = "Drop buttons here to build an expression…",
+        `data-placeholder` = "Drop buttons here to build an expression...",
         ondragover = "allowDrop(event)",
         ondragleave = "dragLeave(event)",
         ondrop = "dropToken(event)"
@@ -419,7 +419,7 @@ data_wrangling_expr_builder_ui <- function(id, operators, colnames, df_name = NU
           id = paste0(id, "-expr-text"),
           type = "text",
           class = "expr-text",
-          placeholder = "Type to build an expression…",
+          placeholder = "Type to build an expression...",
           autocomplete = "off"
         ),
         htmltools::div(
@@ -439,7 +439,7 @@ data_wrangling_expr_builder_ui <- function(id, operators, colnames, df_name = NU
           class = "expr-docs-header",
           htmltools::span("Documentation", class = "expr-docs-heading"),
           shiny::tags$button(
-            "–",
+            "-",
             type = "button",
             class = "expr-docs-toggle",
             onclick = "toggleDocs(event)",
