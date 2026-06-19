@@ -44,6 +44,7 @@ Suggests:
   tinytest,
   shinytest2,
   COMELN,
-  writexl
+  writexl,
+  V8
 Encoding: UTF-8
 

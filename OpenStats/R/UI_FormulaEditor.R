@@ -27,9 +27,7 @@ FormulaEditorUI <- function(id) {
       shiny::column(
         width = 6,
         htmltools::div(
-          shiny::uiOutput(shiny::NS(id, "colnames_list")),
           shiny::uiOutput(shiny::NS(id, "buttons")),
-          shiny::uiOutput(shiny::NS(id, "rhs")),
           shiny::actionButton(shiny::NS(id, "create_formula"), "Create statistical model", class = "create_button"),
           class = "boxed-output"
         )

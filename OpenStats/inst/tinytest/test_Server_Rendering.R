@@ -8,27 +8,9 @@ srv <- app$server
 test_rendering_formula_editor <- function(app, srv) {
   checks <- c()
   shiny::testServer(srv, {
-    outputOptions(output, "buttons", suspendWhenHidden = FALSE)
-
     DataModelState$df <- CO2
     session$setInputs(`FO-model_type` = "Linear")
     session$flushReact()
-
-    ui_obj <- output[["FO-buttons"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-
-    checks <<- c(checks, grepl('id="FO-add"', html))
-    checks <<- c(checks, grepl('id="FO-minus"', html))
-    checks <<- c(checks, grepl('id="FO-mul"', html))
-    checks <<- c(checks, grepl('id="FO-colon"', html))
-
-    ui_obj <- output[["FO-colnames_list"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('id="FO-colnames_Plant_"', html))
-    checks <<- c(checks, grepl('id="FO-colnames_Type_"', html))
-    checks <<- c(checks, grepl('id="FO-colnames_Treatment_"', html))
-    checks <<- c(checks, grepl('id="FO-colnames_conc_"', html))
-    checks <<- c(checks, grepl('id="FO-colnames_uptake_"', html))
 
     ui_obj <- output[["FO-colnames_dropdown"]]
     html   <- htmltools::renderTags(ui_obj)$html
@@ -48,13 +30,6 @@ test_rendering_formula_editor <- function(app, srv) {
     checks <<- c(checks, grepl('two_hot_binding', html))
     checks <<- c(checks, grepl('free', html))
 
-     ui_obj <- try(output[["FO-rhs"]], silent = TRUE)
-     checks <<- c(checks, inherits(ui_obj, "try-error")) # As rhs text field is not existing for this case
-     session$setInputs(`FO-model_type` = "LinearFormula")
-     session$flushReact()
-     ui_obj <- output[["FO-optim_predefined_equations"]]
-     checks <<- c(checks, class(ui_obj) == "NULL")
-
     session$setInputs(`FO-model_type` = "Optimization Model")
     session$setInputs(`FO-PredefinedModels` = "linear")
     session$flushReact()
@@ -65,125 +40,125 @@ test_rendering_formula_editor <- function(app, srv) {
     checks <<- c(checks, grepl('linear_x', html))
     checks <<- c(checks, grepl('linear_intercept', html))
 
-    session$setInputs(`FO-model_type` = "Optimization Model")
-    session$setInputs(`FO-PredefinedModels` = "log_linear")
-    ui_obj <- output[["FO-predefined_modelsUI"]]
-    session$flushReact()
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('log_linear_lhs_var', html))
-    checks <<- c(checks, grepl('log_linear_slope', html))
-    checks <<- c(checks, grepl('log_linear_x', html))
-    checks <<- c(checks, grepl('log_linear_intercept', html))
+     session$setInputs(`FO-model_type` = "Optimization Model")
+     session$setInputs(`FO-PredefinedModels` = "log_linear")
+     ui_obj <- output[["FO-predefined_modelsUI"]]
+     session$flushReact()
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('log_linear_lhs_var', html))
+     checks <<- c(checks, grepl('log_linear_slope', html))
+     checks <<- c(checks, grepl('log_linear_x', html))
+     checks <<- c(checks, grepl('log_linear_intercept', html))
 
-    session$setInputs(`FO-model_type` = "Optimization Model")
-    session$setInputs(`FO-PredefinedModels` = "michaelis_menten")
-    ui_obj <- output[["FO-predefined_modelsUI"]]
-    session$flushReact()
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('mm_lhs_var', html))
-    checks <<- c(checks, grepl('mm_vmax', html))
-    checks <<- c(checks, grepl('mm_x', html))
-    checks <<- c(checks, grepl('mm_km', html))
+     session$setInputs(`FO-model_type` = "Optimization Model")
+     session$setInputs(`FO-PredefinedModels` = "michaelis_menten")
+     ui_obj <- output[["FO-predefined_modelsUI"]]
+     session$flushReact()
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('mm_lhs_var', html))
+     checks <<- c(checks, grepl('mm_vmax', html))
+     checks <<- c(checks, grepl('mm_x', html))
+     checks <<- c(checks, grepl('mm_km', html))
 
-    session$setInputs(`FO-model_type` = "Optimization Model")
-    session$setInputs(`FO-PredefinedModels` = "one_site_binding")
-    ui_obj <- output[["FO-predefined_modelsUI"]]
-    session$flushReact()
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('binding_lhs_var', html))
-    checks <<- c(checks, grepl('binding_bmax', html))
-    checks <<- c(checks, grepl('binding_x', html))
-    checks <<- c(checks, grepl('binding_kd', html))
+     session$setInputs(`FO-model_type` = "Optimization Model")
+     session$setInputs(`FO-PredefinedModels` = "one_site_binding")
+     ui_obj <- output[["FO-predefined_modelsUI"]]
+     session$flushReact()
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('binding_lhs_var', html))
+     checks <<- c(checks, grepl('binding_bmax', html))
+     checks <<- c(checks, grepl('binding_x', html))
+     checks <<- c(checks, grepl('binding_kd', html))
 
-    session$setInputs(`FO-model_type` = "Optimization Model")
-    session$setInputs(`FO-PredefinedModels` = "two_hot_binding")
-    ui_obj <- output[["FO-predefined_modelsUI"]]
-    session$flushReact()
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('hotbind_lhs', html))
-    checks <<- c(checks, grepl('hotbind_conc', html))
-    checks <<- c(checks, grepl('hotbind_koff', html))
-    checks <<- c(checks, grepl('hotbind_kon', html))
-    checks <<- c(checks, grepl('hotbind_bmax', html))
-    checks <<- c(checks, grepl('hotbind_time', html))
+     session$setInputs(`FO-model_type` = "Optimization Model")
+     session$setInputs(`FO-PredefinedModels` = "two_hot_binding")
+     ui_obj <- output[["FO-predefined_modelsUI"]]
+     session$flushReact()
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('hotbind_lhs', html))
+     checks <<- c(checks, grepl('hotbind_conc', html))
+     checks <<- c(checks, grepl('hotbind_koff', html))
+     checks <<- c(checks, grepl('hotbind_kon', html))
+     checks <<- c(checks, grepl('hotbind_bmax', html))
+     checks <<- c(checks, grepl('hotbind_time', html))
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    ui_obj <- output[["FO-glm_family_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('gaussian', html))
-    checks <<- c(checks, grepl('inverse.gaussian', html))
-    checks <<- c(checks, grepl('Gamma', html))
-    checks <<- c(checks, grepl('poisson', html))
-    checks <<- c(checks, grepl('quasi', html))
-    checks <<- c(checks, grepl('quasibinomial', html))
-    checks <<- c(checks, grepl('quasipoisson', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     ui_obj <- output[["FO-glm_family_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('gaussian', html))
+     checks <<- c(checks, grepl('inverse.gaussian', html))
+     checks <<- c(checks, grepl('Gamma', html))
+     checks <<- c(checks, grepl('poisson', html))
+     checks <<- c(checks, grepl('quasi', html))
+     checks <<- c(checks, grepl('quasibinomial', html))
+     checks <<- c(checks, grepl('quasipoisson', html))
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    session$setInputs(`FO-Family` = "gaussian")
-    ui_obj <- output[["FO-glm_link_fct_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('identity', html))
-    checks <<- c(checks, grepl('log', html))
-    checks <<- c(checks, grepl('inverse', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     session$setInputs(`FO-Family` = "gaussian")
+     ui_obj <- output[["FO-glm_link_fct_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('identity', html))
+     checks <<- c(checks, grepl('log', html))
+     checks <<- c(checks, grepl('inverse', html))
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    session$setInputs(`FO-Family` = "Gamma")
-    ui_obj <- output[["FO-glm_link_fct_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('identity', html))
-    checks <<- c(checks, grepl('log', html))
-    checks <<- c(checks, grepl('inverse', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     session$setInputs(`FO-Family` = "Gamma")
+     ui_obj <- output[["FO-glm_link_fct_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('identity', html))
+     checks <<- c(checks, grepl('log', html))
+     checks <<- c(checks, grepl('inverse', html))
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    session$setInputs(`FO-Family` = "inverse.gaussian")
-    ui_obj <- output[["FO-glm_link_fct_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('identity', html))
-    checks <<- c(checks, grepl('log', html))
-    checks <<- c(checks, grepl('inverse', html))
-    checks <<- c(checks, grepl('1/mu', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     session$setInputs(`FO-Family` = "inverse.gaussian")
+     ui_obj <- output[["FO-glm_link_fct_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('identity', html))
+     checks <<- c(checks, grepl('log', html))
+     checks <<- c(checks, grepl('inverse', html))
+     checks <<- c(checks, grepl('1/mu', html))
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    session$setInputs(`FO-Family` = "binomial")
-    ui_obj <- output[["FO-glm_link_fct_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('logit', html))
-    checks <<- c(checks, grepl('probit', html))
-    checks <<- c(checks, grepl('cauchit', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     session$setInputs(`FO-Family` = "binomial")
+     ui_obj <- output[["FO-glm_link_fct_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('logit', html))
+     checks <<- c(checks, grepl('probit', html))
+     checks <<- c(checks, grepl('cauchit', html))
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    session$setInputs(`FO-Family` = "poisson")
-    ui_obj <- output[["FO-glm_link_fct_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('identity', html))
-    checks <<- c(checks, grepl('log', html))
-    checks <<- c(checks, grepl('sqrt', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     session$setInputs(`FO-Family` = "poisson")
+     ui_obj <- output[["FO-glm_link_fct_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('identity', html))
+     checks <<- c(checks, grepl('log', html))
+     checks <<- c(checks, grepl('sqrt', html))
 
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
-    session$setInputs(`FO-Family` = "quasi")
-    ui_obj <- output[["FO-glm_link_fct_dropdown"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('identity', html))
-    checks <<- c(checks, grepl('inverse', html))
-    checks <<- c(checks, grepl('log', html))
-    checks <<- c(checks, grepl('cloglog', html))
-    checks <<- c(checks, grepl('logit', html))
-    checks <<- c(checks, grepl('probit', html))
-    checks <<- c(checks, grepl('1/mu', html))
-    checks <<- c(checks, grepl('sqrt', html))
+     session$setInputs(`FO-model_type` = "Generalised Linear Model")
+     session$setInputs(`FO-Family` = "quasi")
+     ui_obj <- output[["FO-glm_link_fct_dropdown"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('identity', html))
+     checks <<- c(checks, grepl('inverse', html))
+     checks <<- c(checks, grepl('log', html))
+     checks <<- c(checks, grepl('cloglog', html))
+     checks <<- c(checks, grepl('logit', html))
+     checks <<- c(checks, grepl('probit', html))
+     checks <<- c(checks, grepl('1/mu', html))
+     checks <<- c(checks, grepl('sqrt', html))
 
-    session$setInputs(`FO-model_type` = "Optimization Model")
-    session$flushReact()
-    session$setInputs(`FO-PredefinedModels` = "linear")
-    session$flushReact()
-    ui_obj <- output[["FO-optim_boundaries_and_method"]]
-    html   <- htmltools::renderTags(ui_obj)$html
-    checks <<- c(checks, grepl('LowerBoundary', html))
-    checks <<- c(checks, grepl('UpperBoundary', html))
-    checks <<- c(checks, grepl('Seed', html))
+     session$setInputs(`FO-model_type` = "Optimization Model")
+     session$flushReact()
+     session$setInputs(`FO-PredefinedModels` = "linear")
+     session$flushReact()
+     ui_obj <- output[["FO-optim_boundaries_and_method"]]
+     html   <- htmltools::renderTags(ui_obj)$html
+     checks <<- c(checks, grepl('LowerBoundary', html))
+     checks <<- c(checks, grepl('UpperBoundary', html))
+     checks <<- c(checks, grepl('Seed', html))
   })
-   expect_true(all(checks))
+  expect_true(all(checks))
 }
 test_rendering_formula_editor(app, srv)
 
@@ -458,8 +433,6 @@ test_rendering_visualization(app, srv)
 test_rendering_split_by_group <- function(app, srv) {
   checks <- c()
   shiny::testServer(srv, {
-    outputOptions(output, "buttons", suspendWhenHidden = FALSE)
-
     DataModelState$df <- CO2
     DataModelState$formula <- new("LinearFormula", formula = uptake ~ conc)
     session$flushReact()

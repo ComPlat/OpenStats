@@ -1,6 +1,40 @@
 OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
 
+  refresh <- shiny::reactiveVal(0)
+  expr_builder_server(
+    id, DataWranglingState, refresh = refresh, check_variables = FALSE,
+    operator_set = data_wrangling_operator_set(), docs = data_wrangling_docs(),
+    specs = data_wrangling_specs(),
+    df_doc = paste0(
+      "The whole dataset. Type its name to use the entire table, ",
+      "or use a column name to work with a single column."
+    )
+  )
+
   shiny::moduleServer(id, function(input, output, session) {
+
+    output$builder <- shiny::renderUI({
+      shiny::req(DataWranglingState$df)
+      intermediate <- setdiff(names(DataWranglingState$intermediate_vars), DataWranglingState$df_name)
+      vars <- unique(c(
+        DataWranglingState$df_name,
+        names(DataWranglingState$df),
+        intermediate
+      ))
+      data_wrangling_expr_builder_ui(
+        id, data_wrangling_palette(), vars,
+        df_name = DataWranglingState$df_name, intermediate = intermediate
+      )
+    })
+    # Render even when the DataWrangling tab is hidden, so the input binding
+    # exists when expr_builder_server pushes its payload (data is loaded on the
+    # Data tab, while this output would otherwise be suspended).
+    shiny::outputOptions(output, "builder", suspendWhenHidden = FALSE)
+    shiny::observeEvent(
+      list(DataWranglingState$df, DataWranglingState$intermediate_vars),
+      refresh(refresh() + 1)
+    )
+
     # Data
     shiny::observe({
       shiny::req(DataModelState$active_df_name)
@@ -18,13 +52,6 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         names(col_info) <- names(df)
         htmltools::div(
           class = "var-box-output",
-          shiny::actionButton(
-            paste0("OP-dataset_", DataWranglingState$df_name, "_", DataWranglingState$counter_id),
-            label = "Dataset",
-            title =
-            "This is the dataset. Using the text df you can access the entire dataset. If you only want to work with one of the column you can use the respective column title. As a side note only the first 6 rows of the data table are shown.",
-            class = "add-button"
-          ),
           htmltools::div(
             title = "This displays the current types for each column",
             shiny::renderTable({
@@ -38,51 +65,6 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       })
     })
 
-    update_code_text <- function(updated_text) {
-      DataWranglingState$code_string <- updated_text
-      shiny::updateTextAreaInput(session, "editable_code", value = updated_text)
-    }
-
-    # React to df button
-    shiny::observe({
-      shiny::req(DataWranglingState$df)
-      var <- DataWranglingState$df_name
-      shiny::observeEvent(input[[paste0("dataset_", var, "_", DataWranglingState$counter_id)]], {
-        current_text <- input[["editable_code"]]
-        updated_text <- paste(current_text, var, sep = " ")
-        update_code_text(updated_text)
-      })
-    })
-
-    # Create colnames button
-    output[["colnames_list"]] <- shiny::renderUI({
-      message <- check_data_wrangling(DataWranglingState)
-      if (!is.null(message)) {
-        return(
-          info_div(message)
-        )
-      }
-      DataWranglingState$df_name <- env_utils$create_df_name(DataWranglingState$df_name, names(DataModelState$df))
-      colnames <- c(DataWranglingState$df_name, names(DataWranglingState$df))
-      button_list <- lapply(colnames[1:length(colnames)], function(i) {
-        if (i == DataWranglingState$df_name) {
-          return(shiny::actionButton(
-            inputId = paste0("OP-colnames_", i, "_", DataWranglingState$counter_id),
-            label = paste(i),
-            title = paste0("Click button if you want to use the entire dataset"),
-            class = "add-button df-button"
-          ))
-        } else {
-          return(shiny::actionButton(
-            inputId = paste0("OP-colnames_", i, "_", DataWranglingState$counter_id),
-            label = paste(i),
-            title = paste0("Click button if you want to use the column: ", i),
-            class = "add-button colnames-button"
-          ))
-        }
-      })
-      do.call(htmltools::tagList, button_list)
-    })
     output[["column_apply"]] <- shiny::renderUI({
       shiny::req(DataWranglingState$df_name)
       shiny::req(DataWranglingState$df)
@@ -97,26 +79,12 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         ),
         shiny::selectInput(
           inputId = shiny::NS(id, "group_apply"),
-          label = "Variable",
+          label = "Subset dataset by:",
           choices = cols,
           selected = NULL,
           multiple = TRUE
         )
       )
-    })
-
-    # React to colnames buttons
-    shiny::observe({
-      shiny::req(DataWranglingState$df)
-      DataWranglingState$df_name <- env_utils$create_df_name(DataWranglingState$df_name, names(DataModelState$df))
-      colnames <- c(DataWranglingState$df_name, names(DataWranglingState$df))
-      lapply(colnames, function(col) {
-        shiny::observeEvent(input[[paste0("colnames_", col, "_", DataWranglingState$counter_id)]], {
-          current_text <- input[["editable_code"]]
-          updated_text <- paste(current_text, col, sep = " ")
-        update_code_text(updated_text)
-        })
-      })
     })
 
     # Observe intermediate results
@@ -127,12 +95,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       iv_ui <- lapply(names(iv_list), function(name) {
         htmltools::div(
           class = "var-box-output",
-          shiny::actionButton(
-            inputId = paste0("OP-intermediate_vars_", name, "_", DataWranglingState$counter_id),
-            label = name,
-            title = paste0("This is the variable ", name,
-            ". You can use it by entering: ", name, " within the Operation text field."),
-            class = "add-button"),
+          htmltools::strong(name),
           shiny::verbatimTextOutput(shiny::NS(id, paste0("iv_", name))),
           shiny::actionButton(shiny::NS(id, paste0("remove_iv_", name)), "Remove", class = "btn-danger")
         )
@@ -172,21 +135,6 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
       }
     })
 
-    # React to intermediate variables buttons
-    shiny::observe({
-      shiny::req(DataWranglingState$df)
-      shiny::req(length(DataWranglingState$intermediate_vars) >= 1)
-      iv_list <- DataWranglingState$intermediate_vars
-      iv_list <- iv_list[names(iv_list) != DataWranglingState$df_name]
-      lapply(names(iv_list), function(var) {
-        shiny::observeEvent(input[[paste0("intermediate_vars_", var, "_", DataWranglingState$counter_id)]], {
-          current_text <- input[["editable_code"]]
-          updated_text <- paste(current_text, var, sep = " ")
-          update_code_text(updated_text)
-        })
-      })
-    })
-
     # Run operation and store in intermediate result
     shiny::observeEvent(input$run_op_intermediate, {
       print_req(is.data.frame(DataWranglingState$df), "The dataset is missing")
@@ -194,7 +142,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         shinyjs::runjs("document.getElementById('OP-iv').focus();")
       }
       background <- !getOption("OpenStats.background", TRUE)
-      string <- if (background) DataWranglingState$code_string else input$editable_code
+      string <- if (background) DataWranglingState$code_string else input$expr$text
       civ <- get_create_intermediate_var()$new(
         df = DataWranglingState$df, df_name = DataWranglingState$df_name,
         intermediate_vars = DataWranglingState$intermediate_vars,
@@ -221,7 +169,7 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         shinyjs::runjs("document.getElementById('OP-nc').focus();")
       }
       background <- !getOption("OpenStats.background", TRUE)
-      string <- if (background) DataWranglingState$code_string else input$editable_code
+      string <- if (background) DataWranglingState$code_string else input$expr$text
       cnc <- get_create_new_col()$new(
         df = DataWranglingState$df, df_name = DataWranglingState$df_name,
         intermediate_vars = DataWranglingState$intermediate_vars,
@@ -236,347 +184,6 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
         return()
       }
       output$head <- shiny::renderTable(utils::head(DataWranglingState$df, 10))
-    })
-
-    shiny::observeEvent(input$add, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "+", sep = " ")
-      update_code_text(updated_text)
-    })
-
-    shiny::observeEvent(input$sub, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "-", sep = " ")
-      update_code_text(updated_text)
-    })
-
-    shiny::observeEvent(input$mul, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "*", sep = " ")
-      update_code_text(updated_text)
-    })
-
-    shiny::observeEvent(input$div, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "/", sep = " ")
-      update_code_text(updated_text)
-    })
-
-    shiny::observeEvent(input$bracket_open, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$bracket_close, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, ")", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$comma, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, ",", sep = " ")
-      update_code_text(updated_text)
-    })
-
-    shiny::observeEvent(input$log, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "log(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$log10, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "log10(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$sqrt, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "sqrt(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$exp, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "exp(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$exponent, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "^(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$sin, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "sin(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$cos, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "cos(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$tan, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "tan(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$sinh, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "sinh(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$cosh, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "cosh(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$tanh, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "tanh(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$asin, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "asin(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$acos, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "acos(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$atan, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "atan(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$abs, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "abs(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$ceil, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "ceiling(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$floor, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "floor(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$trunc, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "trunc(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$round, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "round(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$larger, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, ">", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$smaller, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "<", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$larger_eq, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, ">=", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$smaller_eq, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "<=", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$eq, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "==", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$not_eq, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "!=", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$paste, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "paste(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$paste0, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "paste0(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$tolower, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "tolower(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$toupper, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "toupper(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$get_elem, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "get_elem(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$get_rows, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "get_rows(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$get_cols, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "get_cols(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$mean, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Mean(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$sd, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "SD(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$median, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Median(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$sum, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Sum(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$min, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Min(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$max, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Max(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$c, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "C(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$seq, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Seq(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$df, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "DataFrame(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$as_char, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "as.char(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$as_int, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "as.int(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$as_real, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "as.real(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$as_fact, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "as.fact(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$dnorm, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Dnorm(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$pnorm, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Pnorm(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$qnorm, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Qnorm(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$rnorm, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Rnorm(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$dbinom, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Dbinom(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$pbinom, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Pbinom(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$qbinom, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Qbinom(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$rbinom, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Rbinom(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$dpois, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Dpois(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$ppois, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Ppois(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$rpois, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Rpois(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$dunif, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Dunif(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$punif, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Punif(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$qunif, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Qunif(", sep = " ")
-      update_code_text(updated_text)
-    })
-    shiny::observeEvent(input$runif, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "Runif(", sep = " ")
-      update_code_text(updated_text)
     })
 
   })

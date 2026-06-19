@@ -1,81 +1,60 @@
 FormulaEditorServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
 
-    # Create buttons
-    output[["buttons"]] <- shiny::renderUI({
-      shiny::req(!is.null(DataModelState$df))
-      shiny::req(is.data.frame(DataModelState$df))
-      if (input$model_type == "Optimization Model") {
-        shiny::req(input$PredefinedModels)
-        if(input$PredefinedModels != "free") return(NULL)
-      }
-      button_list <- list(
-        shiny::actionButton("FO-add", "+",
-          class = "add-button",
-          title = "Include an additional predictor variable in the model"
+    # Per-model-type builder config (NULL = keep the operator-button palette).
+    builder_config <- shiny::reactive({
+      df <- DataModelState$df
+      if (is.null(input$model_type)) return()
+      switch(input$model_type,
+
+        "Linear" = list(
+          operator_set = linear_formula_operator_set(), docs = linear_formula_docs(),
+          specs = linear_formula_specs(), palette = linear_formula_palette(),
+          variables = names(df), check_variables = TRUE
         ),
-        shiny::actionButton("FO-minus", "-",
-          class = "add-button",
-          title = "Removes an additional predictor variable in the model"
+
+        "Generalised Linear Model" = list(
+          operator_set = generalized_linear_formula_operator_set(), docs = generalized_linear_formula_docs(),
+          specs = generalized_linear_formula_specs(), palette = generalized_linear_formula_palette(),
+          variables = names(df), check_variables = TRUE
         ),
-        shiny::actionButton("FO-mul", "*",
-          class = "add-button",
-          title = "Multiply variables to assess interactions in the model"
+
+        "Linear Mixed Model" = list(
+          operator_set = linear_mixed_formula_operator_set(), docs = linear_mixed_formula_docs(),
+          specs = linear_mixed_formula_specs(), palette = linear_mixed_formula_palette(),
+          variables = names(df), check_variables = TRUE
+        ),
+
+        "Optimization Model" = if (isTRUE(input$PredefinedModels == "free")) list(
+          operator_set = optim_formula_operator_set(), docs = optim_formula_docs(),
+          specs = optim_formula_specs(), palette = optim_formula_palette(),
+          variables = names(df)[sapply(df, is.numeric)], check_variables = FALSE
         )
-      )
-      if (input$model_type == "Linear" || input$model_type == "Generalised Linear Model") {
-        button_list[[length(button_list) + 1]] <- shiny::actionButton("FO-colon", ":",
-          class = "add-button",
-          title = "Includes the interaction between two variables in the model"
-        )
-      } else if (input$model_type == "Optimization Model") {
-        button_list[[length(button_list) + 1]]  <- shiny::actionButton("FO-htmltools::div", "/",
-          class = "add-button",
-          title = "Includes nested effects (both variable levels) in the model"
-        )
-      } else if (input$model_type == "Linear Mixed Model") {
-        button_list[[length(button_list) + 1]]  <- shiny::actionButton("FO-htmltools::line", "|",
-          class = "add-button",
-          title = "Includes hierarchical structures"
-        )
-      }
-      htmltools::div(
-        htmltools::div(
-          htmltools::hr(),
-          do.call(htmltools::tagList, button_list)
-        )
+        else NULL,
+        NULL
       )
     })
 
-    # Create colnames buttons
-    output[["colnames_list"]] <- shiny::renderUI({
-      shiny::req(!is.null(DataModelState$df))
-      shiny::req(is.data.frame(DataModelState$df))
-      if (input$model_type == "Optimization Model") {
-        shiny::req(input$PredefinedModels)
-        if(input$PredefinedModels != "free") return(NULL)
-      }
-      colnames <- ""
-      if (input$model_type %in% c("Linear", "Generalised Linear Model", "Linear Mixed Model")) {
-        colnames <- names(DataModelState$df)
-      } else if (input$model_type == "Optimization Model") {
-        indices <- sapply(DataModelState$df, is.numeric) |> which()
-        colnames <- names(DataModelState$df)[indices]
-      }
-      button_list <- lapply(colnames[1:length(colnames)], function(i) {
-        shiny::actionButton(
-          inputId = paste0("FO-colnames_", i, "_", DataModelState$counter_id),
-          label = paste(i),
-          class = "add-button",
-          title = paste("Select variable", i, "as a predictor for the model")
-        )
-      })
-      htmltools::div(
-        htmltools::div(
-          do.call(htmltools::tagList, button_list),
-          htmltools::br()
-        )
+    # Push the payload when the binding (re)mounts or the data changes.
+    send_builder <- function() {
+      cfg <- builder_config()
+      if (is.null(cfg)) return(invisible())
+      expr_send_payload(
+        session, DataModelState, check_variables = cfg$check_variables,
+        operator_set = cfg$operator_set, docs = cfg$docs, specs = cfg$specs,
+        variables = cfg$variables
       )
+    }
+    shiny::observeEvent(input[["expr-ready"]], send_builder(), ignoreNULL = TRUE)
+    shiny::observeEvent(DataModelState$df, send_builder(), ignoreNULL = TRUE)
+
+    # Render the builder for the active model type. cfg is NULL when there is no
+    # builder (predefined optimization models use the structured UI below).
+    output[["buttons"]] <- shiny::renderUI({
+      shiny::req(is.data.frame(DataModelState$df))
+      cfg <- builder_config()
+      if (is.null(cfg)) return(NULL)
+      expr_builder_ui(id, cfg$palette, cfg$variables)
     })
 
     # Create colnames dropdown
@@ -128,25 +107,6 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
 
-    # Create right site
-    output[["rhs"]] <- shiny::renderUI({
-      shiny::req(!is.null(DataModelState$df))
-      shiny::req(is.data.frame(DataModelState$df))
-      if (input$model_type %in% c("Linear", "Generalised Linear Model", "Linear Mixed Model")) {
-        htmltools::div(
-          htmltools::hr(),
-          shiny::textAreaInput("FO-editable_code", "Formula terms:", value = "", rows = 12)
-        )
-      } else if (input$model_type == "Optimization Model") {
-        shiny::req(input$PredefinedModels)
-        if(input$PredefinedModels == "free") {
-          htmltools::div(
-            htmltools::hr(),
-            shiny::textAreaInput("FO-editable_code", "formula terms:", value = "", rows = 12)
-          )
-        }
-      }
-    })
     # Create predefined model UIs
     output[["predefined_modelsUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
@@ -340,72 +300,6 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
       }
     })
 
-    update_rhs_text <- function(updated_text) {
-      DataModelState$rhs_string <- updated_text
-      shiny::updateTextAreaInput(session, "editable_code", value = updated_text)
-    }
-
-    # React to colnames buttons
-    shiny::observe({
-      shiny::req(DataModelState$df)
-      colnames <- names(DataModelState$df)
-      lapply(colnames, function(col) {
-        shiny::observeEvent(input[[paste0("colnames_", col, "_", DataModelState$counter_id)]], {
-          current_text <- input[["editable_code"]]
-          updated_text <- paste(current_text, col, sep = " ")
-          update_rhs_text(updated_text)
-        })
-      })
-    })
-
-    shiny::observeEvent(input$add, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "+", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$mul, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "*", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$minus, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "-", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$colon, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, ":", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$div, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "/", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$nested, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "%in%", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$interaction_level, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "^", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
-    shiny::observeEvent(input$I, {
-      current_text <- input$editable_code
-      updated_text <- paste(current_text, "I(", sep = " ")
-      update_rhs_text(updated_text)
-    })
-
     # React to create formula
     shiny::observeEvent(input$create_formula, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
@@ -441,12 +335,13 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
                 right_site <- sprintf("%s * %s * %s", first_term, bmax, second_term)
               } else if (input$PredefinedModels == "free") {
                 response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
-                right_site <- input[["editable_code"]]
+                background <- !getOption("OpenStats.background", TRUE)
+                right_site <- if (background) DataModelState$rhs_string else input$expr$text
               }
             } else {
               response_var <- input[[paste0("colnames-dropdown_", DataModelState$counter_id)]]
               background <- !getOption("OpenStats.background", TRUE)
-              right_site <- if (background) DataModelState$rhs_string else input[["editable_code"]]
+              right_site <- if (background) DataModelState$rhs_string else input$expr$text
             }
             cf <- get_create_formula()$new(response_var, right_site, DataModelState$df)
             cf$validate()

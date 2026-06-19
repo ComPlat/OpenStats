@@ -23,7 +23,9 @@ main_app_ui <- function() {
       shiny::includeScript(system.file("www/FileSaver.min.js", package = "OpenStats")),
       shiny::includeScript(system.file("www/html2canvas.min.js", package = "OpenStats")),
       shiny::includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
-      shiny::includeScript(system.file("www/download.js", package = "OpenStats"))
+      shiny::includeScript(system.file("www/download.js", package = "OpenStats")),
+      shiny::includeScript(system.file("www/parser.js", package = "OpenStats")),
+      shiny::includeScript(system.file("www/expression.js", package = "OpenStats"))
     ),
     shiny::tags$head(
       shiny::includeCSS(system.file("www/styles.css", package = "OpenStats"))
@@ -68,7 +70,7 @@ main_app_ui <- function() {
           ),
           shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'DataWrangling'",
-            OperatorEditorSidebar("OP")
+            OperatorSidebarUI("OP")
           ),
           shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Visualisation'",

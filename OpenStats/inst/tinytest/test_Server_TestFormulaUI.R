@@ -1,10 +1,3 @@
-sync_code <- function(session) {
-  session$setInputs(`FO-editable_code` = session$userData$export_formula_rhs)
-  session$flushReact()
-}
-
-coverage_test <- nzchar(Sys.getenv("R_COVR"))
-
 if (!requireNamespace("shiny", quietly = TRUE)) exit_file("needs shiny")
 library(tinytest)
 
@@ -166,6 +159,9 @@ test_optim_two_hot_binding_formula <- function(app, srv) {
 # Furthermore, I could also add the possibility to use a PSO
 # test_optim_two_hot_binding_formula(app, srv)
 
+# The RHS is now built by the expression builder and reaches the server as a
+# string; in tests (OpenStats.background = FALSE) the create handler reads it
+# from DataModelState$rhs_string, so each case sets that directly.
 test_linear_formula <- function(app, srv) {
   options(OpenStats.background = FALSE)
   expected <- list(
@@ -176,34 +172,22 @@ test_linear_formula <- function(app, srv) {
   ex <- list()
   shiny::testServer(srv, {
     DataModelState$df <- CO2
-
     session$setInputs(`FO-model_type` = "Linear")
-    session$setInputs(`FO-colnames-dropdown_` = "uptake");
-    session$setInputs(`FO-colnames_conc_` = 1); sync_code(session)
-    session$setInputs(`FO-add` = 1); sync_code(session)
-    session$setInputs(`FO-colnames_Treatment_` = 1); sync_code(session)
+    session$setInputs(`FO-colnames-dropdown_` = "uptake")
+
+    DataModelState$rhs_string <- "conc + Treatment"
     session$setInputs(`FO-create_formula` = 1)
     ex[[1]] <<- session$userData$export[[1]]@summary
-    session$userData$export_formula_rhs<- ""; sync_code(session)
 
-    session$setInputs(`FO-colnames-dropdown_` = "uptake");
-    session$setInputs(`FO-colnames_conc_` = 1); sync_code(session)
-    session$setInputs(`FO-mul` = 1); sync_code(session)
-    session$setInputs(`FO-colnames_Treatment_` = 1); sync_code(session)
-    session$setInputs(`FO-create_formula` = 1)
+    DataModelState$rhs_string <- "conc * Treatment"
+    session$setInputs(`FO-create_formula` = 2)
     ex[[2]] <<- session$userData$export[[2]]@summary
-    session$userData$export_formula_rhs<- ""; sync_code(session)
 
-    session$setInputs(`FO-colnames-dropdown_` = "uptake");
-    session$setInputs(`FO-colnames_Plant_` = 1); sync_code(session)
-    session$setInputs(`FO-minus` = 1); sync_code(session)
-    session$setInputs(`FO-colnames_Treatment_` = 1); sync_code(session)
-    session$setInputs(`FO-create_formula` = 1)
+    DataModelState$rhs_string <- "Plant - Treatment"
+    session$setInputs(`FO-create_formula` = 3)
     ex[[3]] <<- session$userData$export[[3]]@summary
-    session$userData$export_formula_rhs<- ""; sync_code(session)
-
   })
-   expect_equal(ex, expected)
+  expect_equal(ex, expected)
 }
 test_linear_formula(app, srv)
 
@@ -220,25 +204,18 @@ test_glm_formula <- function(app, srv) {
     session$setInputs(`FO-model_type` = "Generalised Linear Model")
     session$setInputs(`FO-Family` = "Gamma")
     session$setInputs(`FO-Link_function` = "inverse")
-    session$setInputs(`FO-colnames-dropdown_` = "uptake");
-    session$setInputs(`FO-colnames_conc_` = 1); sync_code(session)
-    session$setInputs(`FO-add` = 1); sync_code(session)
-    session$setInputs(`FO-colnames_Treatment_` = 1); sync_code(session)
+    session$setInputs(`FO-colnames-dropdown_` = "uptake")
+    DataModelState$rhs_string <- "conc + Treatment"
     session$setInputs(`FO-create_formula` = 1)
     ex[[1]] <<- session$userData$export[[1]]@summary
-    session$userData$export_formula_rhs<- ""; sync_code(session)
 
-    session$setInputs(`FO-model_type` = "Generalised Linear Model")
     session$setInputs(`FO-Family` = stats::gaussian())
     session$setInputs(`FO-Link_function` = "identity")
-    session$setInputs(`FO-colnames-dropdown_` = "uptake");
-    session$setInputs(`FO-colnames_conc_` = 1); sync_code(session)
-    session$setInputs(`FO-add` = 1); sync_code(session)
-    session$setInputs(`FO-colnames_Treatment_` = 1); sync_code(session)
-    session$setInputs(`FO-create_formula` = 1)
+    session$setInputs(`FO-colnames-dropdown_` = "uptake")
+    DataModelState$rhs_string <- "conc + Treatment"
+    session$setInputs(`FO-create_formula` = 2)
     ex[[2]] <<- session$userData$export[[2]]@summary
-    session$userData$export_formula_rhs<- ""; sync_code(session)
   })
-   expect_equal(ex, expected)
+  expect_equal(ex, expected)
 }
 test_glm_formula(app, srv)
