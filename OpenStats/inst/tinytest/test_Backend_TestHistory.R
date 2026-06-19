@@ -103,9 +103,9 @@ expect_equal(
 
 expected <- Reduce(rbind, lapply(unique(CO2$conc), function(g) {
   b <- CO2[CO2$conc == g, ]
-  data.frame(name = g, value = mean(b$uptake))
+  data.frame(conc = g, value = mean(b$uptake))
 }))
-expected$name <- as.factor(expected$name)
+expected$conc <- as.factor(expected$conc)
 expect_equal(
   result[[4]]@summary, expected,
   info = "by conc mean(uptake)"
@@ -114,9 +114,9 @@ expect_equal(
 int <- interaction(CO2[, c("conc", "Treatment")])
 expected <- Reduce(rbind, lapply(unique(int), function(g) {
   b <- CO2[int == g, ]
-  data.frame(name = g, value = mean(b$uptake))
+  data.frame(conc_Treatment = g, value = mean(b$uptake))
 }))
-expected$name <- as.factor(expected$name)
+expected$conc_Treatment <- as.factor(expected$conc_Treatment)
 expect_equal(
   result[[5]]@summary, expected,
   info = "by conc mean(uptake)"
