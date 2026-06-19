@@ -204,7 +204,7 @@ The choices below define the app's character. Keep them in mind before
 - **Model-driven workflow (the organising idea).** The user first builds a
   statistical *model* in the formula editor; everything downstream is *derived*
   from it. The Tests tab only offers tests that fit the model (two-group vs
-  >2-group, parametric vs non-parametric, LM/GLM/mixed); Assumptions and
+  2-group, more than 2 groups, parametric vs non-parametric, LM/GLM/mixed); Assumptions and
   Visualisation likewise branch on the S4 class of DataModelState$formula. The
   model is the single source of truth for "what can I do next."
 
