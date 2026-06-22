@@ -13,10 +13,6 @@ OperatorSidebarUI <- function(id) {
         shiny::column(
           7,
           shiny::actionButton(shiny::NS(id, "run_op_intermediate"), "Run operation and store intermediate results"),
-
-        ),
-        shiny::column(
-          4,
           shiny::textInput(shiny::NS(id, "iv"), "Intermediate variable name:", value = "")
         )
       )
@@ -26,10 +22,7 @@ OperatorSidebarUI <- function(id) {
       shiny::fluidRow(
         shiny::column(
           7,
-          shiny::actionButton(shiny::NS(id, "run_op"), "Run operation and append to dataset")
-        ),
-        shiny::column(
-          4,
+          shiny::actionButton(shiny::NS(id, "run_op"), "Run operation and append to dataset"),
           shiny::textInput(shiny::NS(id, "nc"), "New column name:", value = "")
         )
       )
