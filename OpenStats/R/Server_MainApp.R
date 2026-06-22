@@ -151,8 +151,17 @@ app <- function() {
 
       tooltip <- "Choose grouping variables"
       cols <- names(DataModelState$df)
+      preselected <- NULL
+      if ("group" %in% cols) {
+        preselected <- which(cols == "group")
+      }
       fcts <- c("Mean", "Median", "SD")
       htmltools::div(
+        shiny::actionButton(
+          "docu_summary_dataset",
+          label = NULL,
+          icon = shiny::icon("question-circle")
+        ),
         shiny::tags$label(
           class = "tooltip",
           title = tooltip,
@@ -162,7 +171,7 @@ app <- function() {
           inputId = "column_by",
           label = "Variables to group your data",
           choices = cols,
-          selected = NULL,
+          selected = cols[preselected],
           multiple = TRUE
         ),
         shiny::selectInput(
@@ -183,6 +192,17 @@ app <- function() {
         shiny::actionButton("summarize_plot", "summarize plot", class = "add-button"),
         class = "var-box-output"
       )
+    })
+    shiny::observeEvent(input$docu_summary_dataset, {
+      path <- docu_path("summarize_data.html")
+      title <- "Summarize dataset"
+      shiny::showModal(shiny::modalDialog(
+        title = title,
+        shiny::includeHTML(path),
+        easyClose = TRUE,
+        footer = NULL,
+        size = "l"
+      ))
     })
 
     shiny::observeEvent(input$summarize, {

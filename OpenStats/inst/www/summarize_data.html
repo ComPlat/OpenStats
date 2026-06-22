@@ -1,0 +1,90 @@
+<div class="info-container">
+  <div class="boxed-output documentation">
+    <p><strong>Creating Dataset Summaries:</strong></p>
+
+    <p>
+      The summary tool allows you to calculate descriptive statistics for selected
+      variables in your dataset. You can summarize variables across one or more
+      grouping columns.
+    </p>
+
+    <p><strong>How to use the summary tool:</strong></p>
+    <ul>
+      <li>
+        Select one or more <strong>grouping variables</strong> under
+        <em>Variables to group your data</em>.
+      </li>
+      <li>
+        Select one or more numeric variables under
+        <em>Which Variables to summarize</em>.
+      </li>
+      <li>
+        Select one or more summary functions under
+        <em>Which functions should be applied</em>.
+      </li>
+      <li>
+        Click <strong>summarize</strong> to create a summary table.
+      </li>
+      <li>
+        Click <strong>summarize plot</strong> to create a graphical summary.
+      </li>
+    </ul>
+
+    <p><strong>Available summary functions:</strong></p>
+    <ul>
+      <li><strong>Mean:</strong> Calculates the average value.</li>
+      <li><strong>Median:</strong> Calculates the middle value.</li>
+      <li><strong>SD:</strong> Calculates the standard deviation.</li>
+    </ul>
+
+    <p><strong>Grouping behavior:</strong></p>
+    <p>
+      If one or more grouping variables are selected, OpenStats calculates the
+      selected summary functions separately for each group combination.
+    </p>
+
+    <p><strong>Example:</strong></p>
+    <table>
+      <tr>
+        <th>group</th>
+        <th>treatment</th>
+        <th>value</th>
+      </tr>
+      <tr>
+        <td>A</td>
+        <td>Control</td>
+        <td>10.2</td>
+      </tr>
+      <tr>
+        <td>A</td>
+        <td>Control</td>
+        <td>12.1</td>
+      </tr>
+      <tr>
+        <td>B</td>
+        <td>Treated</td>
+        <td>18.4</td>
+      </tr>
+      <tr>
+        <td>B</td>
+        <td>Treated</td>
+        <td>20.0</td>
+      </tr>
+    </table>
+
+    <p>
+      If <strong>group</strong> and <strong>treatment</strong> are selected as
+      grouping variables, and <strong>value</strong> is selected as the variable
+      to summarize, OpenStats will calculate the selected functions separately
+      for each group-treatment combination.
+    </p>
+
+    <p><strong>Important notes:</strong></p>
+    <ul>
+      <li>You must select at least one grouping variable.</li>
+      <li>You must select at least one variable to summarize.</li>
+      <li>You must select at least one summary function.</li>
+      <li>The selected summary functions should be meaningful for the selected variables.</li>
+    </ul>
+  </div>
+</div>
