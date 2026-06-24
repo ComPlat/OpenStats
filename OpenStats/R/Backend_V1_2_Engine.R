@@ -123,6 +123,8 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
         ResultsState$bgp$is_running <- FALSE
         ResultsState$bgp$promise_result_name <- NULL
         ResultsState$bgp$promise_history_entry <- NULL
+        ResultsState$bgp$result_val <- NULL
+        ResultsState$bgp$warnings <- NULL
         self$enable()
       }
     },
@@ -155,6 +157,7 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
                      in_background = TRUE, ResultsState = NULL) {
       # NOTE: ResultsState is required to store the results when no background process is used.
       # Therefore, default is NULL
+      start <- Sys.time()
       background <- getOption("OpenStats.background", TRUE)
       if (!in_background || !background) {
         shiny::req(!is.null(ResultsState), "`ResultsState` must be provided when not running in background.")
@@ -169,8 +172,27 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       r6_args <- names(args)[sapply(args, function(x) inherits(x, "R6"))]
       shiny::req(length(r6_args) == 0, paste("Cannot pass R6 objects to background process:", paste(r6_args, collapse = ", ")))
       self$result_val <- NULL
+      environment(fun) <- baseenv()
+      args <- lapply(args, function(x) {
+        # NOTE: Formulas capture the environment in which they are created.
+        # In the Shiny server that environment holds ResultsState, so callr serializes
+        # the entire ResultsState into the background process on every call.
+        # Stripping to baseenv() prevents this.
+        # S4 formula storage classes (LinearFormula, GeneralisedLinearFormula, etc.)
+        # carry the same risk via their formula slot.
+        if (inherits(x, "formula")) {
+          environment(x) <- baseenv()
+        } else if (isS4(x) && "formula" %in% slotNames(x)) {
+          f <- slot(x, "formula")
+          environment(f) <- baseenv()
+          slot(x, "formula") <- f
+        }
+        x
+      })
       self$process <- callr::r_bg(fun, args = args)
       self$running_status <- "Running..."
+      end <- Sys.time()
+      print(end - start)
     },
 
     cancel = function() {
@@ -2615,6 +2637,7 @@ replay_history_V1_2 <- R6::R6Class(
             args = list(json_string = self$json_string, df = self$df, all_data = self$all_data),
             promise_result_name = "History",
             promise_history_entry = NULL, #"History"
+            in_background = TRUE
           )
         },
         warning = function(warn) {
