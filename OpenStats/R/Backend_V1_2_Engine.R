@@ -157,7 +157,6 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
                      in_background = TRUE, ResultsState = NULL) {
       # NOTE: ResultsState is required to store the results when no background process is used.
       # Therefore, default is NULL
-      start <- Sys.time()
       background <- getOption("OpenStats.background", TRUE)
       if (!in_background || !background) {
         shiny::req(!is.null(ResultsState), "`ResultsState` must be provided when not running in background.")
@@ -173,13 +172,11 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       shiny::req(length(r6_args) == 0, paste("Cannot pass R6 objects to background process:", paste(r6_args, collapse = ", ")))
       self$result_val <- NULL
       environment(fun) <- baseenv()
+      # NOTE: Formulas capture the environment in which they are created.
+      # In the Shiny server that environment holds ResultsState, so callr serializes
+      # the entire ResultsState into the background process on every call. Stripping to baseenv() prevents this.
+      # S4 formula storage classes (LinearFormula, GeneralisedLinearFormula, etc.) carry the same risk via their formula slot.
       args <- lapply(args, function(x) {
-        # NOTE: Formulas capture the environment in which they are created.
-        # In the Shiny server that environment holds ResultsState, so callr serializes
-        # the entire ResultsState into the background process on every call.
-        # Stripping to baseenv() prevents this.
-        # S4 formula storage classes (LinearFormula, GeneralisedLinearFormula, etc.)
-        # carry the same risk via their formula slot.
         if (inherits(x, "formula")) {
           environment(x) <- baseenv()
         } else if (isS4(x) && "formula" %in% slotNames(x)) {
@@ -191,8 +188,6 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
       })
       self$process <- callr::r_bg(fun, args = args)
       self$running_status <- "Running..."
-      end <- Sys.time()
-      print(end - start)
     },
 
     cancel = function() {
@@ -2318,17 +2313,18 @@ perm_ANOVA_V1_2 <- R6::R6Class(
           ResultsState$bgp$start(
             fun = function(formula, df, perm, seed, model_type) {
               set.seed(seed)
+              environment(formula) <- globalenv()
               if (model_type == "LinearFormula") {
                 P <- permuco::Pmat(np = perm, n = nrow(df))
-                fit <- permuco::aovperm(formula@formula, data = df, P = P)
+                fit <- permuco::aovperm(formula, data = df, P = P)
                 as.data.frame(summary(fit))
               } else if (model_type == "LinearMixedFormula") {
-                fit <- permutes::perm.lmer(formula@formula, data = df, np = perm, type = 'anova')
+                fit <- permutes::perm.lmer(formula, data = df, np = perm, type = 'anova')
                 fit
               }
             },
             args = list(
-              formula = self$formula, df = self$df, perm = self$perm, seed = self$seed, model_type = self$model_type
+              formula = self$formula@formula, df = self$df, perm = self$perm, seed = self$seed, model_type = self$model_type
             ),
             promise_result_name = new_name,
             promise_history_entry = promise_history_entry,

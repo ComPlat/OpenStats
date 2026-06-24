@@ -527,6 +527,7 @@ test_statistical_methods_linear_mixed_models <- function(in_background) {
   df <- lme4::sleepstudy
   DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
   formula <- as.formula("Reaction ~ Days + (1 | Subject)")
+  environment(formula) <- baseenv()
   formula <- new("LinearMixedFormula", formula = formula)
 
   outer_checks <- c()
