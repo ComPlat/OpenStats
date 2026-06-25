@@ -8,7 +8,9 @@ add_theme_optim <- function(p) {
   p + theme(
     plot.caption = element_text(hjust = 0),
     text = element_text(size = 20),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 14)
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12)
   )
 }
 env_optim_V1_2$add_theme_optim <- add_theme_optim

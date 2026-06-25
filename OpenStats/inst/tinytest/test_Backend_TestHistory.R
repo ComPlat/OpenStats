@@ -154,7 +154,7 @@ expect_equal(
   info = "CO2$conc_norm <-  CO2$conc / max(CO2$conc)"
 )
 expect_true(
-  inherits(result[[11]], "plot"),
+  inherits(result[[11]], "diagnosticPlots"),
   info = "Diagnostic plots"
 )
 expect_true(
@@ -546,6 +546,7 @@ expect_equal(
 
 # Test Pairwise Comparison
 # ========================================================================================
+VERSION <- "1.2"
 CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
 result <- load_and_eval_history(files[10], CO2)
 result <- result$ResultsState$all_data

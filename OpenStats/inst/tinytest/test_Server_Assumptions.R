@@ -111,6 +111,6 @@ test_diagnose_plot <- function(app, srv, in_background) {
     got <<- session$userData$export[[res_name]]
     attr(got, "rendered") <<- NULL
   })
-   expect_true(inherits(got, "plot"))
+   expect_true(inherits(got, "diagnosticPlots"))
 }
 run_test(test_diagnose_plot)

@@ -39,6 +39,7 @@ main_app_ui <- function() {
             label = NULL,
             icon = shiny::icon("question-circle")
           ),
+          shiny::uiOutput("message_log_btn"),
           shiny::textOutput("running_status"),
           shiny::actionButton(
             "confirm_stop", "Stop process",

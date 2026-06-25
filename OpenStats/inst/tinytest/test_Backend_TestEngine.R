@@ -836,7 +836,7 @@ test_diagnostic_plots <- function(in_background) {
   if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
   p <- ResultsState$all_data[[length(ResultsState$all_data)]]
 
-  check1 <- expect_true(inherits(p, "plot"))
+  check1 <- expect_true(inherits(p, "diagnosticPlots"))
   check2 <- expect_match(names(ResultsState$all_data[[2]]), "1 Diagnostic plot")
   check3 <- expect_equal(ResultsState$history[[1]]$type, "DiagnosticPlots")
   checks <- c(check1, check2, check3)

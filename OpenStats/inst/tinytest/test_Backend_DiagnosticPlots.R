@@ -294,7 +294,10 @@ test_diagnostic_plots_mixed <- function() {
   df <- lme4::sleepstudy
   formula <- new("LinearMixedFormula", formula = Reaction ~ Days + (1 | Subject))
   p <- OpenStats:::diagnostic_plots_mixed(df, formula)
-  expect_true(inherits(p, "ggplot"))
+  is_plot_list <- vapply(p, function(elem) {
+    inherits(elem, "ggplot")
+  }, logical(1L)) |> all()
+  expect_true(is_plot_list)
 }
 test_diagnostic_plots_mixed()
 
@@ -327,6 +330,9 @@ test_diagnostic_plots_dispatch_mixed <- function() {
   df <- lme4::sleepstudy
   formula <- new("LinearMixedFormula", formula = Reaction ~ Days + (1 | Subject))
   p <- OpenStats:::diagnostic_plots(df, formula)
-  expect_true(inherits(p, "ggplot"))
+  is_plot_list <- vapply(p, function(elem) {
+    inherits(elem, "ggplot")
+  }, logical(1L)) |> all()
+  expect_true(is_plot_list)
 }
 test_diagnostic_plots_dispatch_mixed()

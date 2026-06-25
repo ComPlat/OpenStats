@@ -35,6 +35,7 @@ app <- function() {
       code_string = NULL
     )
     bgp$init(ResultsState, DataModelState, DataWranglingState) # NOTE: creates the polling observer
+    init_message_log()
 
     shiny::observeEvent(ResultsState$counter, { # For testing
       session$userData$export <- ResultsState$all_data
@@ -228,6 +229,55 @@ app <- function() {
       if (inherits(e, "try-error")) {
         print_err(attributes(e)$condition$message)
       }
+    })
+
+    # Message log
+    # ----------------------------------------------------------
+    output$message_log_btn <- shiny::renderUI({
+      shiny::actionButton("open_message_log", "Message log")
+    })
+
+    output$log_modal_content <- shiny::renderUI({
+      reactive_entries <- get_log_entries()
+      entries <- reactive_entries()
+      if (length(entries) == 0) return(htmltools::p("No messages yet."))
+      items <- lapply(rev(entries), function(e) {
+        color <- switch(e$type, error = "#dc3545", warning = "#fd7e14", "#6c757d")
+        icon  <- switch(e$type, error = "[ERROR]", warning = "[WARN]", "[INFO]")
+        htmltools::div(
+          style = paste0(
+            "border-left:4px solid ", color, ";",
+            "padding:6px 10px;margin-bottom:6px;background:#f8f9fa;"
+          ),
+          htmltools::span(
+            style = paste0("color:", color, ";font-weight:bold;"),
+            paste(icon, "[", e$time, "]")
+          ),
+          htmltools::span(style = "margin-left:8px;", e$message)
+        )
+      })
+      htmltools::div(
+        style = "max-height:400px;overflow-y:auto;",
+        do.call(htmltools::tagList, items)
+      )
+    })
+
+    shiny::observeEvent(input$open_message_log, {
+      shiny::showModal(shiny::modalDialog(
+        title = "Message log",
+        shiny::uiOutput("log_modal_content"),
+        footer = htmltools::tagList(
+          shiny::actionButton("clear_message_log", "Clear", class = "btn-secondary"),
+          shiny::modalButton("Close")
+        ),
+        easyClose = TRUE,
+        size = "l"
+      ))
+    })
+
+    shiny::observeEvent(input$clear_message_log, {
+      clear_log()
+      shiny::removeModal()
     })
 
     # Other servers

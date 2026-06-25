@@ -161,7 +161,7 @@ summary_plots_to_files <- function(all_data) {
     elem <- all_data[[k]]
     if (!inherits(elem, "summaryPlotDataFrame")) next
     fn <- tempfile(fileext = ".png")
-    ggsave(plot = elem@p, filename = fn)
+    suppressMessages(ggsave(plot = elem@p, filename = fn))
     plot_files <- c(plot_files, fn)
   }
   return(plot_files)

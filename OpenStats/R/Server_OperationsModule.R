@@ -14,7 +14,8 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
   shiny::moduleServer(id, function(input, output, session) {
 
     output$builder <- shiny::renderUI({
-      shiny::req(DataWranglingState$df)
+      message <- check_data_wrangling(DataWranglingState)
+      if (!is.null(message)) return(info_div(message))
       intermediate <- setdiff(names(DataWranglingState$intermediate_vars), DataWranglingState$df_name)
       vars <- unique(c(
         DataWranglingState$df_name,
@@ -66,8 +67,8 @@ OperationEditorServer <- function(id, DataModelState, ResultsState, DataWranglin
     })
 
     output[["column_apply"]] <- shiny::renderUI({
-      shiny::req(DataWranglingState$df_name)
-      shiny::req(DataWranglingState$df)
+      message <- check_data_wrangling(DataWranglingState)
+      if (!is.null(message)) return(info_div(message))
 
       tooltip <- "Apply a function to each group based on the selected column(s). Moreover, apply is only used for intermediate variables."
       cols <- names(DataWranglingState$df)

@@ -112,10 +112,10 @@ create_excel_file <- function(l) {
       height <- l[[i]]@height
       resolution <- l[[i]]@resolution
       fn <- tempfile(fileext = ".png")
-      ggsave(
+      suppressMessages(ggsave(
         plot = p,
         filename = fn, width = width, height = height, dpi = resolution
-      )
+      ))
       plot_files <- c(plot_files, fn)
       openxlsx::insertImage(wb, "Results", fn, startRow = curr_row)
       curr_row <- curr_row + 20
@@ -131,7 +131,7 @@ create_excel_file <- function(l) {
       p <- l[[i]]@p
       for (idx in seq_len(length(p))) {
         fn <- tempfile(fileext = ".png")
-        ggsave(plot = p[[idx]], filename = fn)
+        suppressMessages(ggsave(plot = p[[idx]], filename = fn))
         openxlsx::insertImage(wb, "Results", fn, startRow = curr_row)
         curr_row <- curr_row + 20
         plot_files <- c(plot_files, fn)
@@ -142,12 +142,27 @@ create_excel_file <- function(l) {
         gridExpand = TRUE
       )
       curr_row <- curr_row + 5
+    } else if (inherits(l[[i]], "diagnosticPlots")) {
+      p <- l[[i]]@p
+      for (idx in seq_len(length(p))) {
+        fn <- tempfile(fileext = ".png")
+        suppressMessages(ggsave(plot = p[[idx]], filename = fn))
+        openxlsx::insertImage(wb, "Results", fn, startRow = curr_row)
+        curr_row <- curr_row + 20
+        plot_files <- c(plot_files, fn)
+      }
+      openxlsx::addStyle(
+        wb, sheet = "Results", style = line_style, rows = curr_row,
+        cols = 1:300,
+        gridExpand = TRUE
+      )
+      curr_row <- curr_row + 5
     } else if (inherits(l[[i]], "summaryModel")) {
       p <- l[[i]]@p@p
       s <- l[[i]]@summary
       ic <- l[[i]]@information_criterions
       fn <- tempfile(fileext = ".png")
-      ggsave(plot = p, filename = fn)
+      suppressMessages(ggsave(plot = p, filename = fn))
       openxlsx::insertImage(wb, "Results", fn, startRow = curr_row)
       curr_row <- curr_row + 20
       plot_files <- c(plot_files, fn)
@@ -173,7 +188,7 @@ create_excel_file <- function(l) {
     } else if (inherits(l[[i]], "summaryPlotDataFrame")) {
       p <- l[[i]]@p
       fn <- tempfile(fileext = ".png")
-      ggsave(plot = p, filename = fn)
+      suppressMessages(ggsave(plot = p, filename = fn))
       plot_files <- c(plot_files, fn)
       openxlsx::insertImage(wb, "Results", fn, startRow = curr_row)
       curr_row <- curr_row + 20
@@ -245,10 +260,10 @@ create_js_string <- function(l) {
       height <- l[[i]]@height
       resolution <- l[[i]]@resolution
       fn <- tempfile(fileext = ".png")
-      ggsave(
+      suppressMessages(ggsave(
         plot = p,
         filename = fn, width = width, height = height, dpi = resolution
-      )
+      ))
       raw <- readBin(fn, "raw", file.info(fn)$size)
       jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
       unlink(fn)
@@ -258,7 +273,7 @@ create_js_string <- function(l) {
       fn <- tempfile(fileext = ".png") # TODO: check is this used?
       for (idx in seq_len(length(p))) {
         fn <- tempfile(fileext = ".png")
-        ggsave(plot = p[[idx]], filename = fn)
+        suppressMessages(ggsave(plot = p[[idx]], filename = fn))
         raw <- readBin(fn, "raw", file.info(fn)$size)
         jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
         unlink(fn)
@@ -267,10 +282,20 @@ create_js_string <- function(l) {
       unlink(fn)
       jsString <- c(jsString, env_utils_V1_2$df_2_string(l[[i]]@df))
       js_names <- c(js_names, names_l[i])
+    } else if (inherits(l[[i]], "diagnosticPlots")) {
+      p <- l[[i]]@p
+      for (idx in seq_len(length(p))) {
+        fn <- tempfile(fileext = ".png")
+        suppressMessages(ggsave(plot = p[[idx]], filename = fn))
+        raw <- readBin(fn, "raw", file.info(fn)$size)
+        jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
+        unlink(fn)
+        js_names <- c(js_names, paste0(names_l[i], "_PlotNr", idx))
+      }
     } else if (inherits(l[[i]], "summaryModel")) {
       p <- l[[i]]@p@p
       fn <- tempfile(fileext = ".png")
-      ggsave(plot = p, filename = fn)
+      suppressMessages(ggsave(plot = p, filename = fn))
       raw <- readBin(fn, "raw", file.info(fn)$size)
       jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
       unlink(fn)
@@ -287,7 +312,7 @@ create_js_string <- function(l) {
     } else if (inherits(l[[i]], "summaryPlotDataFrame")) {
       p <- l[[i]]@p
       fn <- tempfile(fileext = ".png")
-      ggsave(plot = p, filename = fn)
+      suppressMessages(ggsave(plot = p, filename = fn))
       raw <- readBin(fn, "raw", file.info(fn)$size)
       jsString <- c(jsString, paste0("data:image/png;base64,", jsonlite::base64_enc(raw)))
       unlink(fn)

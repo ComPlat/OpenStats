@@ -257,7 +257,7 @@ visServer <- function(id, DataModelState, ResultsState) {
       p <- try({
         vis$validate()
         pl <- vis$eval(ResultsState)
-      })
+      }, silent = TRUE)
     }
 
     shiny::observeEvent(input$CreatePlotBox, {
@@ -290,7 +290,7 @@ visServer <- function(id, DataModelState, ResultsState) {
         shiny::exportTestValues(
           plot = pl
         )
-      })
+      }, silent = TRUE)
       if (inherits(p, "try-error")) {
         return()
       }

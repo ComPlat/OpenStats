@@ -195,7 +195,7 @@ read_data <- function(path, DataModelState, ResultsState) {
   }
   tables <- try(env_import_V1_2$read_data_excel(path), silent = TRUE)
   if (inherits(tables, "try-error")) {
-    tables <- try(env_import_V1_2$read_data_csv(path))
+    tables <- try(env_import_V1_2$read_data_csv(path), silent = TRUE)
     if (inherits(tables, "try-error")) {
       stop(tables)
     }

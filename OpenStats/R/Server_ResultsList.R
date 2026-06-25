@@ -42,6 +42,15 @@ ResultsListServer <- function(id, DataModelState, ResultsState, MethodState, con
             DT::DTOutput(paste0("RESULTS-res_dose_response_df_", name)),
             shiny::actionButton(paste0("RESULTS-remove_res_", name), "Remove", class = "btn-danger")
           )
+        } else if (inherits(temp, "diagnosticPlots")) {
+          htmltools::div(
+            class = "var-box-output",
+            htmltools::div(class = "var-box-name", name),
+            shiny::plotOutput(paste0("RESULTS-res_diagnostic_", name), width = "100%", height = "800px"),
+            shiny::actionButton(paste0("RESULTS-res_previous_", name), "Previous plot"),
+            shiny::actionButton(paste0("RESULTS-res_next_", name), "Next plot"),
+            shiny::actionButton(paste0("RESULTS-remove_res_", name), "Remove", class = "btn-danger")
+          )
         } else if (inherits(temp, "plot")) {
           htmltools::div(
             class = "var-box-output",
@@ -122,7 +131,7 @@ ResultsListServer <- function(id, DataModelState, ResultsState, MethodState, con
         if (!is.null(rendered) && rendered) return()
         shiny::observeEvent(paste0("RESULTS-", name), {
           temp <- res[[name]]
-          set_rendered <- if (inherits(temp, "doseResponse")) FALSE else TRUE
+          set_rendered <- if (inherits(temp, c("doseResponse", "diagnosticPlots"))) FALSE else TRUE
           if (is.vector(temp)) {
             output[[paste0("res_", name)]] <- shiny::renderPrint(temp)
           } else if (is.data.frame(temp)) {
@@ -130,10 +139,12 @@ ResultsListServer <- function(id, DataModelState, ResultsState, MethodState, con
           } else if (inherits(temp, "doseResponse")) {
             output[[paste0("res_dose_response_", name)]] <- shiny::renderPlot(temp@p[[temp@current_page]])
             output[[paste0("res_dose_response_df_", name)]] <- render_df(temp@df, 2)
+          } else if (inherits(temp, "diagnosticPlots")) {
+            output[[paste0("res_diagnostic_", name)]] <- shiny::renderPlot(temp@p[[temp@current_page]])
           } else if (inherits(temp, "plot")) {
             output[[paste0("res_", name)]] <- shiny::renderPlot(temp@p)
           } else if (inherits(temp, "summaryModel")) {
-            output[[paste0("res_plot_", name)]] <- shiny::renderPlot(temp@p)
+            output[[paste0("res_plot_", name)]] <- shiny::renderPlot(temp@p@p)
             output[[paste0("res_summary_", name)]] <- render_df(temp@summary)
             output[[paste0("res_information_criterion_", name)]] <- render_df(temp@information_criterions)
           } else if (inherits(temp, "summaryDataFrame")) {

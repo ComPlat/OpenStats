@@ -1,4 +1,30 @@
 # nocov start helper
+
+# Message log — one reactiveVal per session stored in a package-level env.
+# Safe for single-session use (standalone or Chemotion embedded).
+log_env <- new.env(parent = emptyenv())
+log_env$entries <- NULL
+
+init_message_log <- function() {
+  log_env$entries <- shiny::reactiveVal(list())
+}
+
+get_log_entries <- function() log_env$entries
+
+append_log_entry <- function(type, message) {
+  if (is.null(log_env$entries)) return(invisible(NULL))
+  current <- shiny::isolate(log_env$entries())
+  log_env$entries(c(current, list(list(
+    type = type,
+    message = message,
+    time = format(Sys.time(), "%H:%M:%S")
+  ))))
+}
+
+clear_log <- function() {
+  if (!is.null(log_env$entries)) log_env$entries(list())
+}
+
 # divs
 info_div <- function(message) {
   htmltools::div(
@@ -30,11 +56,13 @@ render_df <- function(df, n_fixed_cols = 1) {
 
 # check and print warnings
 print_warn <- function(message) {
+  append_log_entry("warning", message)
   shiny::showNotification(message, type = "warning")
 }
 
 # check and print error
 print_err <- function(message) {
+  append_log_entry("error", message)
   shiny::showNotification(message, type = "error")
 }
 

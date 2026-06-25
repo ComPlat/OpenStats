@@ -316,7 +316,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
       check_dr()
       df <- DataModelState$df
       new_name <- paste0(ResultsState$counter + 1, " DoseResponse")
-      e <- try(run_dr(df, new_name))
+      e <- try(run_dr(df, new_name), silent = TRUE)
     })
 
     # Primary Assay percentage continous Server
@@ -329,7 +329,7 @@ DoseResponseServer <- function(id, DataModelState, ResultsState, MethodState) {
           input$PValAdjMethod, input$FoldOrPercentage
         )
         pa$eval(ResultsState)
-      })
+      }, silent = TRUE)
     })
 
   })

@@ -1,4 +1,11 @@
+# TODO: add everywhere ggplot2::
 env_plotting_V1_2 <- new.env(parent = getNamespace("OpenStats"))
+
+parse_label <- function(lbl) {
+  if (!nzchar(lbl)) return(lbl)
+  tryCatch(parse(text = lbl)[[1]], error = function(e) lbl)
+}
+env_plotting_V1_2$parse_label <- parse_label
 
 add_facet <- function(p, facetVar, facetMode, facetScales) {
   if (facetMode == "facet_wrap") {
@@ -70,10 +77,10 @@ boxplot_fct <- function(df, x, y, xLabel, yLabel,
         )
       )
     )
-  p <- p + xlab(xLabel)
-  p <- p + ylab(yLabel)
-  p <- p + guides(fill = guide_legend(title = legendTitleFill))
-  p <- p + guides(colour = guide_legend(title = legendTitleColour))
+  p <- p + xlab(env_plotting_V1_2$parse_label(xLabel))
+  p <- p + ylab(env_plotting_V1_2$parse_label(yLabel))
+  p <- p + guides(fill = guide_legend(title = env_plotting_V1_2$parse_label(legendTitleFill)))
+  p <- p + guides(colour = guide_legend(title = env_plotting_V1_2$parse_label(legendTitleColour)))
 
   if (fillVar != "")  p <- p + scale_fill_brewer(palette = fillTheme)
   if (colourVar != "") p <- p + scale_color_brewer(palette = colourTheme)
@@ -112,9 +119,9 @@ dotplot_fct <- function(df, x, y, xLabel, yLabel,
         )
       )
     )
-  p <- p + xlab(xLabel)
-  p <- p + ylab(yLabel)
-  p <- p + guides(colour = guide_legend(title = legendTitleColour))
+  p <- p + xlab(env_plotting_V1_2$parse_label(xLabel))
+  p <- p + ylab(env_plotting_V1_2$parse_label(yLabel))
+  p <- p + guides(colour = guide_legend(title = env_plotting_V1_2$parse_label(legendTitleColour)))
   if (colourVar != "") p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
     p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
@@ -151,9 +158,9 @@ lineplot_fct <- function(df, x, y, xLabel, yLabel,
         )
       )
     )
-  p <- p + xlab(xLabel)
-  p <- p + ylab(yLabel)
-  p <- p + guides(colour = guide_legend(title = legendTitleColour))
+  p <- p + xlab(env_plotting_V1_2$parse_label(xLabel))
+  p <- p + ylab(env_plotting_V1_2$parse_label(yLabel))
+  p <- p + guides(colour = guide_legend(title = env_plotting_V1_2$parse_label(legendTitleColour)))
   if (colourVar != "") p <- p + scale_color_brewer(palette = colourTheme)
   if (facetMode != "none") {
     p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)

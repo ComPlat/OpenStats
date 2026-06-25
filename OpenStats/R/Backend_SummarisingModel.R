@@ -165,32 +165,36 @@ env_summarising_model_V1_2$trim_formula_predictors <- trim_formula_predictors
 
 # nocov start plotting
 add_theme_model_plot <- function(p) {
-  p + theme(text = element_text(size = 20))
+  p + theme(
+    text = element_text(size = 20),
+    axis.title = element_text(size = 24),
+    axis.text = element_text(size = 20)
+  )
 }
 env_summarising_model_V1_2$add_theme_model_plot <- add_theme_model_plot
 
 create_model_plot <- function(pred_df, types, predictors, response, r2_label) {
   if(length(types) == 1) {
-    return(
-      env_summarising_model_V1_2$plot_one_pred(pred_df, types, predictors, response) + labs(caption = r2_label) |> env_summarising_model_V1_2$add_theme_model_plot()
-    )
+    res <- env_summarising_model_V1_2$plot_one_pred(pred_df, types, predictors, response) + labs(caption = r2_label)
+    res <- env_summarising_model_V1_2$add_theme_model_plot(res)
+    return(res)
   } else if (length(types) == 2) {
-    return(
-      env_summarising_model_V1_2$plot_two_pred(pred_df, types, predictors, response) + labs(caption = r2_label) |> env_summarising_model_V1_2$add_theme_model_plot()
-    )
+    res <- env_summarising_model_V1_2$plot_two_pred(pred_df, types, predictors, response) + labs(caption = r2_label)
+    res <- env_summarising_model_V1_2$add_theme_model_plot(res)
+    return(res)
   } else if (length(types) == 3) {
-    return(
-      env_summarising_model_V1_2$plot_three_pred(pred_df, types, predictors, response) + labs(caption = r2_label) |> env_summarising_model_V1_2$add_theme_model_plot()
-    )
+    res <- env_summarising_model_V1_2$plot_three_pred(pred_df, types, predictors, response) + labs(caption = r2_label)
+    res <- env_summarising_model_V1_2$add_theme_model_plot(res)
+    return(res)
   } else if (length(types) == 4) {
-    return(
-      env_summarising_model_V1_2$plot_four_pred(pred_df, types, predictors, response) + labs(caption = r2_label) |> env_summarising_model_V1_2$add_theme_model_plot()
-    )
+    res <- env_summarising_model_V1_2$plot_four_pred(pred_df, types, predictors, response) + labs(caption = r2_label)
+    res <- env_summarising_model_V1_2$add_theme_model_plot(res)
+    return(res)
   } else {
     warning("Plotted only the first four effects")
-    return(
-      env_summarising_model_V1_2$plot_four_pred(pred_df, types[1:4], predictors[1:4], response) + labs(caption = r2_label) |> env_summarising_model_V1_2$add_theme_model_plot()
-    )
+    res <- env_summarising_model_V1_2$plot_four_pred(pred_df, types[1:4], predictors[1:4], response) + labs(caption = r2_label)
+    res <- env_summarising_model_V1_2$add_theme_model_plot(res)
+    return(res)
   }
 }
 env_summarising_model_V1_2$create_model_plot <- create_model_plot

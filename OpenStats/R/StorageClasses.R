@@ -93,3 +93,9 @@ setClass("summaryPlotDataFrame",
     p = "ANY"
   )
 )
+setClass("diagnosticPlots",
+  slots = c(
+    p = "ANY",
+    current_page = "integer"
+  )
+)

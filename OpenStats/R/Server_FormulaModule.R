@@ -359,6 +359,7 @@ FormulaEditorServer <- function(id, DataModelState, ResultsState) {
               model_latex <- cf$eval(ResultsState, DataModelState, input$model_type)
             }
             output$model <- shiny::renderUI({
+              if (is.null(model_latex)) return(NULL)
               shiny::withMathJax(htmltools::HTML(paste0("$$", model_latex, "$$")))
             })
           },

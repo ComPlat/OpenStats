@@ -32,7 +32,11 @@ cooks_distance_plot <- function(df, formula) {
       aes(label = Index),
       vjust = -1,
       color = "black",
-      size = 3)
+      size = 3) +
+    theme(
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12)
+    )
 
   if (inherits(formula, "LinearFormula")) {
     p <- p + labs(caption = "Cook's distance is used to detect
@@ -71,7 +75,11 @@ resids_vs_fitted_plot <- function(fitted, resids, n, formula, influential_points
       vjust = -1,
       color = "black",
       size = 3) +
-    theme(plot.caption = element_text(size = 12, hjust = 0))
+    theme(
+      plot.caption = element_text(size = 12, hjust = 0),
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12)
+    )
 
   if (inherits(formula, "LinearFormula")) {
     resids_vs_fitted <- resids_vs_fitted + labs(
@@ -118,7 +126,11 @@ qq_norm_plot <- function(resids, n, formula, influential_points) {
       vjust = -1,
       color = "black",
       size = 3) +
-    theme(plot.caption = element_text(size = 12, hjust = 0))
+    theme(
+      plot.caption = element_text(size = 12, hjust = 0),
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12)
+    )
   if (inherits(formula, "LinearFormula")) {
     resids_vs_quantiles <- resids_vs_quantiles + labs(
       y = "Standardized residuals", x = "Theoretical Quantiles",
@@ -170,7 +182,11 @@ manual_scale_location_plot <- function(fitted, resids, n, formula, influential_p
       vjust = -1,
       color = "black",
       size = 3) +
-    theme(plot.caption = element_text(size = 12, hjust = 0))
+    theme(
+      plot.caption = element_text(size = 12, hjust = 0),
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12)
+    )
 
   if (inherits(formula, "LinearFormula")) {
     sqrt_resids_vs_fitted <- sqrt_resids_vs_fitted +     labs(
@@ -226,7 +242,11 @@ residuals_vs_leverage_plot <- function(leverage, resids, n, formula, influential
       color = "black",
       size = 3) +
 
-    theme(plot.caption = element_text(size = 12, hjust = 0))
+    theme(
+      plot.caption = element_text(size = 12, hjust = 0),
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12)
+    )
   if (inherits(formula, "LinearFormula")) {
     residuals_vs_leverage <- residuals_vs_leverage +     labs(
       y = "Standardized residuals", x = "Leverage",
@@ -270,7 +290,7 @@ diagnostic_plots_mixed <- function(df, formula) {
     leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
   )
 
-  cowplot::plot_grid(
+  list(
     env_diagnostic_plots_V1_2$resids_vs_fitted_plot(fitted, resids, n, formula, influential_points),
     env_diagnostic_plots_V1_2$qq_norm_plot(resids, n, formula, influential_points)
   )
@@ -310,7 +330,7 @@ diagnostic_plots <- function(df, formula) {
     leverage > high_leverage_threshold | cooks_dist > high_cooks_threshold
   )
 
-  cowplot::plot_grid(
+  list(
     env_diagnostic_plots_V1_2$resids_vs_fitted_plot(fitted, resids, n, formula, influential_points),
     env_diagnostic_plots_V1_2$qq_norm_plot(resids, n, formula, influential_points),
     env_diagnostic_plots_V1_2$manual_scale_location_plot(fitted, resids, n, formula, influential_points),

@@ -513,7 +513,7 @@ visualisation_V1_2 <- R6::R6Class(
                   xrange_min, xrange_max, yrange_min, yrange_max
                 )
               } else if (method == "line") {
-                p <- OpenStats:::env_plotting_V1_2$lineplot_fct( # TODO: define an environment for all internal code analog to the internal plotting
+                p <- OpenStats:::env_plotting_V1_2$lineplot_fct(
                   df, x, y, xlabel, ylabel,
                   colour_var, colour_legend_title, colour_theme,
                   facet_mode, facet_var, facet_y_scaling,
@@ -735,7 +735,7 @@ create_intermediate_var_V1_2 <- R6::R6Class(
           vars <- c(vars, names(self$intermediate_vars))
         }
         env_check_ast_V1_2$check_ast(op, vars)
-      })
+      }, silent = TRUE)
       if (inherits(e, "try-error")) {
         self$com$print_err(e)
         stop("Invalid ast")
@@ -753,7 +753,10 @@ create_intermediate_var_V1_2 <- R6::R6Class(
             block <- DataWranglingState$df[ints == g, ]
             list2env(block, envir = eval_env) # NOTE: this adds each column as own variable
             eval_env[[DataWranglingState$df_name]] <- block
-            temp <- eval(parse(text = self$operation), envir = eval_env)
+            temp <- withCallingHandlers(
+              eval(parse(text = self$operation), envir = eval_env),
+              warning = function(w) { self$com$print_warn(w$message); invokeRestart("muffleWarning") }
+            )
             check_type_res(temp)
             env_utils_V1_2$check_rls(ResultsState$all_data, temp)
             res <- data.frame(name = g)
@@ -792,7 +795,10 @@ create_intermediate_var_V1_2 <- R6::R6Class(
           list2env(self$intermediate_vars, envir = eval_env)
           list2env(DataWranglingState$df, envir = eval_env) # NOTE: this adds each column as own variable
           eval_env[[DataWranglingState$df_name]] <- self$df
-          new <- eval(parse(text = self$operation), envir = eval_env)
+          new <- withCallingHandlers(
+            eval(parse(text = self$operation), envir = eval_env),
+            warning = function(w) { self$com$print_warn(w$message); invokeRestart("muffleWarning") }
+          )
           check_type_res(new)
           env_utils_V1_2$check_rls(ResultsState$all_data, new)
         }
@@ -903,7 +909,7 @@ create_new_col_V1_2 <- R6::R6Class(
           vars <- c(vars, names(self$intermediate_vars))
         }
         env_check_ast_V1_2$check_ast(op, vars)
-      })
+      }, silent = TRUE)
       if (inherits(e, "try-error")) {
         self$com$print_err(e)
         stop("Invalid ast")
@@ -917,7 +923,10 @@ create_new_col_V1_2 <- R6::R6Class(
         list2env(self$intermediate_vars, envir = eval_env)
         list2env(self$df, envir = eval_env)  # NOTE: this adds each column as own variable
         eval_env[[DataWranglingState$df_name]] <- self$df
-        new <- eval(parse(text = self$operation), envir = eval_env)
+        new <- withCallingHandlers(
+          eval(parse(text = self$operation), envir = eval_env),
+          warning = function(w) { self$com$print_warn(w$message); invokeRestart("muffleWarning") }
+        )
         check_type_res(new)
         env_utils_V1_2$check_rls(ResultsState$all_data, new)
         self$df[, self$name] <- new
@@ -926,12 +935,15 @@ create_new_col_V1_2 <- R6::R6Class(
           eval_env <- create_run_env()
           list2env(self$intermediate_vars, envir = eval_env)
           list2env(DataModelState$backup_df, envir = eval_env)  # NOTE: this adds each column as own variable
-          new <- eval(parse(text = self$operation), envir = eval_env)
+          new <- withCallingHandlers(
+            eval(parse(text = self$operation), envir = eval_env),
+            warning = function(w) { self$com$print_warn(w$message); invokeRestart("muffleWarning") }
+          )
           check_type_res(new)
           DataModelState$backup_df[, self$name] <- new
           self$com$print_warn("Conducted operation also for entire dataset and not only for the subset")
         }
-      })
+      }, silent = TRUE)
       if (inherits(e, "try-error")) {
         err <- conditionMessage(attr(e, "condition"))
         self$com$print_err(err)
@@ -1369,9 +1381,10 @@ create_formula_V1_2 <- R6::R6Class(
         pm$validate()
         pm$eval(ResultsState)
         eq
-      })
+      }, silent = TRUE)
       if (inherits(e, "try-error")) {
-        self$com$print_err(e)
+        self$com$print_err(conditionMessage(attr(e, "condition")))
+        return(NULL)
       }
       return(e)
     }
@@ -1572,8 +1585,8 @@ diagnostic_plots_V1_2 <- R6::R6Class(
           promise_history_entry <- self$create_history(new_name)
           ResultsState$bgp$start(
             fun = function(df, formula) {
-              p <- OpenStats:::env_diagnostic_plots_V1_2$diagnostic_plots(df, formula)
-              new("plot", p = p, width = 15, height = 15, resolution = 600)
+              plots <- OpenStats:::env_diagnostic_plots_V1_2$diagnostic_plots(df, formula)
+              new("diagnosticPlots", p = plots, current_page = 1L)
             },
             args = list(df = self$df, formula = self$formula),
             promise_result_name = new_name,
