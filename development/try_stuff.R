@@ -21,3 +21,31 @@ new <- eval(parse(text = operation2), envir = eval_env)
 new
 new <- eval(parse(text = operation3), envir = eval_env)
 new
+
+
+library(tinyplot)
+
+tinyplot(
+  uptake ~ conc | Type, data = CO2,
+  type = "boxplot", grid = TRUE,
+  axis = "l", palette = "dark2",
+  facet = ~Treatment, facet.args = list(free = TRUE),
+  legend = list("top!", title = NULL),
+  xlab = expression(CO[2]~"[ppm]"),
+  ylab = expression(CO[2]~"uptake"~"["~µmol~"/("~cm^2~"sec)]"),
+  xlim = c(0.5, 7.5),
+  theme = tinytheme("default", mgp = c(2, 0.7, 0))
+)
+
+tinyplot(
+  uptake ~ conc | Type, 
+  facet = ~ Treatment,
+  data = CO2,
+  axis = "l", palette = "dark2",
+  legend = list("top!", title = NULL),
+  xlab = expression(CO[2]~"[ppm]"),
+  ylab = expression(CO[2]~"uptake"~"["~µmol~"/("~cm^2~"sec)]"),
+  xlim = c(0.5, 7.5),
+  type = type_boxplot(boxwex = 0.3, staplewex = 0, outline = TRUE)
+)
+plt_add(type = "j")

@@ -1,6 +1,6 @@
 install.packages("OpenStats", type = "source", repos = NULL)
 tinytest::test_package("OpenStats")
-warnings()
+arnings()
 tinytest::run_test_file("./OpenStats/inst/tinytest/test_Backend_TestHistory.R")
 tinytest::run_test_file("./OpenStats/inst/tinytest/test_Server_Assumptions.R")
 
