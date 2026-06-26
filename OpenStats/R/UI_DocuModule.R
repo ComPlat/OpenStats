@@ -55,6 +55,9 @@ get_docu <- function(panel, DataModelState) {
   } else if (panel == "Optimization ModelFormula") {
     path <- docu_path("optim_formula.html")
     title <- "Defining the formula"
+  } else if (panel == "Linear Mixed ModelFormula") {
+    path <- docu_path("linear_mixed_formula.html")
+    title <- "Defining the formula (Linear Mixed Model)"
   } else if (panel == "Split") {
     path <- docu_path("SplitData.html")
     title <- "Subsetting the dataset"

@@ -1,0 +1,208 @@
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #f2f2f2;
+}
+.info-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.documentation {
+  max-width: 200px;
+}
+</style>
+
+<div class="info-container">
+  <div class="boxed-output">
+    <h4><strong>1. Overview</strong></h4>
+    <p>
+      A <strong>Linear Mixed Model (LMM)</strong> extends the ordinary linear model by allowing
+      some coefficients to vary across groups. This is needed whenever observations are
+      <em>not independent</em> — for example when the same subject is measured repeatedly,
+      or when samples come from different batches, schools, or sites.
+    </p>
+    <p>
+      The formula has two parts on the right-hand side:
+    </p>
+    <ul>
+      <li><strong>Fixed effects</strong> — the predictors you care about (same as in a regular linear model).</li>
+      <li><strong>Random effects</strong> — written inside <code>( | )</code>, they account for the grouping structure.</li>
+    </ul>
+    <p>
+      The table below shows a typical repeated-measures dataset: each patient is measured
+      at three time points, so the measurements within a patient are correlated.
+    </p>
+  </div>
+  <table>
+    <tr><th>patient</th><th>time</th><th>treatment</th><th>blood_pressure</th></tr>
+    <tr><td>P1</td><td>0</td><td>placebo</td><td>132</td></tr>
+    <tr><td>P1</td><td>1</td><td>placebo</td><td>128</td></tr>
+    <tr><td>P1</td><td>2</td><td>placebo</td><td>125</td></tr>
+    <tr><td>P2</td><td>0</td><td>drug</td><td>145</td></tr>
+    <tr><td>P2</td><td>1</td><td>drug</td><td>136</td></tr>
+    <tr><td>P2</td><td>2</td><td>drug</td><td>122</td></tr>
+    <tr><td>P3</td><td>0</td><td>placebo</td><td>119</td></tr>
+    <tr><td>P3</td><td>1</td><td>placebo</td><td>117</td></tr>
+    <tr><td>P3</td><td>2</td><td>placebo</td><td>116</td></tr>
+  </table>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>2. Getting Started</strong></h4>
+  <ol>
+    <li>Select the <strong>response variable</strong> from the left-side dropdown (e.g., <code>blood_pressure</code>).</li>
+    <li>Click predictor buttons to build the fixed-effects part (e.g., <code>treatment + time</code>).</li>
+    <li>Add a random-effect term using the <code>|</code> button: type or drop <code>(1|patient)</code>.</li>
+    <li>Click <strong>Create Statistical Model</strong>.</li>
+  </ol>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>3. The <code>|</code> Operator — Random Effects</strong></h4>
+  <p>
+    The vertical bar <code>|</code> separates the <em>what varies</em> from the <em>grouping variable</em>:
+  </p>
+  <p style="text-align:center;"><code>(what_varies | grouping_variable)</code></p>
+  <table>
+    <thead>
+      <tr><th>Syntax</th><th>Meaning</th><th>When to use</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>(1 | group)</code></td>
+        <td>Random intercept — each group gets its own baseline</td>
+        <td>Subjects/sites differ in their average level</td>
+      </tr>
+      <tr>
+        <td><code>(predictor | group)</code></td>
+        <td>Random slope — each group gets its own slope for that predictor</td>
+        <td>Subjects respond differently to the predictor</td>
+      </tr>
+      <tr>
+        <td><code>(1 + predictor | group)</code></td>
+        <td>Random intercept <em>and</em> random slope</td>
+        <td>Groups differ both in baseline and in response</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    <strong>Rule of thumb:</strong> always start with a random intercept <code>(1|group)</code>.
+    Add a random slope only if you have enough data per group and a scientific reason to expect
+    that the effect of the predictor differs across groups.
+  </p>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>Example 1 — Random Intercept: <code>blood_pressure ~ time + (1|patient)</code></strong></h4>
+  <p>
+    Each patient has a different baseline blood pressure. The fixed effect of <code>time</code>
+    estimates the average change per time unit across all patients. <code>(1|patient)</code>
+    lets the model shift up or down for each patient without treating those shifts as error.
+  </p>
+
+  <h5>Fixed-Effects Output</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th>Estimate</th>
+        <th>Std. Error</th>
+        <th>t-value</th>
+        <th>df (Satterthwaite)</th>
+        <th>p-value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Intercept — average blood pressure at time 0</td>
+        <td>132.1</td><td>7.3</td><td>18.1</td><td>2.0</td><td>0.003</td>
+      </tr>
+      <tr>
+        <td>time — average change per time unit</td>
+        <td>-4.2</td><td>0.8</td><td>-5.3</td><td>6.0</td><td>0.002</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h5>Random-Effects Output</h5>
+  <table>
+    <thead>
+      <tr><th>Group</th><th>Term</th><th>Variance</th><th>Std. Dev.</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>patient</td><td>Intercept</td><td>126.3</td><td>11.2</td></tr>
+      <tr><td>Residual</td><td></td><td>5.8</td><td>2.4</td></tr>
+    </tbody>
+  </table>
+
+  <summary><strong>Interpretation</strong></summary>
+  <ul>
+    <li><strong>time:</strong> Blood pressure decreases by ~4.2 units per time step on average (p = 0.002).</li>
+    <li><strong>patient variance (11.2 SD):</strong> Patients differ quite a lot in their baseline — much more than the residual variation (2.4 SD) within a patient. This confirms that accounting for the patient grouping was necessary.</li>
+    <li><strong>Degrees of freedom:</strong> LMMs use Satterthwaite (or Kenward-Roger) approximations for df, so they are not whole numbers. This is expected and correct.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>Example 2 — Fixed Interaction + Random Intercept: <code>blood_pressure ~ treatment * time + (1|patient)</code></strong></h4>
+  <p>
+    Tests whether the slope of blood pressure over time differs between treatment groups.
+    The interaction term <code>treatment:time</code> captures exactly this difference in slopes.
+  </p>
+
+  <h5>Fixed-Effects Output</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th>Estimate</th>
+        <th>Std. Error</th>
+        <th>t-value</th>
+        <th>p-value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Intercept — placebo group at time 0</td><td>125.5</td><td>8.1</td><td>15.5</td><td>0.001</td></tr>
+      <tr><td>treatmentdrug — extra baseline for drug group</td><td>19.5</td><td>11.5</td><td>1.7</td><td>0.230</td></tr>
+      <tr><td>time — slope for placebo group</td><td>-3.5</td><td>1.1</td><td>-3.2</td><td>0.018</td></tr>
+      <tr><td>treatmentdrug:time — extra slope for drug vs placebo</td><td>-7.7</td><td>1.6</td><td>-4.9</td><td>0.008</td></tr>
+    </tbody>
+  </table>
+
+  <summary><strong>Interpretation</strong></summary>
+  <ul>
+    <li><strong>time (placebo):</strong> Blood pressure in the placebo group drops ~3.5 units per time step.</li>
+    <li><strong>treatmentdrug:time:</strong> The drug group drops an <em>additional</em> ~7.7 units per time step compared to placebo (total slope ≈ −11.2). The interaction is significant (p = 0.008), meaning the drug works differently over time than placebo.</li>
+    <li><strong>treatmentdrug (baseline):</strong> The drug group starts ~19.5 units higher at time 0, but this is not significant — the groups differ mainly in how they <em>change</em>, not in their starting point.</li>
+  </ul>
+</div>
+
+<div class="boxed-output">
+  <h4><strong>4. Common Mistakes</strong></h4>
+  <ul>
+    <li>
+      <strong>Forgetting parentheses:</strong> <code>1|patient</code> without <code>( )</code>
+      is not valid syntax. Always write <code>(1|patient)</code>.
+    </li>
+    <li>
+      <strong>Using the wrong grouping variable:</strong> The variable inside <code>( | )</code>
+      must be the column that defines the groups (e.g., subject ID, batch ID, site),
+      not a predictor of interest.
+    </li>
+    <li>
+      <strong>Too few groups:</strong> Random effects need enough groups to estimate variance.
+      As a rough rule, aim for at least 5–6 levels in the grouping variable. With fewer groups,
+      consider treating the grouping variable as a fixed effect instead.
+    </li>
+    <li>
+      <strong>Convergence warnings:</strong> If the model warns about convergence, try simplifying
+      the random-effects structure — remove random slopes before removing random intercepts.
+    </li>
+  </ul>
+</div>
