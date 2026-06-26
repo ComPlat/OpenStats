@@ -82,10 +82,6 @@ main_app_ui <- function() {
             assSidebarUI("ASS")
           ),
           shiny::conditionalPanel(
-            condition = "input.conditionedPanels == 'Correlation'",
-            corrSidebarUI("CORR")
-          ),
-          shiny::conditionalPanel(
             condition = "input.conditionedPanels == 'Tests'",
             testsSidebarUI("TESTS")
           ),
@@ -116,10 +112,6 @@ main_app_ui <- function() {
           shiny::tabPanel(
             "Assumption",
             assUI("ASS")
-          ),
-          shiny::tabPanel(
-            "Correlation",
-            corrUI("CORR")
           ),
           shiny::tabPanel(
             "Tests",

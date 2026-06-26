@@ -284,7 +284,6 @@ app <- function() {
     # ----------------------------------------------------------
     downloadServer("DOWNLOAD", DataModelState, ResultsState, MethodState) # its called download because of the connection to the ELN. Using it locally is actully an upload
     OperationEditorServer("OP", DataModelState, ResultsState, DataWranglingState)
-    corrServer("CORR", DataModelState, ResultsState)
     visServer("VIS", DataModelState, ResultsState)
     assServer("ASS", DataModelState, ResultsState)
     testsUIServer("TESTS", DataModelState, ResultsState)
@@ -292,6 +291,7 @@ app <- function() {
     LinearNonParametricTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     GeneralizedLinearTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     LinearMixedTestsUISidebarServer("TESTS", DataModelState, ResultsState)
+    CorrelationTestsUISidebarServer("TESTS", DataModelState, ResultsState)
     testsServer("TESTS", DataModelState, ResultsState)
     DoseResponseServer("DOSERESPONSE", DataModelState, ResultsState, MethodState)
     FormulaEditorServer("FO", DataModelState, ResultsState)

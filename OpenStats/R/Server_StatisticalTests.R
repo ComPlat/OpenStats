@@ -34,6 +34,8 @@ testsUIServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
     # Render parametric vs non parametric
     output$parametricUI <- shiny::renderUI({
+      subtab <- input[["TestsConditionedPanels"]]
+      if (!is.null(subtab) && subtab == "Correlation") return()
       if (inherits(DataModelState$formula, "LinearFormula")) {
         htmltools::div(
           shiny::radioButtons(
@@ -66,6 +68,8 @@ testsUIServer <- function(id, DataModelState, ResultsState) {
 
       tabs[[length(tabs) + 1]] <- shiny::tabPanel("More than two groups", htmltools::br())
       tabs[[length(tabs) + 1]] <- shiny::tabPanel("Multiple Comparisons", htmltools::br())
+      # NOTE: theoretically, the return of n_groups == 2, prevents possible correlation tests. But I don't care
+      tabs[[length(tabs) + 1]] <- shiny::tabPanel("Correlation", htmltools::br())
       do.call(shiny::tabsetPanel, c(tabs, id = shiny::NS(id, "TestsConditionedPanels")))
     })
 
@@ -496,6 +500,48 @@ LinearMixedTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
 }
 
 # -----------------------------------------------------------------------------------
+# Server which renders the sidebar for correlation
+# -----------------------------------------------------------------------------------
+CorrelationTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
+  shiny::moduleServer(id, function(input, output, session) {
+    output[["SidebarTestsCorrelationUI"]] <- shiny::renderUI({
+      message <- check_correlation(DataModelState)
+      if (!is.null(message)) {
+        return(
+          info_div(message)
+        )
+      }
+      htmltools::div(
+        htmltools::br(),
+        shiny::sliderInput("TESTS-conflevel", "Confidence level of the interval",
+          min = 0, max = 1, value = 0.95
+        ),
+        shiny::selectInput(
+          "TESTS-alt", "Alternative hypothesis",
+          c(
+            "Two sided" = "two.sided",
+            "Less" = "less",
+            "Greater" = "greater"
+          )
+        ),
+        shiny::actionButton("TESTS-pear", "Pearson correlation",
+          title =
+          "Measures the linear relationship between two continuous variables. Assumes normal distribution and equal variance."
+        ),
+        shiny::actionButton("TESTS-spear", "Spearman correlation",
+          title =
+          "Measures the monotonic relationship between two variables using ranks. Suitable for ordinal data or non-linear relationships."
+        ),
+        shiny::actionButton("TESTS-kendall", "Kendall correlation",
+          title =
+          "Measures the strength of dependence between two variables based on rank concordance. Works well with small samples or tied ranks."
+        )
+      )
+    })
+  })
+}
+
+# -----------------------------------------------------------------------------------
 # Server which reacts on triggering run tests
 # -----------------------------------------------------------------------------------
 testsServer <- function(id, DataModelState, ResultsState) {
@@ -628,6 +674,35 @@ testsServer <- function(id, DataModelState, ResultsState) {
         print_err(err)
       }
     }
+
+    # --------------------------------------------------------------------------
+    # Correlation
+    # --------------------------------------------------------------------------
+    corr_fct <- function(method) {
+      print_req(is.data.frame(DataModelState$df), "The dataset is missing")
+      print_form(DataModelState$formula)
+      corr <- get_correlation()$new(DataModelState$df, DataModelState$formula,
+        method, input$alt, input$conflevel)
+      tryCatch(
+        {
+          corr$validate()
+          corr$eval(ResultsState)
+        },
+        error = function(err) {
+          err <- err$message
+          print_err(err)
+        }
+      )
+    }
+    shiny::observeEvent(input$pear, {
+      corr_fct("pearson")
+    })
+    shiny::observeEvent(input$spear, {
+      corr_fct("spearman")
+    })
+    shiny::observeEvent(input$kendall, {
+      corr_fct("kendall")
+    })
 
     shiny::observeEvent(input$pairwise_test, {
       conductPairwiseComparison()

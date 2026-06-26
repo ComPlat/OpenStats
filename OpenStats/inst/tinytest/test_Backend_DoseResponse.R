@@ -128,7 +128,7 @@ test_check_fit(10, 99, "continous")
 # Test ic50 internal
 test_ic50_internal <- function(ic50_true) {
   data <- simulate("A", 7, ic50_true, "continous")
-  res <- OpenStats:::ic_internal(data, 50, "abs", "conc", "substance", FALSE, FALSE, "M", "continuous")
+  res <- suppressWarnings(OpenStats:::ic_internal(data, 50, "abs", "conc", "substance", FALSE, FALSE, "M", "continuous"))
   res_df <- res[[1]]
   tol_percentage <- 0.1
   rel_error <- function(a, b) {
@@ -255,7 +255,7 @@ test_drawplot <- function() {
     data = df, fct = drc::LL.4(),
     robust = "median"
   )
-  valid_points <- OpenStats:::false_discovery_rate(model, "continuous")
+  valid_points <- suppressWarnings(OpenStats:::false_discovery_rate(model, "continuous"))
   model <- drc::drm(abs ~ conc,
     data = df,
     subset = valid_points,
@@ -280,26 +280,26 @@ test_drawplot <- function() {
   expect_true(inherits(layers[[3]]$geom, "GeomLine"))
   expect_true(inherits(layers[[4]]$geom, "GeomErrorbarh") || inherits(layers[[4]]$geom, "GeomErrorbar")) # GeomErrorbar for older ggplot2 versions
 
-  built <- ggplot2::ggplot_build(p)
+  built <- suppressMessages(ggplot2::ggplot_build(p))
   layers <- built$plot$layers[[1]]
   mapping <- layers$computed_mapping
   expect_equal(deparse(mapping$x), "~conc")
   expect_equal(deparse(mapping$y), "~abs")
   expect_equal(deparse(mapping$group), "~conc")
 
-  built <- ggplot2::ggplot_build(p)
+  built <- suppressMessages(ggplot2::ggplot_build(p))
   layers <- built$plot$layers[[2]]
   mapping <- layers$computed_mapping
   expect_equal(deparse(mapping$x), "~conc")
   expect_equal(deparse(mapping$y), "~abs")
 
-  built <- ggplot2::ggplot_build(p)
+  built <- suppressMessages(ggplot2::ggplot_build(p))
   layers <- built$plot$layers[[3]]
   mapping <- layers$computed_mapping
   expect_equal(deparse(mapping$x), "~conc")
   expect_equal(deparse(mapping$y), "~abs")
 
-  built <- ggplot2::ggplot_build(p)
+  built <- suppressMessages(ggplot2::ggplot_build(p))
   layers <- built$plot$layers[[4]]
   mapping <- layers$computed_mapping
   expect_equal(deparse(mapping$y), "~ymedian")
@@ -335,7 +335,7 @@ transform_conc_dr <- function(conc_col) {
 }
 test_transform_conc_dr <- function() {
   df <- data.frame(abs = runif(10), conc = "Bla", substance = 1L)
-  err <- OpenStats:::transform_conc_dr(df$conc)
+  err <- suppressWarnings(OpenStats:::transform_conc_dr(df$conc))
   expect_equal(err$error_message, "The concentration data cannot be converted to numerical")
 
   df <- data.frame(abs = runif(10), conc = "1.2", substance = 1L)
@@ -353,7 +353,7 @@ test_ic50 <- function() {
     names = c("A", "A", "A", "A", "A"),
     unit = "M"
   )
-  result <- OpenStats:::ic(data, 50, "abs", "conc", "names", "unit", FALSE, FALSE, "continuous")
+  result <- suppressWarnings(OpenStats:::ic(data, 50, "abs", "conc", "names", "unit", FALSE, FALSE, "continuous"))
   checks[[1]] <- expect_true(is.list(result))
   checks[[2]] <- expect_true(is.data.frame(result[[1]][[1]]))
   expect_true(all(unlist(checks)))

@@ -28,9 +28,6 @@ get_docu <- function(panel, DataModelState) {
   } else if (panel == "Assumption") {
     path <- docu_path("assumptions.html")
     title <- "Testing assumptions"
-  } else if (panel == "Correlation") {
-    path <- docu_path("correlation.html")
-    title <- "Correlation"
   } else if (panel == "Tests") {
     if (is.null(DataModelState$formula) || inherits(DataModelState$formula, "LinearFormula")) {
       path <- docu_path("tests.html")
