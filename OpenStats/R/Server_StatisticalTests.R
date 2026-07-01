@@ -505,6 +505,11 @@ LinearMixedTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
 CorrelationTestsUISidebarServer <- function(id, DataModelState, ResultsState) {
   shiny::moduleServer(id, function(input, output, session) {
     output[["SidebarTestsCorrelationUI"]] <- shiny::renderUI({
+      subtab <- input$TestsConditionedPanels
+      if (is.null(subtab)) return()
+      if (subtab != "Correlation") {
+        return()
+      }
       message <- check_correlation(DataModelState)
       if (!is.null(message)) {
         return(

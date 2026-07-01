@@ -230,14 +230,15 @@ one_swap_mahal <- function(swaps, perm, best_loss, X, blocks_i, P,
 # ---------------------------------------------------------------------
 greedy_optimize <- function(groups_inp, blocks, perm_init,
                             max_iter = 200L, tol = 1e-12, verbose = TRUE,
-                            ridge = 1e-8, loss_ast, loss_function, w = NULL) {
+                            ridge = 1e-8, loss_ast, loss_function, w = NULL,
+                            lambda_m2 = 1.0, lambda_cov = 1.0) {
 
   X <- as.matrix(normalize_df(groups_inp))
 
   C <- stats::cov(X)
   P <- solve(C + diag(ridge, ncol(X)))
 
-  if (is.null(w)) w <- rep(1.0, ncol(X))   # per-covariate weights (Default loss)
+  if (is.null(w)) w <- rep(1.0, ncol(X))
 
   blocks_i <- as.integer(factor(blocks))
   UNUSED <- -1L
@@ -249,8 +250,6 @@ greedy_optimize <- function(groups_inp, blocks, perm_init,
   storage.mode(swaps) <- "integer"
 
   perm <- as.integer(perm_init)
-  lambda_m2 <- 1.0
-  lambda_cov <- 1.0
   if (loss_function == "Default") {
     cur <- loss_ast(X, blocks_i, perm, lambda_m2, lambda_cov, w, UNUSED)
   } else if (loss_function == "Mahalanobis") {
@@ -285,7 +284,8 @@ greedy_optimize <- function(groups_inp, blocks, perm_init,
 
 random_finite_assign <- function(seed, groups, design, max_iter = 50L,
                                  ridge = 1e-8, loss_function = "Default",
-                                 verbose = TRUE, ids = NULL, w = NULL) {
+                                 verbose = TRUE, ids = NULL, w = NULL,
+                                 lambda_m2 = 1.0, lambda_cov = 1.0) {
   stopifnot(
     is.numeric(seed), length(seed) == 1L,
     is.data.frame(groups),
@@ -294,7 +294,9 @@ random_finite_assign <- function(seed, groups, design, max_iter = 50L,
     is.null(ids) || (length(ids) == nrow(groups)),
     is.numeric(ridge), length(ridge) == 1L,
     loss_function %in% c("Default", "Mahalanobis"),
-    is.null(w) || (is.numeric(w) && length(w) == ncol(groups))
+    is.null(w) || (is.numeric(w) && length(w) == ncol(groups)),
+    is.numeric(lambda_m2), length(lambda_m2) == 1L,
+    is.numeric(lambda_cov), length(lambda_cov) == 1L
   )
 
   if (loss_function == "Mahalanobis") {
@@ -316,7 +318,8 @@ random_finite_assign <- function(seed, groups, design, max_iter = 50L,
   perm_init <- sample.int(N)
   res <- greedy_optimize(groups, blocks, perm_init,
     max_iter = max_iter, tol = 1e-12, verbose = verbose, ridge = ridge,
-    loss_ast = loss_ast, loss_function = loss_function, w = w)
+    loss_ast = loss_ast, loss_function = loss_function, w = w,
+    lambda_m2 = lambda_m2, lambda_cov = lambda_cov)
 
   res$unit_index <- res$perm
   if (!is.null(ids)) {
