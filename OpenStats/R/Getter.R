@@ -104,6 +104,11 @@ get_visualisation_model <- function(version = VERSION) {
     `1.2` = visualisation_model_V1_2
   )[[version]]
 }
+get_hist <- function(version = VERSION) {
+  list(
+    `1.2` = hist_V1_2
+  )[[version]]
+}
 get_apply_filter <- function(version = VERSION) {
   list(
     `1.2` = apply_filter_V1_2

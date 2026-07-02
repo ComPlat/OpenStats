@@ -42,6 +42,18 @@ eval_entry_V1_2 <- function(entry, DataModelState,
       res$validate()
       res$eval(ResultsState)
     },
+    Histogram = {
+      res <- hist_V1_2$new(
+        df = DataModelState$df, y = entry$y, ylabel = entry[["Y axis label"]],
+        fill_var = entry[["Fill variable"]], fill_legend_title = entry[["Legend title for fill"]], fill_theme = entry[["Fill theme"]],
+        facet_var = entry[["Split by"]], facet_y_scaling = entry[["How to scale y in subplots"]],
+        frequency_or_density = entry[["Frequency or Density"]], bins = entry[["Number of Bins"]],
+        width = as.numeric(entry["Width"]), height = as.numeric(entry[["Height"]]), resolution = as.numeric(entry[["Resolution"]]),
+        com = backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
     VisualizationModel = {
       res <- visualisation_model_V1_2$new(
         df = DataModelState$df, DataModelState$formula, entry[["Layer"]]

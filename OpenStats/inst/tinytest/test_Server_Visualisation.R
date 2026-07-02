@@ -302,4 +302,114 @@ test_line <- function(app, srv, in_background) {
 }
 run_test(test_line)
 
+# Tests histogram
+# =============================================================================
+test_hist <- function(app, srv, in_background) {
+  options(OpenStats.background = in_background)
+  ex <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df <- CO2
+    session$setInputs(`conditionedPanels` = 'Visualisation')
+    session$setInputs(`VisConditionedPanels` = "Histograms")
+
+    session$setInputs(`VIS-yVar` = "uptake")
+    session$setInputs(`VIS-yaxisText` = "This is y")
+
+    session$setInputs(`VIS-fill` = "Type")
+    session$setInputs(`VIS-legendTitleFill` = "Filled by Type")
+    session$setInputs(`VIS-themeFill` = "BuGn")
+
+    session$setInputs(`VIS-facetBy` = "Treatment")
+    session$setInputs(`VIS-facetScales` = "free")
+
+    session$setInputs(`VIS-bins` = 20)
+    session$setInputs(`VIS-frequency_or_density` = "frequency")
+
+    session$setInputs(`VIS-widthPlot` = 11)
+    session$setInputs(`VIS-heightPlot` = 12)
+    session$setInputs(`VIS-resPlot` = 610)
+
+    session$setInputs(`VIS-CreatePlotHist` = 1)
+
+    t0 <- Sys.time()
+    l0 <- length(ResultsState$all_data)
+    repeat {
+      ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+      session$flushReact()
+
+      if (l0 < length(session$userData$export)) break
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 30) break
+
+      Sys.sleep(0.05)
+    }
+    ex <<- session$userData$export
+  })
+
+  built <- ggplot2::ggplot_build(ex[[1]]@p)
+  labels <- built$plot$labels
+  expect_equal(labels$y, "This is y")
+
+  layers <- built$plot$layers[[1]]
+  expect_true(inherits(layers$geom, "GeomBar"))
+
+  mapping <- layers$mapping
+  expect_equal("~.data[[\"uptake\"]]", deparse(mapping$x))
+  expect_equal("~.data[[\"Type\"]]", deparse(mapping$fill))
+
+  bl <- built$layout
+  expect_true(all(unlist(bl$facet_params$free))) # As "free" is set
+}
+run_test(test_hist)
+
+test_hist_density_no_fill <- function(app, srv, in_background) {
+  options(OpenStats.background = in_background)
+  ex <- NULL
+  shiny::testServer(srv, {
+    DataModelState$df <- CO2
+    session$setInputs(`conditionedPanels` = 'Visualisation')
+    session$setInputs(`VisConditionedPanels` = "Histograms")
+
+    session$setInputs(`VIS-yVar` = "uptake")
+    session$setInputs(`VIS-yaxisText` = "This is y")
+
+    session$setInputs(`VIS-fill` = "")
+    session$setInputs(`VIS-legendTitleFill` = "")
+    session$setInputs(`VIS-themeFill` = "BuGn")
+
+    session$setInputs(`VIS-facetBy` = "")
+    session$setInputs(`VIS-facetScales` = "free")
+
+    session$setInputs(`VIS-bins` = 20)
+    session$setInputs(`VIS-frequency_or_density` = "density")
+
+    session$setInputs(`VIS-widthPlot` = 11)
+    session$setInputs(`VIS-heightPlot` = 12)
+    session$setInputs(`VIS-resPlot` = 610)
+
+    session$setInputs(`VIS-CreatePlotHist` = 1)
+
+    t0 <- Sys.time()
+    l0 <- length(ResultsState$all_data)
+    repeat {
+      ResultsState$bgp$tick(ResultsState, DataModelState, DataWranglingState)
+      session$flushReact()
+
+      if (l0 < length(session$userData$export)) break
+      if (as.numeric(difftime(Sys.time(), t0, units = "secs")) > 30) break
+
+      Sys.sleep(0.05)
+    }
+    ex <<- session$userData$export
+  })
+
+  built <- ggplot2::ggplot_build(ex[[1]]@p)
+  layers <- built$plot$layers[[1]]
+  expect_true(inherits(layers$geom, "GeomDensity"))
+
+  mapping <- layers$mapping
+  expect_equal("~.data[[\"uptake\"]]", deparse(mapping$x))
+  expect_true(is.null(mapping$fill))
+}
+run_test(test_hist_density_no_fill)
+
 # TODO: test plot model

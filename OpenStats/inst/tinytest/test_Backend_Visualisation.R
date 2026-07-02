@@ -171,3 +171,71 @@ test_lineplot_fct <- function() {
   invisible(NULL)
 }
 test_lineplot_fct()
+
+test_hist_mapping <- function(p, expected_x, expected_fill = NULL) {
+  built <- ggplot2::ggplot_build(p)
+  mapping <- built$plot$layers[[1]]$computed_mapping
+  check1 <- expect_true(grepl(expected_x, deparse(mapping[["x"]])))
+  if (is.null(expected_fill)) {
+    check2 <- expect_true(!("fill" %in% names(mapping)))
+  } else {
+    check2 <- expect_true(grepl(expected_fill, deparse(mapping[["fill"]])))
+  }
+  expect_true(all(c(check1, check2)))
+}
+
+test_hist_panel <- function(p) {
+  built <- ggplot2::ggplot_build(p)
+  bl <- built$layout
+  expect_equal(as.character(bl$layout[1, 4]), "nonchilled")
+  expect_equal(as.character(bl$layout[2, 4]), "chilled")
+}
+
+test_histplot_fct <- function() {
+  base_p <- OpenStats:::env_plotting_V1_2$histplot_fct(
+    df = CO2, y = "uptake", yLabel = "",
+    fillVar = "", legendTitlefill = "", fillTheme = "BuGn",
+    facetVar = "", facetMode = "none", facetScales = "",
+    frequency_or_density = "frequency", bins = 30
+  )
+  filled_p <- OpenStats:::env_plotting_V1_2$histplot_fct(
+    df = CO2, y = "uptake", yLabel = "",
+    fillVar = "Type", legendTitlefill = "", fillTheme = "BuGn",
+    facetVar = "", facetMode = "none", facetScales = "",
+    frequency_or_density = "frequency", bins = 30
+  )
+  numeric_fill_p <- OpenStats:::env_plotting_V1_2$histplot_fct(
+    df = CO2, y = "uptake", yLabel = "",
+    fillVar = "conc", legendTitlefill = "", fillTheme = "BuGn",
+    facetVar = "", facetMode = "none", facetScales = "",
+    frequency_or_density = "frequency", bins = 30
+  )
+  density_p <- OpenStats:::env_plotting_V1_2$histplot_fct(
+    df = CO2, y = "uptake", yLabel = "",
+    fillVar = "", legendTitlefill = "", fillTheme = "BuGn",
+    facetVar = "", facetMode = "none", facetScales = "",
+    frequency_or_density = "density", bins = 30
+  )
+  all_p <- OpenStats:::env_plotting_V1_2$histplot_fct(
+    df = CO2, y = "uptake", yLabel = "",
+    fillVar = "Type", legendTitlefill = "", fillTheme = "BuGn",
+    facetVar = "Treatment", facetMode = "facet_wrap", facetScales = "free",
+    frequency_or_density = "frequency", bins = 30
+  )
+
+  test_layers(base_p, "GeomBar")
+  test_layers(filled_p, "GeomBar")
+  test_layers(numeric_fill_p, "GeomBar")
+  test_layers(density_p, "GeomDensity")
+  test_layers(all_p, "GeomBar")
+
+  test_hist_mapping(base_p, "uptake")
+  test_hist_mapping(filled_p, "uptake", "Type")
+  test_hist_mapping(numeric_fill_p, "uptake", "conc")
+  test_hist_mapping(density_p, "uptake")
+  test_hist_mapping(all_p, "uptake", "Type")
+
+  test_hist_panel(all_p)
+  invisible(NULL)
+}
+test_histplot_fct()

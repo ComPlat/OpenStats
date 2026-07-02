@@ -1,8 +1,6 @@
 install.packages("OpenStats", type = "source", repos = NULL)
 tinytest::test_package("OpenStats")
-arnings()
-tinytest::run_test_file("./OpenStats/inst/tinytest/test_Backend_TestHistory.R")
-tinytest::run_test_file("./OpenStats/inst/tinytest/test_Server_Assumptions.R")
+tinytest::run_test_file("./OpenStats/inst/tinytest/test_Server_Rendering.R")
 
 files <- list.files("OpenStats/R", full.names = TRUE)
 res <- lapply(files, tools::showNonASCII)

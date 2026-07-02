@@ -1,0 +1,78 @@
+[
+  {
+    "type": "Version",
+    "Nr": "1_2"
+  },
+  {
+    "type": "SetActiveTable",
+    "NewActiveTable": "df0"
+  },
+  {
+    "type": "Histogram",
+    "y": "uptake",
+    "Y axis label": "y label",
+    "Fill variable": "",
+    "Legend title for fill": "Title fill",
+    "Fill theme": "BuGn",
+    "Split by": "",
+    "Split in subplots": "none",
+    "How to scale y in subplots": "free",
+    "Frequency or Density": "frequency",
+    "Number of Bins": 30,
+    "Width": 10,
+    "Height": 10,
+    "Resolution": 300,
+    "Result name": "2 Histogram "
+  },
+  {
+    "type": "Histogram",
+    "y": "uptake",
+    "Y axis label": "y label",
+    "Fill variable": "Type",
+    "Legend title for fill": "Title fill",
+    "Fill theme": "BuGn",
+    "Split by": "",
+    "Split in subplots": "none",
+    "How to scale y in subplots": "free",
+    "Frequency or Density": "frequency",
+    "Number of Bins": 30,
+    "Width": 10,
+    "Height": 10,
+    "Resolution": 300,
+    "Result name": "3 Histogram "
+  },
+  {
+    "type": "Histogram",
+    "y": "uptake",
+    "Y axis label": "y label",
+    "Fill variable": "Type",
+    "Legend title for fill": "Title fill",
+    "Fill theme": "BuGn",
+    "Split by": "Treatment",
+    "Split in subplots": "facet_wrap",
+    "How to scale y in subplots": "free",
+    "Frequency or Density": "frequency",
+    "Number of Bins": 30,
+    "Width": 10,
+    "Height": 10,
+    "Resolution": 300,
+    "Result name": "4 Histogram "
+  },
+  {
+    "type": "Histogram",
+    "y": "uptake",
+    "Y axis label": "y label",
+    "Fill variable": "Type",
+    "Legend title for fill": "Title fill",
+    "Fill theme": "BuGn",
+    "Split by": "Treatment",
+    "Split in subplots": "facet_wrap",
+    "How to scale y in subplots": "free",
+    "Frequency or Density": "density",
+    "Number of Bins": 30,
+    "Width": 10,
+    "Height": 10,
+    "Resolution": 300,
+    "Result name": "5 Histogram "
+  }
+]

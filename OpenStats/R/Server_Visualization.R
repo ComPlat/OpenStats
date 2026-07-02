@@ -11,6 +11,9 @@ visServer <- function(id, DataModelState, ResultsState) {
     output[["CreatePlotLineUI"]] <- shiny::renderUI({
       shiny::actionButton("VIS-CreatePlotLine", "Create plot")
     })
+    output[["CreatePlotHistUI"]] <- shiny::renderUI({
+      shiny::actionButton("VIS-CreatePlotHist", "Create plot")
+    })
 
     # Render model plots
     output[["CreateModelBoxUI"]] <- shiny::renderUI({
@@ -45,6 +48,9 @@ visServer <- function(id, DataModelState, ResultsState) {
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       shiny::req(input$xVar)
+
+      vcp <- input$VisConditionedPanels
+      if(!is.null(vcp) && vcp == "Histograms") return()
       x <- input$xVar
       df <- DataModelState$df
       if (is.numeric(df[, x])) {
@@ -77,6 +83,8 @@ visServer <- function(id, DataModelState, ResultsState) {
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       shiny::req(input$yVar)
+      vcp <- input$VisConditionedPanels
+      if(!is.null(vcp) && vcp == "Histograms") return()
       y <- input$yVar
       df <- DataModelState$df
       if (is.numeric(df[, y])) {
@@ -105,8 +113,41 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       }
     })
+    output[["TypeXUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      vcp <- input$VisConditionedPanels 
+      if(!is.null(vcp) && vcp == "Histograms") return()
+      htmltools::div(
+        shiny::radioButtons("VIS-xType", "Type of x",
+          choices = c(
+            factor = "factor",
+            numeric = "numeric"
+          ),
+          selected = "factor"
+        ))
+    })
+    output[["ConstraintsUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      vcp <- input$VisConditionedPanels 
+      if(!is.null(vcp) && vcp == "Histograms") return()
+      htmltools::div(
+        shiny::uiOutput("VIS-TypeXUI"),
+        shiny::uiOutput("VIS-XRangeUI"),
+        shiny::uiOutput("VIS-YRangeUI"),
+        class = "boxed-output"
+      )
+    })
+
     # Render x and y shiny::selectInput
     output[["yVarUI"]] <- shiny::renderUI({
+      message <- check_visualization1(DataModelState)
+      if (!is.null(message)) {
+        return(
+          info_div(message)
+        )
+      }
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
       colnames <- names(DataModelState$df)
@@ -123,18 +164,15 @@ visServer <- function(id, DataModelState, ResultsState) {
           label = "Y Variable",
           choices = colnames[1:length(colnames)],
           selected = NULL
-        )
+        ),
+        shiny::textInput("VIS-yaxisText", "Y axis label", value = "y label")
       )
     })
     output[["xVarUI"]] <- shiny::renderUI({
-      message <- check_visualization1(DataModelState)
-      if (!is.null(message)) {
-        return(
-          info_div(message)
-        )
-      }
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
+      vcp <- input$VisConditionedPanels
+      if(!is.null(vcp) && vcp == "Histograms") return()
       colnames <- names(DataModelState$df)
       tooltip <- "Select the value of the X variable"
       htmltools::div(
@@ -149,12 +187,33 @@ visServer <- function(id, DataModelState, ResultsState) {
           label = "X Variable",
           choices = colnames[1:length(colnames)],
           selected = NULL
-        )
+        ),
+        shiny::textInput("VIS-xaxisText", "X axis label", value = "x label"),
       )
     })
+    output[["VariableUI"]] <- shiny::renderUI({
+      vcp <- input$VisConditionedPanels 
+      if(!is.null(vcp) && vcp == "Histograms") {
+        htmltools::div(
+          shiny::uiOutput("VIS-yVarUI"),
+          class = "boxed-output"
+        )
+      } else {
+        htmltools::div(
+          shiny::uiOutput("VIS-xVarUI"),
+          shiny::uiOutput("VIS-yVarUI"),
+          class = "boxed-output"
+        )
+      }
+    })
+
     output[["colUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
+
+      vcp <- input$VisConditionedPanels
+      if(!is.null(vcp) && vcp == "Histograms") return()
+
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Select a variable  for the colour variable. By chosing this groups are formed based on the unique entries in this column. Thereby, each entry gets its own colour to distinguish the groups. Dependent on the plot type either the lines, dots or the frame of the boxes are labelled"
       htmltools::div(
@@ -169,12 +228,30 @@ visServer <- function(id, DataModelState, ResultsState) {
           label = "Colour Variable",
           choices = colnames[1:length(colnames)],
           selected = character(0)
-        )
+        ),
+        shiny::textInput("VIS-legendTitleCol", "Legend title for colour", value = "Title colour"),
+        shiny::selectInput("VIS-theme", "Choose a 'colour' theme",
+          c(
+            "Accent" = "Accent",
+            "Dark2" = "Dark2",
+            "Paired" = "Paired",
+            "Pastel1" = "Pastel1",
+            "Pastel2" = "Pastel2",
+            "Set1" = "Set1",
+            "Set2" = "Set2",
+            "Set3" = "Set3"
+          ),
+          selectize = TRUE
+        ),
+        class = "boxed-output"
       )
     })
     output[["fillUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
+
+      vcp <- input$VisConditionedPanels
+      if(!is.null(vcp) && vcp %in% c("Lineplot", "Scatterplot")) return()
       colnames <- c("", names(DataModelState$df))
       tooltip <- "Select a variable  for the fill variable. By chosing this groups are formed based on the unique entries in this column. Thereby, each entry gets its own colour to distinguish the groups."
       htmltools::div(
@@ -189,9 +266,46 @@ visServer <- function(id, DataModelState, ResultsState) {
           label = "Fill Variable",
           choices = colnames[1:length(colnames)],
           selected = NULL
-        )
+        ),
+        shiny::textInput("VIS-legendTitleFill", "Legend title for fill", value = "Title fill"),
+        shiny::selectInput("VIS-themeFill", "Choose a 'fill' theme",
+          c(
+            "BuGn" = "BuGn",
+            "PuRd" = "PuRd",
+            "YlOrBr" = "YlOrBr",
+            "Greens" = "Greens",
+            "GnBu" = "GnBu",
+            "Reds" = "Reds",
+            "Oranges" = "Oranges",
+            "Greys" = "Greys"
+          ),
+          selectize = FALSE
+        ),
+        class = "boxed-output",
       )
     })
+    output[["histUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+
+      vcp <- input$VisConditionedPanels
+      if(!is.null(vcp) && vcp != "Histograms") return()
+      htmltools::div(
+        shiny::sliderInput(
+          "VIS-bins",
+          "Select number of bins:",
+          min = 1,
+          max = 100, # TODO: determine reasonanble max
+          value = 30
+        ),
+        shiny::radioButtons("VIS-frequency_or_density", "frequency or density",
+          choices = c(frequency = "frequency", density = "density"),
+          selected = "factor"
+        ),
+        class = "boxed-output"
+      )
+    })
+
     output[["facetByUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
@@ -212,7 +326,6 @@ visServer <- function(id, DataModelState, ResultsState) {
         )
       )
     })
-    # TODO: Why is this defined as shiny::renderUI?
     output[["facetScalesUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
@@ -234,6 +347,15 @@ visServer <- function(id, DataModelState, ResultsState) {
           ),
           selected = "free"
         )
+      )
+    })
+    output[["facetUI"]] <- shiny::renderUI({
+      shiny::req(!is.null(DataModelState$df))
+      shiny::req(is.data.frame(DataModelState$df))
+      htmltools::div(
+        shiny::uiOutput("VIS-facetByUI"),
+        shiny::uiOutput("VIS-facetScalesUI"),
+        class = "boxed-output"
       )
     })
 
@@ -273,6 +395,21 @@ visServer <- function(id, DataModelState, ResultsState) {
     shiny::observeEvent(input$CreatePlotLine, {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
       plotFct("line")
+    })
+
+    shiny::observeEvent(input$CreatePlotHist, {
+      print_req(is.data.frame(DataModelState$df), "The dataset is missing")
+      vis <- get_hist()$new(
+        df = DataModelState$df, y = input$yVar, ylabel = input$yaxisText,
+        fill_var = input$fill, fill_legend_title = input$legendTitleFill, fill_theme = input$themeFill,
+        facet_var = input$facetBy, facet_y_scaling = input$facetScales,
+        frequency_or_density = input$frequency_or_density, bins = input$bins,
+        width = input$widthPlot, height = input$heightPlot, resolution = input$resPlot
+      )
+      p <- try({
+        vis$validate()
+        pl <- vis$eval(ResultsState)
+      }, silent = TRUE)
     })
 
     # Plot model

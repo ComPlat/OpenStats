@@ -169,3 +169,44 @@ lineplot_fct <- function(df, x, y, xLabel, yLabel,
   return(p + ggplot2::theme(text = ggplot2::element_text(size = 20)))
 }
 env_plotting_V1_2$lineplot_fct <- lineplot_fct
+
+histplot_fct <- function(df, y, yLabel,
+                         fillVar, legendTitlefill, fillTheme,
+                         facetVar, facetMode, facetScales,
+                         frequency_or_density, bins) {
+  base_aes <- ggplot2::aes(x = .data[[y]])
+  aesfill <- NULL
+  p <- NULL
+  if (fillVar == "") {
+    aesfill <- ggplot2::aes()
+  } else {
+    if (is.numeric(df[[fillVar]])) {
+      aesfill <- ggplot2::aes(fill = factor(.data[[fillVar]]))
+    } else {
+      aesfill <- ggplot2::aes(fill = .data[[fillVar]])
+    }
+  }
+
+  if (frequency_or_density == "frequency") {
+    p <- ggplot2::ggplot() +
+      ggplot2::stat_bin(
+        data = df,
+        ggplot2::aes(!!!base_aes, !!!aesfill, group = !!!aesfill),
+        bins = bins
+      )
+  } else if (frequency_or_density == "density") {
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_density(
+        data = df,
+        ggplot2::aes(!!!base_aes, !!!aesfill, group = !!!aesfill)
+      )
+  }
+  p <- p + ggplot2::ylab(env_plotting_V1_2$parse_label(yLabel))
+  p <- p + ggplot2::guides(fill = ggplot2::guide_legend(title = env_plotting_V1_2$parse_label(legendTitlefill)))
+  if (fillVar != "") p <- p + ggplot2::scale_color_brewer(palette = fillTheme)
+  if (facetMode != "none") {
+    p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
+  }
+  return(p + ggplot2::theme(text = ggplot2::element_text(size = 20)))
+}
+env_plotting_V1_2$histplot_fct <- histplot_fct

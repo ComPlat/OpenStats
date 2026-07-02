@@ -244,6 +244,135 @@ test_vis_warn_size <- function(in_background) {
 }
 run_test(test_vis_warn_size)
 
+# Test hist_V1_2
+# =======================================================================================
+test_hist_all <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- CO2
+  outer_checks <- c()
+  for (fod in c("frequency", "density")) {
+    ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+    ResultsState$bgp$in_backend <- TRUE
+    DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+    checks <- c()
+    hist <- OpenStats:::hist_V1_2$new(
+      df = df,
+      y = "uptake",
+      ylabel = "y label",
+      fill_var = "Type",
+      fill_legend_title = "Title fill",
+      fill_theme = "BuGn",
+      facet_var = "Treatment",
+      facet_y_scaling = "free",
+      frequency_or_density = fod,
+      bins = 30,
+      width = 20,
+      height = 20,
+      resolution = 150,
+      com = OpenStats:::backend_communicator_V1_2
+    )
+    hist$validate()
+    hist$eval(ResultsState)
+    if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+    p <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+    # Basic checks
+    checks <- c(checks, expect_true(inherits(p, "plot")))
+    checks <- c(checks, expect_equal(length(ResultsState$all_data), 2))
+    checks <- c(checks, expect_equal(length(ResultsState$history), 1))
+
+    # History correctness
+    h <- ResultsState$history[[1]]
+    checks <- c(checks, expect_equal(h$type, "Histogram"))
+    checks <- c(checks, expect_equal(h$y, "uptake"))
+    checks <- c(checks, expect_equal(h[["Fill variable"]], "Type"))
+    checks <- c(checks, expect_equal(h[["Split by"]], "Treatment"))
+    checks <- c(checks, expect_equal(h[["Split in subplots"]], "facet_wrap"))
+    checks <- c(checks, expect_equal(h[["Frequency or Density"]], fod))
+
+    # Result name check
+    checks <- c(checks, expect_match(names(ResultsState$all_data)[[2]], "1 Histogram"))
+
+    outer_checks <- c(outer_checks, all(checks))
+  }
+  expect_true(all(outer_checks))
+}
+run_test(test_hist_all)
+
+test_hist_no_fill_no_facet <- function(in_background) {
+  options(OpenStats.background = in_background)
+  ib <- getOption("OpenStats.background", TRUE)
+  df <- CO2
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+
+  hist <- OpenStats:::hist_V1_2$new(
+    df = df,
+    y = "uptake",
+    ylabel = "y label",
+    fill_var = "",
+    fill_legend_title = "",
+    fill_theme = "BuGn",
+    facet_var = "",
+    facet_y_scaling = "free",
+    frequency_or_density = "frequency",
+    bins = 30,
+    width = 10,
+    height = 10,
+    resolution = 300,
+    com = OpenStats:::backend_communicator_V1_2
+  )
+  hist$validate()
+  hist$eval(ResultsState)
+  if(ib) OpenStats:::backend_get_result_V1_2(ResultsState)
+  p <- ResultsState$all_data[[length(ResultsState$all_data)]]
+
+  check1 <- expect_true(inherits(p, "plot"))
+  h <- ResultsState$history[[1]]
+  check2 <- expect_equal(h[["Split in subplots"]], "none")
+  checks <- c(check1, check2)
+  expect_true(all(checks))
+}
+run_test(test_hist_no_fill_no_facet)
+
+test_hist_warn_size <- function() {
+  options(OpenStats.background = FALSE)
+  df <- CO2
+  ResultsState <- OpenStats:::backend_result_state_V1_2$new(list(df))
+  ResultsState$bgp$in_backend <- TRUE
+  DataModelState <- OpenStats:::backend_data_model_state_V1_2$new(df)
+  hist <- OpenStats:::hist_V1_2$new(
+    df = CO2, y = "uptake", ylabel = "y",
+    fill_var = "", fill_legend_title = "", fill_theme = "BuGn",
+    facet_var = "", facet_y_scaling = "free",
+    frequency_or_density = "frequency", bins = 30,
+    width = -5, height = 200, resolution = 72,
+    com = OpenStats:::backend_communicator_V1_2
+  )
+  hist$validate()
+  check1 <- expect_equal(hist$width, 10)
+  check2 <- expect_equal(hist$height, 100)
+  expect_true(all(c(check1, check2)))
+}
+test_hist_warn_size()
+
+test_hist_invalid_frequency_or_density <- function() {
+  options(OpenStats.background = FALSE)
+  df <- CO2
+  hist <- OpenStats:::hist_V1_2$new(
+    df = df, y = "uptake", ylabel = "y label",
+    fill_var = "", fill_legend_title = "", fill_theme = "BuGn",
+    facet_var = "", facet_y_scaling = "free",
+    frequency_or_density = "bogus", bins = 30,
+    width = 10, height = 10, resolution = 300,
+    com = OpenStats:::backend_communicator_V1_2
+  )
+  expect_error(hist$validate())
+}
+test_hist_invalid_frequency_or_density()
+
 # Plot model
 # =======================================================================================
 test_plot_model <- function(in_background) {

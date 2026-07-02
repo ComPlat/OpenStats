@@ -9,6 +9,7 @@ test_rendering_formula_editor <- function(app, srv) {
   checks <- c()
   shiny::testServer(srv, {
     DataModelState$df <- CO2
+    session$setInputs(`VisConditionedPanels` = "LinePlot")
     session$setInputs(`FO-model_type` = "Linear")
     session$flushReact()
 

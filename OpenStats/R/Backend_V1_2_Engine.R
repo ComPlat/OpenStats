@@ -522,7 +522,7 @@ visualisation_V1_2 <- R6::R6Class(
               }
             },
             warning = function(warn) {
-              com$print_warn(warn$message)
+              self$com$print_warn(warn$message)
               invokeRestart("muffleWarning")
             }
           )
@@ -612,6 +612,130 @@ visualisation_model_V1_2 <- R6::R6Class(
           self$com$print_warn(warn$message)
           invokeRestart("muffleWarning")
         }
+      )
+    }
+  )
+)
+hist_V1_2 <- R6::R6Class(
+  "hist_V1_2",
+  public = list(
+    com = NULL,
+    df = NULL,
+    y = NULL,
+    ylabel = NULL,
+    fill_var = NULL,
+    fill_legend_title = NULL,
+    fill_theme = NULL,
+    facet_var = NULL,
+    facet_mode = NULL,
+    facet_y_scaling = NULL,
+    frequency_or_density = NULL,
+    bins = NULL,
+    width = NULL,
+    height = NULL,
+    resolution = NULL,
+    col_names = NULL,
+
+    initialize = function(df, y, ylabel,
+                          fill_var, fill_legend_title, fill_theme,
+                          facet_var, facet_y_scaling,
+                          frequency_or_density, bins,
+                          width, height, resolution,
+                          com = communicator_V1_2) {
+      self$com <- com$new()
+
+      # User input
+      self$df <- df
+      self$y <- y
+      self$ylabel <- ylabel
+      self$fill_var <- fill_var
+      self$fill_legend_title <- fill_legend_title
+      self$fill_theme <- fill_theme
+      self$facet_var <- facet_var
+      self$facet_y_scaling <- facet_y_scaling
+      self$frequency_or_density <- frequency_or_density
+      self$bins <- bins
+      self$width <- width
+      self$height <- height
+      self$resolution <- resolution
+      # Additional information based on user input
+      self$facet_mode <- "none"
+      if (self$facet_var != "") {
+        self$facet_mode <- "facet_wrap"
+      }
+      self$col_names <- names(self$df)
+      self$com = com$new()
+    },
+    validate = function() {
+      # Run first checks:
+      if (self$width < 0) {
+        self$com$print_warn("width has to be a positive number; It is set to 10 cm")
+        self$width <- 10
+      }
+      if (self$height < 0) {
+        self$com$print_warn("height has to be a positive number; It is set to 10 cm")
+        self$height <- 10
+      }
+      if (self$width > 100) {
+        self$com$print_warn("width exceeds max value of 100 cm; It is changed to 100 cm")
+        self$width <- 100
+      }
+      if (self$height > 100) {
+        self$com$print_warn("height exceeds max value of 100 cm; It is changed to 100 cm")
+        self$height <- 100
+      }
+      if (is.null(self$frequency_or_density) || !(self$frequency_or_density %in% c("frequency", "density"))) {
+        self$com$print_warn("You have to set either frequency or density")
+        stop("You have to set either frequency or density")
+      }
+    },
+    eval = function(ResultsState) {
+      new_result_name <- paste0(ResultsState$counter + 1, " Histogram ")
+      promise_history_entry <- self$create_history(new_result_name)
+      ResultsState$bgp$start(
+        fun = function(df, y, ylabel,
+                       fill_var, fill_legend_title, fill_theme,
+                       facet_var, facet_mode, facet_y_scaling,
+                       frequency_or_density, bins,
+                       width, height, resolution) {
+          withCallingHandlers(
+            {
+              p <- OpenStats:::env_plotting_V1_2$histplot_fct(
+                df, y, ylabel,
+                fill_var, fill_legend_title, fill_theme,
+                facet_var, facet_mode, facet_y_scaling,
+                frequency_or_density, bins
+              )
+            },
+            warning = function(warn) {
+              self$com$print_warn(warn$message)
+              invokeRestart("muffleWarning")
+            }
+          )
+          ggplot2::ggplot_build(p) # NOTE: invokes errors and warnings by building but not rendering plot
+          new("plot", p = p, width = width, height = height, resolution = resolution)
+        },
+        args = list(
+          self$df, self$y, self$ylabel,
+          self$fill_var, self$fill_legend_title, self$fill_theme,
+          self$facet_var, self$facet_mode, self$facet_y_scaling,
+          self$frequency_or_density, self$bins,
+          self$width, self$height, self$resolution
+        ),
+        promise_result_name = new_result_name,
+        promise_history_entry = promise_history_entry,
+        in_background = FALSE, ResultsState
+      )
+    },
+    create_history = function(new_result_name) {
+      list(
+        type = "Histogram",
+        y = self$y, "Y axis label" = self$ylabel,
+        "Fill variable" = self$fill_var, "Legend title for fill" = self$fill_legend_title, "Fill theme" = self$fill_theme,
+        "Split by" = self$facet_var, "Split in subplots" = self$facet_mode, "How to scale y in subplots" = self$facet_y_scaling,
+        "Frequency or Density" = self$frequency_or_density, "Number of Bins" = self$bins,
+        Width = self$width, Height = self$height, Resolution = self$resolution,
+        "Result name" = new_result_name
       )
     }
   )

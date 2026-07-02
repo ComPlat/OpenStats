@@ -577,3 +577,52 @@ expected <- {
   res
 }
 expect_equal(result[[6]], expected)
+
+# Test Histograms
+# ========================================================================================
+CO2 <- read.csv(paste0(test_data_dir, "/CO2.csv"))
+result <- load_and_eval_history(files[13], CO2)
+history <- result$ResultsState$history
+result <- result$ResultsState$all_data
+
+expect_true(
+  length(result) == 5,
+  info = "Histograms"
+)
+expect_true(
+  inherits(result[[2]], "plot"),
+  info = "Histogram frequency, no fill, no facet"
+)
+expect_true(
+  inherits(result[[3]], "plot"),
+  info = "Histogram frequency, fill"
+)
+expect_true(
+  inherits(result[[4]], "plot"),
+  info = "Histogram frequency, fill, facet"
+)
+expect_true(
+  inherits(result[[5]], "plot"),
+  info = "Histogram density, fill, facet"
+)
+
+expect_true(
+  all(vapply(history[-1], function(h) h$type == "Histogram", logical(1))),
+  info = "All Histogram entries are of type Histogram"
+)
+expect_equal(
+  history[[2]][["Fill variable"]], "",
+  info = "First histogram has no fill variable"
+)
+expect_equal(
+  history[[3]][["Fill variable"]], "Type",
+  info = "Second histogram is filled by Type"
+)
+expect_equal(
+  history[[4]][["Split by"]], "Treatment",
+  info = "Third histogram is split by Treatment"
+)
+expect_equal(
+  history[[5]][["Frequency or Density"]], "density",
+  info = "Fourth histogram uses density"
+)
