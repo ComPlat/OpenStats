@@ -300,7 +300,7 @@ visServer <- function(id, DataModelState, ResultsState) {
         ),
         shiny::radioButtons("VIS-frequency_or_density", "frequency or density",
           choices = c(frequency = "frequency", density = "density"),
-          selected = "factor"
+          selected = "frequency"
         ),
         class = "boxed-output"
       )

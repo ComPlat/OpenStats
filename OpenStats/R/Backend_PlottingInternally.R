@@ -175,10 +175,17 @@ histplot_fct <- function(df, y, yLabel,
                          facetVar, facetMode, facetScales,
                          frequency_or_density, bins) {
   base_aes <- ggplot2::aes(x = .data[[y]])
+  is_density <- frequency_or_density == "density"
   aesfill <- NULL
   p <- NULL
   if (fillVar == "") {
     aesfill <- ggplot2::aes()
+  } else if (is_density) {
+    if (is.numeric(df[[fillVar]])) {
+      aesfill <- ggplot2::aes(colour = factor(.data[[fillVar]]))
+    } else {
+      aesfill <- ggplot2::aes(colour = .data[[fillVar]])
+    }
   } else {
     if (is.numeric(df[[fillVar]])) {
       aesfill <- ggplot2::aes(fill = factor(.data[[fillVar]]))
@@ -191,22 +198,28 @@ histplot_fct <- function(df, y, yLabel,
     p <- ggplot2::ggplot() +
       ggplot2::stat_bin(
         data = df,
-        ggplot2::aes(!!!base_aes, !!!aesfill, group = !!!aesfill),
+        ggplot2::aes(!!!base_aes, !!!aesfill),
         bins = bins
       )
   } else if (frequency_or_density == "density") {
     p <- ggplot2::ggplot() +
       ggplot2::geom_density(
         data = df,
-        ggplot2::aes(!!!base_aes, !!!aesfill, group = !!!aesfill)
+        ggplot2::aes(!!!base_aes, !!!aesfill),
+        linewidth = 1
       )
   }
   p <- p + ggplot2::ylab(env_plotting_V1_2$parse_label(yLabel))
-  p <- p + ggplot2::guides(fill = ggplot2::guide_legend(title = env_plotting_V1_2$parse_label(legendTitlefill)))
-  if (fillVar != "") p <- p + ggplot2::scale_color_brewer(palette = fillTheme)
+  if (is_density) {
+    p <- p + ggplot2::guides(colour = ggplot2::guide_legend(title = env_plotting_V1_2$parse_label(legendTitlefill)))
+    if (fillVar != "") p <- p + ggplot2::scale_color_brewer(palette = fillTheme)
+  } else {
+    p <- p + ggplot2::guides(fill = ggplot2::guide_legend(title = env_plotting_V1_2$parse_label(legendTitlefill)))
+    if (fillVar != "") p <- p + ggplot2::scale_fill_brewer(palette = fillTheme)
+  }
   if (facetMode != "none") {
     p <- env_plotting_V1_2$add_facet(p, facetVar, facetMode, facetScales)
   }
-  return(p + ggplot2::theme(text = ggplot2::element_text(size = 20)))
+  return(p + ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 20)))
 }
 env_plotting_V1_2$histplot_fct <- histplot_fct
