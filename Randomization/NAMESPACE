@@ -1,4 +1,8 @@
 export(calc_n_one_way_anova)
+export(calc_n_two_sample_ttest)
+export(determine_sample_size)
+export(estimate_sample_size)
 export(random_assign)
 export(random_finite_assign)
 importFrom("pwr", "pwr.anova.test")
+importFrom("pwr", "pwr.t.test")
