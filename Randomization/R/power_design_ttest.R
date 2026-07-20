@@ -19,12 +19,9 @@ calc_n_two_sample_ttest <- function(predictors, primary_factor, cohens_d, sig_le
     is.numeric(desired_power), length(desired_power) == 1L
   )
 
-  # ---- build design for the t-test ----
   n_per_level <- calc_n_block_two_sample_ttest(cohens_d, sig_level, desired_power)
 
   other_factors <- predictors[setdiff(names(predictors), primary_factor)]
   combos_per_level <- if (length(other_factors) == 0L) 1L else prod(vapply(other_factors, length, integer(1)))
-  n_per_combo <- ceiling(n_per_level / combos_per_level)
-
-  completely_randomised_design(predictors, n_per_combo)
+  ceiling(n_per_level / combos_per_level)
 }

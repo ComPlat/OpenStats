@@ -192,8 +192,19 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
 
     cancel = function() {
       shiny::req(!is.null(self$process), self$process$is_alive())
+      # Actually kill the process (and any children it spawned) now, rather
+      # than just flagging cancel_clicked=TRUE for tick() to notice: tick()
+      # only acts once the process is no longer alive, so the previous
+      # behaviour waited for the computation to finish naturally before
+      # doing anything -- the button didn't save any time.
+      self$process$kill_tree()
       self$running_status <- "Canceled"
-      self$cancel_clicked <- TRUE
+      self$is_running <- FALSE
+      self$process <- NULL
+      self$promise_result_name <- NULL
+      self$promise_history_entry <- NULL
+      self$result_val <- NULL
+      self$enable()
     },
 
     get_result = function() self$result_val

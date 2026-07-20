@@ -1,0 +1,5 @@
+if (!grepl("R", getwd())) setwd("OpenDOE/R")
+options(shiny.launch.browser = TRUE)
+files <- list.files(".")
+trash <- lapply(files, source)
+opendoe()

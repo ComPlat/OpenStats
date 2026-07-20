@@ -80,18 +80,20 @@ estimate_sample_size <- function(means, sds,
 # -------------------------------------------------------------------------------
 # Monte Carlo: anova
 # -------------------------------------------------------------------------------
-define_grid <- function(levels, means, cv, interactions) {
+define_grid <- function(levels, means, cv = NULL, sd = NULL, interactions) {
+  stopifnot(xor(is.null(cv), is.null(sd)))
+
   grid <- expand.grid(levels)
-  means <- lapply(means, function(m) { # Using relative values
-    m / m[[1L]]
-  })
   ncols <- ncol(grid)
-  grid$mean <- 1.0
+  baseline <- means[[1L]][[1L]]
+
+  grid$mean <- baseline
   for (c in seq_len(ncols)) {
     grid_col <- grid[[c]]
     mean_col <- means[[c]]
     levels_col <- levels[[c]]
-    grid$mean <- grid$mean * mean_col[match(grid_col, levels_col)]
+    deviation <- mean_col - mean_col[[1L]] # 0 at this factor's own baseline level
+    grid$mean <- grid$mean + deviation[match(grid_col, levels_col)]
   }
   grid$interaction <- 1.0
   for (i in seq_along(interactions)) {
@@ -99,7 +101,7 @@ define_grid <- function(levels, means, cv, interactions) {
     grid$interaction[idx] <- grid$interaction[idx] * interactions[[i]]$value
   }
   grid$mean <- grid$mean * grid$interaction
-  grid$sd <- grid$mean * cv
+  grid$sd <- if (!is.null(cv)) grid$mean * cv else sd
   grid
 }
 
@@ -138,11 +140,11 @@ simulate_successful_data <- function(grid, n, n_covariates, formula, alphas, max
 }
 
 determine_sample_size <- function(
-  levels, means, cv, interactions, formula, alphas, power_target, seed,
+  levels, means, cv = NULL, sd = NULL, interactions, formula, alphas, power_target, seed,
   nsim = 10000L, n_min = 3L, n_max = 50L
 ) {
   alphas <- unlist(alphas)
-  grid <- define_grid(levels, means, cv, interactions)
+  grid <- define_grid(levels, means, cv = cv, sd = sd, interactions = interactions)
   n_covariates <- length(levels)
 
   est_power <- function(grid, n, n_covariates, formula, alphas) {

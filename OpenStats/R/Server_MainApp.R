@@ -24,7 +24,9 @@ app <- function() {
       history = list(),
       counter = 0,
       bgp = bgp,
-      registered_pagers = character()
+      registered_pagers = character(),
+      registered_removers = character(),
+      registered_results = character()
     )
 
     DataWranglingState <- shiny::reactiveValues(

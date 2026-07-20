@@ -55,8 +55,8 @@ anova_test <- function() {
     desired_power = 0.8
   )
   checks <- logical(2)
-  checks[[1]] <- expect_true(is.data.frame(res))
-  checks[[2]] <- expect_equal(names(res), c("cellLines", "Treatment", "id"))
+  checks[[1]] <- expect_true(is.numeric(res))
+  checks[[2]] <- expect_true(res >= 1)
   expect_true(all(checks))
 }
 anova_test()

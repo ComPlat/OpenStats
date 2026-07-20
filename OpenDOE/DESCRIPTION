@@ -1,0 +1,16 @@
+Package: OpenDOE
+Type: Package
+Title: Design of Experiments, sample size calculation, and random assignment
+Version: 0.1
+Date: 2025-11-27
+Authors@R: person(given = "Krämer",
+    family = "Konrad",
+    role = c("aut", "cre"),
+    email = "konrad.kraemer@kit.edu")
+Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
+Description: Design of Experiments, sample size calculation, and random assignment
+License: GPL-3
+Depends: R (>= 4.1.0)
+Imports: Randomization, shiny, DT, R6, callr, methods, htmltools, jsonlite, openxlsx
+Suggests: tinytest
+Encoding: UTF-8

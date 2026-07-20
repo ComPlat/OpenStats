@@ -1,5 +1,6 @@
 export(calc_n_one_way_anova)
 export(calc_n_two_sample_ttest)
+export(completely_randomised_design)
 export(determine_sample_size)
 export(estimate_sample_size)
 export(random_assign)
