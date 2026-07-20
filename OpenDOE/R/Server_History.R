@@ -1,15 +1,9 @@
-# jsonlite drops names from a *named atomic vector* (it serialises as a bare
-# JSON array), but keeps them from a named *list* (serialises as a JSON
-# object) -- so every named vector in params must become a named list before
-# toJSON(), or e.g. means = c(A = 0, B = 1) round-trips back with no names.
 to_json_safe <- function(x) {
   if (is.list(x)) return(lapply(x, to_json_safe))
   if (!is.null(names(x))) return(as.list(x))
   x
 }
 
-# formula/call objects (mc_anova's `formula` and `interactions[[i]]$mask`)
-# aren't JSON-representable; stash them as their deparsed text instead.
 serialize_params <- function(type, params) {
   if (identical(type, "mc_anova")) {
     params$formula <- format(params$formula)
@@ -21,32 +15,118 @@ serialize_params <- function(type, params) {
   to_json_safe(params)
 }
 
-format_param_value <- function(v) {
-  if (is.null(v)) return("NULL")
-  if (is.list(v)) {
-    if (is.null(names(v))) return(paste(vapply(v, format_param_value, character(1)), collapse = "; "))
-    return(paste(vapply(names(v), function(n) paste0(n, "=[", format_param_value(v[[n]]), "]"), character(1)), collapse = ", "))
-  }
-  paste(format(v), collapse = ", ")
+deserialize_params <- function(type, params) {
+  switch(type,
+    ttest = list(
+      predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
+      primary_factor = as.character(params$primary_factor),
+      cohens_d = as.numeric(params$cohens_d),
+      sig_level = as.numeric(params$sig_level),
+      desired_power = as.numeric(params$desired_power)
+    ),
+    anova = list(
+      predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
+      primary_factor = as.character(params$primary_factor),
+      cohens_f = as.numeric(params$cohens_f),
+      sig_level = as.numeric(params$sig_level),
+      desired_power = as.numeric(params$desired_power)
+    ),
+    predictor_table = list(
+      predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
+      predictor_types = unlist(params$predictor_types)
+    ),
+    mc = list(
+      means = unlist(params$means),
+      sds = unlist(params$sds),
+      power_target = as.numeric(params$power_target),
+      alpha = as.numeric(params$alpha),
+      mcc = as.character(params$mcc),
+      family = as.character(params$family),
+      nsim = as.numeric(params$nsim),
+      n_min = as.numeric(params$n_min),
+      n_max = as.numeric(params$n_max),
+      seed = as.numeric(params$seed)
+    ),
+    mc_anova = list(
+      levels = lapply(params$levels, function(v) as.character(unlist(v))),
+      means = lapply(params$means, unlist),
+      cv = if (is.null(params$cv)) NULL else as.numeric(params$cv),
+      sd = if (is.null(params$sd)) NULL else as.numeric(params$sd),
+      interactions = lapply(params$interactions, function(it) {
+        list(mask = str2lang(it$mask), value = as.numeric(it$value))
+      }),
+      formula = stats::as.formula(params$formula),
+      alphas = unlist(params$alphas),
+      power_target = as.numeric(params$power_target),
+      seed = as.numeric(params$seed),
+      nsim = as.numeric(params$nsim),
+      n_min = as.numeric(params$n_min),
+      n_max = as.numeric(params$n_max)
+    ),
+    design = list(
+      predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
+      n_per_level = as.integer(params$n_per_level)
+    ),
+    params
+  )
 }
 
-build_history_row <- function(id, entry) {
-  row_id <- paste0("HISTORY-history-row-", id)
-  params_text <- paste(
-    vapply(names(entry$params), function(k) paste0(k, " = ", format_param_value(entry$params[[k]])), character(1)),
-    collapse = " | "
-  )
-  htmltools::div(
-    id = row_id,
-    class = "doe-box",
-    htmltools::strong(paste0(id, " ", entry$label)),
-    htmltools::tags$p(paste("Time:", entry$time)),
-    htmltools::tags$p(params_text)
+replay_history_entry <- function(State, entry) {
+  p <- entry$params
+  switch(entry$type,
+    ttest = State$bgp$start(
+      fun = run_two_sample_ttest, args = p,
+      on_success = function(res) {
+        State$n_per_level <- res
+        add_result(State, "ttest", "Power analysis: t-test (replay)", p, methods::new("sampleSizeResult", n = res))
+      }
+    ),
+    anova = State$bgp$start(
+      fun = run_one_way_anova, args = p,
+      on_success = function(res) {
+        State$n_per_level <- res
+        add_result(State, "anova", "Power analysis: ANOVA (replay)", p, methods::new("sampleSizeResult", n = res))
+      }
+    ),
+    predictor_table = State$bgp$start(
+      fun = build_predictor_df, args = p,
+      on_success = function(df) {
+        add_result(State, "predictor_table", "Predictor table (replay)", p, methods::new("predictorTable", df = df))
+      }
+    ),
+    mc = State$bgp$start(
+      fun = run_estimate_sample_size, args = p,
+      on_success = function(res) {
+        if (is.na(res$n)) {
+          print_err(res$message)
+          return(invisible())
+        }
+        State$n_per_level <- res$n
+        add_result(State, "mc", "Monte Carlo: multiple comparison (replay)", p, methods::new("sampleSizeResult", n = res$n))
+      }
+    ),
+    mc_anova = State$bgp$start(
+      fun = run_determine_sample_size, args = p,
+      on_success = function(res) {
+        if (is.na(res$n)) {
+          print_err(res$message)
+          return(invisible())
+        }
+        State$n_per_level <- res$n
+        add_result(State, "mc_anova", "Monte Carlo: ANOVA (replay)", p, methods::new("sampleSizeResult", n = res$n))
+      }
+    ),
+    design = State$bgp$start(
+      fun = run_completely_randomised_design, args = p,
+      on_success = function(res) {
+        label <- paste0("Design of experiment (n=", p$n_per_level, ") (replay)")
+        add_result(State, "design", label, p, methods::new("designResult", df = res))
+      }
+    ),
+    print_warn(paste("Cannot replay this entry type:", entry$type))
   )
 }
 
-# Builds the history-entry list shape used by the Excel export's trailing
-# JSON block and the "History" tab display.
 history_entries_list <- function(State) {
   stats::setNames(
     lapply(State$history, function(entry) {
@@ -60,35 +140,6 @@ history_entries_list <- function(State) {
 historyServer <- function(id, State) {
   shiny::moduleServer(id, function(input, output, session) {
 
-    output$header <- shiny::renderUI({
-      if (length(State$history) == 0L) return(shiny::tags$p("No history yet."))
-      shiny::tags$h4("History")
-    })
-
-    # Insert a row only for entries not yet added, instead of rebuilding the
-    # whole list on every new entry.
-    shiny::observe({
-      if (length(State$history) == 0L) return()
-      all_ids <- names(State$history)
-      already <- State$registered_history
-      to_add  <- setdiff(all_ids, already)
-      if (!length(to_add)) return()
-
-      lapply(to_add, function(hist_id) {
-        entry <- State$history[[hist_id]]
-        shiny::insertUI(
-          selector = "#HISTORY-history-container",
-          where = "afterBegin",
-          ui = build_history_row(hist_id, entry)
-        )
-      })
-
-      State$registered_history <- union(already, to_add)
-    })
-
-    # Save: one Excel sheet, results in chronological order (each with its
-    # label as a title), history JSON appended at the end -- mirrors
-    # OpenStats' Server_export_results.R / create_excel_file().
     output$save_history <- shiny::downloadHandler(
       filename = function() paste0("opendoe_session_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".xlsx"),
       content = function(file) {
@@ -104,5 +155,47 @@ historyServer <- function(id, State) {
         unlink(fn)
       }
     )
+
+    shiny::observeEvent(input$replay_json, {
+      raw <- try(jsonlite::fromJSON(input$history_json, simplifyVector = FALSE), silent = TRUE)
+      if (inherits(raw, "try-error") || !is.list(raw)) {
+        print_err("Could not parse history JSON")
+        return(invisible())
+      }
+      queued <- lapply(raw, function(e) {
+        list(type = e$type, label = e$label, params = deserialize_params(e$type, e$params))
+      })
+      State$replay_queue <- c(State$replay_queue, queued)
+      State$history_replay_running <- TRUE
+    })
+
+    shiny::observe({
+      shiny::invalidateLater(250)
+      if (isTRUE(State$bgp$running)) return()
+      if (length(State$replay_queue) == 0L) {
+        State$history_replay_running <- FALSE
+        return()
+      }
+      queue <- State$replay_queue
+      entry <- queue[[1]]
+      State$replay_queue <- queue[-1]
+      replay_history_entry(State, entry)
+    })
+
+    output$replay_status <- shiny::renderUI({
+      if (isTRUE(State$history_replay_running)) {
+        shiny::tags$div(
+          class = "doe-box",
+          shiny::tags$p("Replaying history..."),
+          shiny::actionButton("HISTORY-cancel_replay", "Cancel", class = "btn-danger")
+        )
+      }
+    })
+
+    shiny::observeEvent(input$cancel_replay, {
+      State$replay_queue <- list()
+      State$bgp$cancel()
+      State$history_replay_running <- FALSE
+    }, ignoreInit = TRUE)
   })
 }

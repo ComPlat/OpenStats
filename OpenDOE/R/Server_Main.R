@@ -10,14 +10,21 @@ app <- function() {
       mc_running = FALSE,
       results = list(),
       counter = 0L,
-      history = list()
+      history = list(),
+      finite_assign_running = FALSE,
+      replay_queue = list(),
+      history_replay_running = FALSE
     )
     bgp <- bg_process$new()
     State$bgp <- bgp
     bgp$init()
 
+    dataServer("DATA", State)
     predictorsServer("PREDICTORS", State)
     sampleSizeServer("SAMPLESIZE", State)
+    designServer("DESIGN", State)
+    randomAssignServer("RANDOMASSIGN", State)
+    finiteAssignServer("FINITEASSIGN", State)
     resultsListServer("RESULTS", State)
     historyServer("HISTORY", State)
 

@@ -229,7 +229,7 @@ one_swap_mahal <- function(swaps, perm, best_loss, X, blocks_i, P,
 # Optimizer
 # ---------------------------------------------------------------------
 greedy_optimize <- function(groups_inp, blocks, perm_init,
-                            max_iter = 200L, tol = 1e-12, verbose = TRUE,
+                            max_iter = 200L, tol = 1e-12, verbose = FALSE,
                             ridge = 1e-8, loss_ast, loss_function, w = NULL,
                             lambda_m2 = 1.0, lambda_cov = 1.0) {
 
@@ -284,7 +284,7 @@ greedy_optimize <- function(groups_inp, blocks, perm_init,
 
 random_finite_assign <- function(seed, groups, design, max_iter = 50L,
                                  ridge = 1e-8, loss_function = "Default",
-                                 verbose = TRUE, ids = NULL, w = NULL,
+                                 verbose = FALSE, ids = NULL, w = NULL,
                                  lambda_m2 = 1.0, lambda_cov = 1.0) {
   stopifnot(
     is.numeric(seed), length(seed) == 1L,

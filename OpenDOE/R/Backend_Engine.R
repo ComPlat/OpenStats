@@ -1,6 +1,3 @@
-# Message reporting is injected rather than called globally, so bg_process
-# can be exercised outside a live Shiny session (e.g. in tests) without
-# needing shiny::showNotification()/a reactive domain to exist.
 communicator <- R6::R6Class("communicator",
   public = list(
     print_warn = NULL,
@@ -68,13 +65,6 @@ bg_process <- R6::R6Class("bg_process",
       invisible(NULL)
     },
 
-    # Actually kills the running process (kill_tree(), so any children it
-    # spawned die too) immediately -- unlike OpenStats' bg_process_V1_2$cancel(),
-    # which historically only set a flag for tick() to notice once the
-    # process had already finished naturally, so it never actually saved
-    # any time (fixed there too, see Backend_V1_2_Engine.R). Cleanup and the
-    # caller's on_finally run synchronously here, not on the next tick() --
-    # nulling self$process makes tick() a no-op for this job from then on.
     cancel = function() {
       if (is.null(self$process) || !self$process$is_alive()) return(invisible(NULL))
 
@@ -94,9 +84,6 @@ bg_process <- R6::R6Class("bg_process",
       on_success <- self$on_success
       on_finally <- self$on_finally
 
-      # com$print_err() may itself raise (backend_communicator uses stop()),
-      # so cleanup + on_finally run in `finally` -- they must not depend on
-      # print_err()/on_success() returning normally.
       tryCatch({
         res <- tryCatch(self$process$get_result(), error = function(e) e)
         err_output <- self$process$read_error()

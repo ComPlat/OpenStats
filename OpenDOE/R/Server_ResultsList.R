@@ -1,11 +1,20 @@
 build_result_box <- function(id, value) {
   box_id <- paste0("RESULTS-result-box-", id)
   label  <- attr(value, "label")
-  if (inherits(value, "predictorTable")) {
+  if (inherits(value, setdiff(df_result_classes, "finiteAssignmentResult"))) {
     htmltools::div(
       id = box_id,
       class = "doe-box",
       htmltools::strong(label),
+      DT::DTOutput(paste0("RESULTS-res_", id)),
+      shiny::actionButton(paste0("RESULTS-remove_", id), "Remove", class = "btn-danger")
+    )
+  } else if (inherits(value, "finiteAssignmentResult")) {
+    htmltools::div(
+      id = box_id,
+      class = "doe-box",
+      htmltools::strong(label),
+      htmltools::tags$p(paste("Loss:", format(value@loss))),
       DT::DTOutput(paste0("RESULTS-res_", id)),
       shiny::actionButton(paste0("RESULTS-remove_", id), "Remove", class = "btn-danger")
     )
@@ -36,8 +45,6 @@ resultsListServer <- function(id, State) {
       shiny::tags$h4("Results")
     })
 
-    # Insert a box (+ wire its output/remove button) only for results not yet
-    # added, instead of rebuilding the whole list on every new result.
     shiny::observe({
       if (length(State$results) == 0L) return()
       all_ids <- names(State$results)
@@ -57,6 +64,10 @@ resultsListServer <- function(id, State) {
         if (inherits(value, "predictorTable")) {
           output[[paste0("res_", result_id)]] <- DT::renderDT(
             DT::datatable(value@df, options = list(dom = "t", paging = FALSE), rownames = FALSE)
+          )
+        } else if (inherits(value, df_result_classes)) {
+          output[[paste0("res_", result_id)]] <- DT::renderDT(
+            DT::datatable(value@df, options = list(pageLength = 10), rownames = FALSE)
           )
         } else if (inherits(value, "sampleSizeResult")) {
           output[[paste0("res_", result_id)]] <- shiny::renderPrint(value@n)

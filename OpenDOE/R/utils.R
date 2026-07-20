@@ -67,6 +67,25 @@ any_duplicates <- function(levels) {
   any(duplicated(levels))
 }
 
+parse_ratios <- function(ratios_raw) {
+  parts <- trimws(strsplit(ratios_raw, ",")[[1]])
+  parts <- parts[parts != ""]
+  ratios <- suppressWarnings(as.numeric(parts))
+  if (anyNA(ratios)) {
+    print_warn("Ratios must be numeric")
+    return(numeric(0))
+  }
+  ratios
+}
+
+df_result_choices <- function(State, classes = df_result_classes) {
+  ids <- names(State$results)
+  matching <- ids[vapply(State$results, function(v) inherits(v, classes), logical(1))]
+  if (length(matching) == 0L) return(character(0))
+  labels <- vapply(matching, function(id) attr(State$results[[id]], "label"), character(1))
+  stats::setNames(matching, labels)
+}
+
 build_predictor_df <- function(predictors, predictor_types) {
   if (length(predictors) == 0L) return(data.frame())
   max_len <- max(vapply(predictors, length, integer(1)))
@@ -80,16 +99,6 @@ build_predictor_df <- function(predictors, predictor_types) {
   df
 }
 
-# Results (and their matching history entry) are append-only: each call adds
-# a new, counter-keyed entry and never overwrites a previous one. The counter
-# (never decremented/reused) is used as the list key/DOM id since it's
-# guaranteed unique and safe for Shiny ids, unlike free-text labels which may
-# contain characters (":") that break Shiny's id/type protocol; the label is
-# kept as a display-only attribute.
-#
-# `type` + `params` record exactly how `value` was produced (the arguments
-# passed to the underlying Randomization:: call), so the exported History
-# (JSON) block documents the exact computation behind every saved result.
 add_result <- function(State, type, label, params, value) {
   State$counter <- State$counter + 1L
   id <- as.character(State$counter)

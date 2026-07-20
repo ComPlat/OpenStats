@@ -51,7 +51,6 @@ estimate_sample_size <- function(means, sds,
   }
 
   est_power <- function(n, means, sds, groups, alpha) {
-    print(paste("Current n: ", n))
     set.seed(seed + n)
     mean(replicate(nsim, one_run_success(n, means, sds, groups, alpha)))
   }
@@ -148,7 +147,6 @@ determine_sample_size <- function(
   n_covariates <- length(levels)
 
   est_power <- function(grid, n, n_covariates, formula, alphas) {
-    print(paste("Current n: ", n))
     set.seed(seed + n)
     mean(replicate(nsim, run_anova(grid, n, n_covariates, formula, alphas)))
   }

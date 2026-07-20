@@ -6,6 +6,8 @@ predictor_combinations <- function(predictors) {
 sampleSizeServer <- function(id, State) {
   shiny::moduleServer(id, function(input, output, session) {
 
+    # Power analysis
+    # ======================================================================
     power_analysis_sidebar <- function() {
       n_predictors <- length(State$predictors)
       if (n_predictors == 0L || n_predictors > 2L) {
@@ -13,12 +15,10 @@ sampleSizeServer <- function(id, State) {
           "Power analysis is only available for one or two predictors."
         ))
       }
-
       predictor_names <- names(State$predictors)
       primary <- input$primary_factor
       if (is.null(primary) || !(primary %in% predictor_names)) primary <- predictor_names[[1]]
       n_levels <- length(State$predictors[[primary]])
-
       shiny::tagList(
         shiny::selectInput(
           "SAMPLESIZE-primary_factor", "Primary factor",
@@ -46,22 +46,20 @@ sampleSizeServer <- function(id, State) {
       )
     }
 
+    # Monte Carlo: multiple comparisons
+    # ======================================================================
     mc_multiple_comparison_sidebar <- function() {
       if (length(State$predictors) == 0L) {
         return(shiny::tags$p("Define at least one predictor first."))
       }
-
       predictor_names <- names(State$predictors)
       selected <- input$selected_predictors
       selected <- selected[selected %in% predictor_names]
       if (length(selected) == 0L) selected <- predictor_names
-
       combo_labels <- predictor_combinations(State$predictors[selected])
       default_n <- length(combo_labels)
-
       n_groups <- input$n_groups
       if (is.null(n_groups) || is.na(n_groups) || n_groups < 1L) n_groups <- default_n
-
       group_inputs <- lapply(seq_len(n_groups), function(i) {
         default_label <- if (i <= length(combo_labels)) combo_labels[[i]] else paste("Group", i)
         shiny::fluidRow(
@@ -70,7 +68,6 @@ sampleSizeServer <- function(id, State) {
           shiny::column(4, shiny::numericInput(paste0("SAMPLESIZE-group_sd_", i), "SD", value = 1, min = 0))
         )
       })
-
       shiny::tagList(
         shiny::selectInput(
           "SAMPLESIZE-selected_predictors", "Predictors",
@@ -100,13 +97,13 @@ sampleSizeServer <- function(id, State) {
       )
     }
 
+    # Monte Carlo: ANOVA
+    # ======================================================================
     mc_anova_sidebar <- function() {
       if (length(State$predictors) == 0L) {
         return(shiny::tags$p("Define at least one predictor first."))
       }
-
       predictor_names <- names(State$predictors)
-
       mean_inputs <- lapply(predictor_names, function(pred) {
         levels <- State$predictors[[pred]]
         level_inputs <- lapply(levels, function(lvl) {
@@ -118,7 +115,6 @@ sampleSizeServer <- function(id, State) {
           shiny::fluidRow(level_inputs)
         )
       })
-
       sd_model <- input$sd_model
       if (is.null(sd_model)) sd_model <- "cv"
       sd_input <- if (sd_model == "sd") {
@@ -127,12 +123,14 @@ sampleSizeServer <- function(id, State) {
         shiny::numericInput("SAMPLESIZE-cv", "Coefficient of variation", value = 0.25, step = 0.05, min = 0)
       }
 
+      interaction_possible <- FALSE
+      if (length(State$predictors) >= 2L) interaction_possible <- TRUE
+
       interaction_a <- input$interaction_a
       interaction_b <- input$interaction_b
       interaction_choices <- c("(none)", predictor_names)
       if (is.null(interaction_a)) interaction_a <- "(none)"
       if (is.null(interaction_b)) interaction_b <- "(none)"
-
       interaction_grid <- NULL
       if (interaction_a != "(none)" && interaction_b != "(none)" && interaction_a != interaction_b) {
         levels_a <- State$predictors[[interaction_a]]
@@ -154,6 +152,18 @@ sampleSizeServer <- function(id, State) {
         )
       }
 
+      interaction_UI <- NULL
+      if (interaction_possible) {
+        interaction_UI <- htmltools::div(
+          shiny::tags$hr(),
+          shiny::tags$strong("Interaction (optional, 2-way only)"),
+          shiny::fluidRow(
+            shiny::column(6, shiny::selectInput("SAMPLESIZE-interaction_a", "Predictor A", choices = interaction_choices, selected = interaction_a)),
+            shiny::column(6, shiny::selectInput("SAMPLESIZE-interaction_b", "Predictor B", choices = interaction_choices, selected = interaction_b))
+          )
+        )
+      }
+
       shiny::tags$div(
         class = "doe-box",
         shiny::h4("Monte Carlo: anova (main effects only)"),
@@ -165,13 +175,10 @@ sampleSizeServer <- function(id, State) {
           selected = sd_model
         ),
         sd_input,
-        shiny::tags$hr(),
-        shiny::tags$strong("Interaction (optional, 2-way only)"),
-        shiny::fluidRow(
-          shiny::column(6, shiny::selectInput("SAMPLESIZE-interaction_a", "Predictor A", choices = interaction_choices, selected = interaction_a)),
-          shiny::column(6, shiny::selectInput("SAMPLESIZE-interaction_b", "Predictor B", choices = interaction_choices, selected = interaction_b))
-        ),
+
+        interaction_UI,
         interaction_grid,
+
         shiny::tags$hr(),
         shiny::numericInput("SAMPLESIZE-sig_level_mc_anova", "Significance level", value = 0.05, step = 0.01),
         shiny::numericInput("SAMPLESIZE-power_target_mc_anova", "Desired power", value = 0.8, step = 0.05),
@@ -194,6 +201,8 @@ sampleSizeServer <- function(id, State) {
       }
     })
 
+    # React to run tests
+    # ======================================================================
     shiny::observeEvent(input$calc_ttest, {
       params <- list(
         predictors = State$predictors,
@@ -211,6 +220,8 @@ sampleSizeServer <- function(id, State) {
       add_result(State, "ttest", "Power analysis: t-test", params, methods::new("sampleSizeResult", n = res))
     })
 
+    # Power analysis
+    # ======================================================================
     shiny::observeEvent(input$calc_anova, {
       params <- list(
         predictors = State$predictors,
@@ -228,6 +239,8 @@ sampleSizeServer <- function(id, State) {
       add_result(State, "anova", "Power analysis: ANOVA", params, methods::new("sampleSizeResult", n = res))
     })
 
+    # Multiple comparison
+    # ======================================================================
     shiny::observeEvent(input$calc_mc, {
       n_groups <- input$n_groups
       if (is.null(n_groups) || is.na(n_groups) || n_groups < 2L) {
@@ -269,6 +282,8 @@ sampleSizeServer <- function(id, State) {
       )
     })
 
+    # Monte carlo ANOVA
+    # ======================================================================
     shiny::observeEvent(input$calc_mc_anova, {
       predictor_names <- names(State$predictors)
 
@@ -340,6 +355,8 @@ sampleSizeServer <- function(id, State) {
       )
     })
 
+    # show state and offer cancel
+    # ======================================================================
     output$result_box <- shiny::renderUI({
       if (isTRUE(State$mc_running)) {
         shiny::tags$div(

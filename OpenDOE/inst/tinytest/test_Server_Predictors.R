@@ -35,7 +35,7 @@ test_add_predictor_table_to_results <- function(srv) {
   checks <- logical(0)
   shiny::testServer(srv, {
     session$setInputs(`PREDICTORS-add_to_results` = 1)
-    checks[1] <<- length(State$results) == 0L # nothing defined yet, rejected
+    checks[1] <<- length(State$results) == 0L
 
     session$setInputs(`PREDICTORS-predictor_name` = "dose")
     session$setInputs(`PREDICTORS-predictor_levels` = "low,high")
