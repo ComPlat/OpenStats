@@ -4,16 +4,29 @@ finiteAssignServer <- function(id, State) {
     # parameter for finite groups assignment
     # ======================================================================
     output$assign_controls <- shiny::renderUI({
-      choices <- df_result_choices(State)
-      if (length(choices) == 0L) {
-        return(shiny::tags$p("Import a dataset in the \"Data\" tab, or build a design in the \"Design of experiment\" tab, first."))
+      design_choices <- df_result_choices(State, classes = c("designResult", "assignmentResult"))
+      if (length(design_choices) == 0L) {
+        return(shiny::tags$p("Build a design in the \"Design of experiment\" tab first."))
       }
+
+      groups_choices <- df_result_choices(State)
+      if (length(groups_choices) == 0L) {
+        return(shiny::tags$p("Import a dataset in the \"Data\" tab first."))
+      }
+
+      groups_source <- input$groups_source
+      if (is.null(groups_source) || !(groups_source %in% groups_choices)) groups_source <- groups_choices[[1]]
+      groups_cols <- names(State$results[[groups_source]]@df)
 
       shiny::tags$div(
         class = "doe-box",
         shiny::h4("Finite group assignment"),
-        shiny::selectInput("FINITEASSIGN-groups_source", "Covariate dataset (numeric columns only)", choices = choices),
-        shiny::selectInput("FINITEASSIGN-design_source", "Design (created in OpenDOE or imported)", choices = choices),
+        shiny::selectInput("FINITEASSIGN-groups_source", "Covariate dataset", choices = groups_choices, selected = groups_source),
+        shiny::selectInput(
+          "FINITEASSIGN-id_col", "ID column (identifies each physical unit, e.g. animal/sample ID)",
+          choices = groups_cols
+        ),
+        shiny::selectInput("FINITEASSIGN-design_source", "Design", choices = design_choices),
         shiny::selectInput(
           "FINITEASSIGN-loss_function", "Loss function",
           choices = c("Default" = "Default", "Mahalanobis" = "Mahalanobis")
@@ -46,9 +59,22 @@ finiteAssignServer <- function(id, State) {
         print_err("Select a covariate dataset first")
         return(invisible())
       }
-      groups_df <- State$results[[groups_id]]@df
+      groups_df_full <- State$results[[groups_id]]@df
+
+      id_col <- input$id_col
+      if (is.null(id_col) || id_col == "" || !(id_col %in% names(groups_df_full))) {
+        print_err("Select the ID column of the covariate dataset")
+        return(invisible())
+      }
+      ids <- groups_df_full[[id_col]]
+      groups_df <- groups_df_full[, setdiff(names(groups_df_full), id_col), drop = FALSE]
+
+      if (ncol(groups_df) == 0L) {
+        print_err("The covariate dataset needs at least one column besides the ID column")
+        return(invisible())
+      }
       if (!all(vapply(groups_df, is.numeric, logical(1)))) {
-        print_err("Covariate dataset must have numeric columns only")
+        print_err("Covariate dataset must have numeric columns only (besides the ID column)")
         return(invisible())
       }
 
@@ -65,7 +91,7 @@ finiteAssignServer <- function(id, State) {
       }
 
       params <- list(
-        groups_id = groups_id, design_id = design_id, max_iter = input$max_iter,
+        groups_id = groups_id, id_col = id_col, design_id = design_id, max_iter = input$max_iter,
         loss_function = input$loss_function, seed = input$seed
       )
 
@@ -73,7 +99,7 @@ finiteAssignServer <- function(id, State) {
       State$bgp$start(
         fun = run_random_finite_assign,
         args = list(
-          seed = input$seed, groups = groups_df, design = design_df,
+          seed = input$seed, groups = groups_df, design = design_df, ids = ids,
           max_iter = input$max_iter, loss_function = input$loss_function
         ),
         on_success = function(res) {

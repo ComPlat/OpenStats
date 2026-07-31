@@ -1,10 +1,29 @@
 main_ui <- function() {
   shiny::fluidPage(
     shiny::tags$head(
-      shiny::includeCSS(system.file("www/styles.css", package = "OpenDOE"))
+      shiny::includeCSS(system.file("www/styles.css", package = "OpenDOE")),
+      shiny::tags$script(shiny::HTML(
+        "function doeShowDoc(el) {
+           var box = document.getElementById('diagram-docs');
+           if (box) box.innerHTML = el.getAttribute('data-doc');
+         }"
+      ))
     ),
     shiny::titlePanel("OpenDOE"),
-    shiny::downloadButton("HISTORY-save_history", "Save results & history"),
+    htmltools::div(
+      shiny::downloadButton("HISTORY-save_history", "Save results & history"),
+      shiny::actionLink("goto_data", "Import data", style = "margin-left: 15px;"),
+      shiny::actionLink("goto_history", "History", style = "margin-left: 15px;")
+    ),
+
+    htmltools::div(
+      class = "doe-diagram-wrapper",
+      shiny::uiOutput("diagram"),
+      htmltools::div(
+        id = "diagram-docs", class = "doe-diagram-docs",
+        "Hover over a step to see what it does."
+      )
+    ),
 
     shiny::sidebarLayout(
       shiny::sidebarPanel(
@@ -36,10 +55,6 @@ main_ui <- function() {
       shiny::mainPanel(
         shiny::tabsetPanel(
           shiny::tabPanel(
-            "Data",
-            dataMainUI("DATA")
-          ),
-          shiny::tabPanel(
             "Predictors",
             predictorsMainUI("PREDICTORS")
           ),
@@ -58,6 +73,10 @@ main_ui <- function() {
           shiny::tabPanel(
             "Finite group assignment",
             finiteAssignMainUI("FINITEASSIGN")
+          ),
+          shiny::tabPanel(
+            "Data",
+            dataMainUI("DATA")
           ),
           shiny::tabPanel(
             "History",

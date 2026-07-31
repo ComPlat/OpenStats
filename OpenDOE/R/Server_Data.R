@@ -2,7 +2,7 @@ dataServer <- function(id, State) {
   shiny::moduleServer(id, function(input, output, session) {
     shiny::observeEvent(input$upload, {
       file <- input$upload
-      df <- try(utils::read.csv(file$datapath, stringsAsFactors = FALSE, check.names = FALSE), silent = TRUE)
+      df <- try(utils::read.csv(file$datapath, sep = ",", stringsAsFactors = FALSE, check.names = FALSE), silent = TRUE)
       if (inherits(df, "try-error")) {
         print_err("Could not read CSV file")
         return(invisible())

@@ -6,23 +6,10 @@ block_sizes_ok <- function(grouping, n_groups) {
 randomAssignServer <- function(id, State) {
   shiny::moduleServer(id, function(input, output, session) {
 
-    # dataset import
-    # ======================================================================
-    output$df_box <- shiny::renderUI({
-      choices <- df_result_choices(State)
-      if (length(choices) == 0L) return(shiny::tags$p("Import a dataset in the \"Data\" tab first."))
-      shiny::tags$div(class = "doe-box", DT::DTOutput("RANDOMASSIGN-df_table"))
-    })
-
-    output$df_table <- DT::renderDT({
-      shiny::req(!is.null(input$df_source), input$df_source %in% names(State$results))
-      DT::datatable(State$results[[input$df_source]]@df, options = list(pageLength = 10), rownames = FALSE)
-    })
-
     # set parameter for random assignment of infinite groups
     # ======================================================================
     output$assign_controls <- shiny::renderUI({
-      choices <- df_result_choices(State)
+      choices <- df_result_choices(State, classes = "designResult")
       if (length(choices) == 0L) return(NULL)
 
       df_source <- input$df_source

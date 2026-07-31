@@ -1,7 +1,23 @@
 # -------------------------------------------------------------------------------
-# Monte Carlo: multiple comparison
+# Pairwise test functions -- each takes the two groups' raw values and
+# returns a single p-value. Passed into estimate_sample_size() below as
+# `test_fn` instead of duplicating the whole Monte Carlo search (means/sds
+# handling, mcc, family, bisection) once per test: t-Test (Student), Welch
+# t-Test and the Wilcoxon rank-sum test only ever differed in this one call.
 # -------------------------------------------------------------------------------
-estimate_sample_size <- function(means, sds,
+pairwise_t_test <- function(x, z) stats::t.test(x, z, var.equal = TRUE)$p.value
+pairwise_welch_t_test <- function(x, z) stats::t.test(x, z, var.equal = FALSE)$p.value
+pairwise_wilcoxon_test <- function(x, z) stats::wilcox.test(x, z)$p.value
+
+# -------------------------------------------------------------------------------
+# Monte Carlo: pairwise comparisons + multiple comparison correction. Which
+# test runs is entirely down to `test_fn` (see the three functions above,
+# or supply your own). Works whether "groups" is 2 groups (reduces to a
+# single pairwise comparison, mcc/family become no-ops) or many (e.g. every
+# level-combination of >1 predictor) -- pairwise comparisons don't care how
+# many predictors produced the group labels, unlike an omnibus test.
+# -------------------------------------------------------------------------------
+estimate_sample_size <- function(means, sds, test_fn,
                                  power_target = 0.80, alpha = 0.05,
                                  mcc, family, nsim = 2000, n_min = 2,
                                  n_max = 500, seed = 42) {
@@ -29,7 +45,7 @@ estimate_sample_size <- function(means, sds,
     p_raw <- vapply(pairs, function(pr) {
       x <- df$y[df$predictors == pr[1]]
       z <- df$y[df$predictors == pr[2]]
-      t.test(x, z, var.equal = FALSE)$p.value
+      test_fn(x, z)
     }, numeric(1))
 
     # MCC
@@ -79,27 +95,20 @@ estimate_sample_size <- function(means, sds,
 # -------------------------------------------------------------------------------
 # Monte Carlo: anova
 # -------------------------------------------------------------------------------
-define_grid <- function(levels, means, cv = NULL, sd = NULL, interactions) {
+# mu: one mean per design cell, in the same order as expand.grid(levels)
+# produces (first factor varies fastest) -- same convention as
+# Superpower::ANOVA_design's `mu`. No more baseline + additive per-factor
+# deviation + multiplicative interaction correction: that parameterization
+# entangled main effects and interactions in a nonstandard, hard-to-reason-
+# about way. Direct cell means are unambiguous -- what you type is the
+# effect you're simulating.
+define_grid <- function(levels, mu, cv = NULL, sd = NULL) {
   stopifnot(xor(is.null(cv), is.null(sd)))
 
   grid <- expand.grid(levels)
-  ncols <- ncol(grid)
-  baseline <- means[[1L]][[1L]]
+  stopifnot(length(mu) == nrow(grid))
 
-  grid$mean <- baseline
-  for (c in seq_len(ncols)) {
-    grid_col <- grid[[c]]
-    mean_col <- means[[c]]
-    levels_col <- levels[[c]]
-    deviation <- mean_col - mean_col[[1L]] # 0 at this factor's own baseline level
-    grid$mean <- grid$mean + deviation[match(grid_col, levels_col)]
-  }
-  grid$interaction <- 1.0
-  for (i in seq_along(interactions)) {
-    idx <- with(grid, eval(interactions[[i]]$mask))
-    grid$interaction[idx] <- grid$interaction[idx] * interactions[[i]]$value
-  }
-  grid$mean <- grid$mean * grid$interaction
+  grid$mean <- mu
   grid$sd <- if (!is.null(cv)) grid$mean * cv else sd
   grid
 }
@@ -114,24 +123,39 @@ simulate_data <- function(grid, n, n_covariates) {
   out
 }
 
-run_anova <- function(grid, n, n_covariates, formula, alphas) {
-  sim <- simulate_data(grid, n, n_covariates)
+# Term names as they come out of an aov summary table use ":" for
+# interactions (e.g. "CO2:genotype"); alphas/target_effect use "_"
+# (e.g. "CO2_genotype") since ":" isn't convenient in list names.
+term_pvalues <- function(sim, formula) {
+  tab <- summary(aov(formula, data = sim))[[1L]]
+  term_names <- gsub(":", "_", trimws(rownames(tab)))
+  ps <- stats::setNames(tab[, "Pr(>F)"], term_names)
+  ps[!is.na(ps)]
+}
+
+factorize_covariates <- function(sim, n_covariates) {
   for (c in seq_len(n_covariates)) {
     sim[, c] <- factor(sim[, c])
   }
-  tab <- summary(aov(formula, data = sim))[[1L]]
-  ps <- tab[, "Pr(>F)"]
-  ps <- ps[!is.na(ps)]
-  all(ps <= alphas)
+  sim
 }
 
-simulate_successful_data <- function(grid, n, n_covariates, formula, alphas, max_tries = 1000L) {
+# One hit/miss per effect (main effect or interaction), not a single
+# all-effects-significant criterion -- power is defined per effect, same
+# as Superpower::ANOVA_power does it, since different effects (e.g. an
+# interaction vs. a main effect) generally need different n to detect at
+# a given power.
+run_anova <- function(grid, n, n_covariates, formula, alphas) {
+  sim <- factorize_covariates(simulate_data(grid, n, n_covariates), n_covariates)
+  ps <- term_pvalues(sim, formula)
+  ps <= alphas[names(ps)]
+}
+
+simulate_successful_data <- function(grid, n, n_covariates, formula, alphas, target_effect, max_tries = 1000L) {
   for (i in seq_len(max_tries)) {
-    sim <- simulate_data(grid, n, n_covariates)
-    tab <- summary(aov(formula, data = sim))[[1L]]
-    ps <- tab[, "Pr(>F)"]
-    ps <- ps[!is.na(ps)]
-    if (all(ps <= alphas)) {
+    sim <- factorize_covariates(simulate_data(grid, n, n_covariates), n_covariates)
+    ps <- term_pvalues(sim, formula)
+    if (isTRUE(ps[[target_effect]] <= alphas[[target_effect]])) {
       return(sim)
     }
   }
@@ -139,29 +163,116 @@ simulate_successful_data <- function(grid, n, n_covariates, formula, alphas, max
 }
 
 determine_sample_size <- function(
-  levels, means, cv = NULL, sd = NULL, interactions, formula, alphas, power_target, seed,
+  levels, mu, cv = NULL, sd = NULL, formula, alphas,
+  target_effect, power_target, seed,
   nsim = 10000L, n_min = 3L, n_max = 50L
 ) {
   alphas <- unlist(alphas)
-  grid <- define_grid(levels, means, cv = cv, sd = sd, interactions = interactions)
+  stopifnot(target_effect %in% names(alphas))
+  grid <- define_grid(levels, mu, cv = cv, sd = sd)
   n_covariates <- length(levels)
 
-  est_power <- function(grid, n, n_covariates, formula, alphas) {
+  est_power <- function(n) {
     set.seed(seed + n)
-    mean(replicate(nsim, run_anova(grid, n, n_covariates, formula, alphas)))
+    hits_list <- lapply(seq_len(nsim), function(i) run_anova(grid, n, n_covariates, formula, alphas))
+    hits <- matrix(unlist(hits_list), nrow = length(hits_list[[1L]]),
+      dimnames = list(names(hits_list[[1L]]), NULL))
+    rowMeans(hits)
   }
 
-  p_min <- est_power(grid, n_min, n_covariates, formula, alphas)
-  if (p_min >= power_target) {
-    se_power <- sqrt(p_min * (1 - p_min) / nsim)
+  p_min <- est_power(n_min)
+  if (p_min[[target_effect]] >= power_target) {
+    se_power <- sqrt(p_min[[target_effect]] * (1 - p_min[[target_effect]]) / nsim)
     return(
-      list(n = n_min, power = p_min, power_se = se_power,
-        data = simulate_successful_data(grid, n_min, n_covariates, formula, alphas)
+      list(n = n_min, power = p_min[[target_effect]], power_by_effect = p_min, power_se = se_power,
+        data = simulate_successful_data(grid, n_min, n_covariates, formula, alphas, target_effect)
       )
     )
   }
 
-  p_max <- est_power(grid, n_max, n_covariates, formula, alphas)
+  p_max <- est_power(n_max)
+  if (p_max[[target_effect]] < power_target) {
+    return(list(n = NA_integer_, power = p_max[[target_effect]], power_by_effect = p_max,
+      power_se = NA_real_, data = NA,
+      message = "Target power not reached within n_max; increase n_max or adjust assumptions."))
+  }
+
+  lo <- n_min
+  hi <- n_max
+  while (lo + 1 < hi) {
+    mid <- floor((lo + hi) / 2)
+    p_mid <- est_power(mid)
+    if (p_mid[[target_effect]] >= power_target) hi <- mid else lo <- mid
+  }
+
+  p_hi <- est_power(hi)
+  se_power <- sqrt(p_hi[[target_effect]] * (1 - p_hi[[target_effect]]) / nsim)
+  list(
+    n = hi, power = p_hi[[target_effect]], power_by_effect = p_hi, power_se = se_power,
+    data = simulate_successful_data(grid, hi, n_covariates, formula, alphas, target_effect)
+  )
+}
+
+# -------------------------------------------------------------------------------
+# One-way omnibus test functions -- each takes the simulated values and the
+# group factor and returns a single p-value. Injected into
+# determine_sample_size_one_way() below the same way the pairwise tests are
+# injected into estimate_sample_size() above.
+# -------------------------------------------------------------------------------
+kruskal_test <- function(values, group) stats::kruskal.test(values, group)$p.value
+welch_anova_test <- function(values, group) stats::oneway.test(values ~ group, var.equal = FALSE)$p.value
+
+# -------------------------------------------------------------------------------
+# Monte Carlo: one-way omnibus test (single predictor only -- neither
+# Kruskal-Wallis nor Welch's ANOVA have a clean, fast equivalent for >1
+# predictor: oneway.test() is strictly one-way by construction, and a
+# permutation-based generalisation would be computationally impractical
+# nested inside a Monte Carlo sample-size search. Use estimate_sample_size()
+# (pairwise) instead for the >1-predictor case -- pairwise comparisons don't
+# need a single-factor omnibus test, so that restriction doesn't apply there.
+# -------------------------------------------------------------------------------
+run_one_way <- function(grid, n, test_fn) {
+  sim <- simulate_data(grid, n, n_covariates = 1L)
+  sim[[1L]] <- factor(sim[[1L]])
+  test_fn(sim$values, sim[[1L]])
+}
+
+simulate_successful_one_way_data <- function(grid, n, test_fn, alpha, max_tries = 1000L) {
+  for (i in seq_len(max_tries)) {
+    sim <- simulate_data(grid, n, n_covariates = 1L)
+    sim[[1L]] <- factor(sim[[1L]])
+    if (isTRUE(test_fn(sim$values, sim[[1L]]) <= alpha)) {
+      return(sim)
+    }
+  }
+  NULL
+}
+
+determine_sample_size_one_way <- function(
+  level, mu, test_fn, cv = NULL, sd = NULL, alpha = 0.05,
+  power_target, seed, nsim = 10000L, n_min = 3L, n_max = 50L
+) {
+  stopifnot(
+    "one-way test -- pass a single predictor's levels (e.g. c('low', 'high')), not a named list of several predictors" =
+      !is.list(level)
+  )
+  grid <- define_grid(list(group = level), mu, cv = cv, sd = sd)
+
+  est_power <- function(n) {
+    set.seed(seed + n)
+    mean(replicate(nsim, run_one_way(grid, n, test_fn) <= alpha))
+  }
+
+  p_min <- est_power(n_min)
+  if (p_min >= power_target) {
+    se_power <- sqrt(p_min * (1 - p_min) / nsim)
+    return(list(
+      n = n_min, power = p_min, power_se = se_power,
+      data = simulate_successful_one_way_data(grid, n_min, test_fn, alpha)
+    ))
+  }
+
+  p_max <- est_power(n_max)
   if (p_max < power_target) {
     return(list(n = NA_integer_, power = p_max, power_se = NA_real_, data = NA,
       message = "Target power not reached within n_max; increase n_max or adjust assumptions."))
@@ -171,14 +282,14 @@ determine_sample_size <- function(
   hi <- n_max
   while (lo + 1 < hi) {
     mid <- floor((lo + hi) / 2)
-    p_mid <- est_power(grid, mid, n_covariates, formula, alphas)
+    p_mid <- est_power(mid)
     if (p_mid >= power_target) hi <- mid else lo <- mid
   }
 
-  p_hi <- est_power(grid, hi, n_covariates, formula, alphas)
+  p_hi <- est_power(hi)
   se_power <- sqrt(p_hi * (1 - p_hi) / nsim)
   list(
     n = hi, power = p_hi, power_se = se_power,
-    data = simulate_successful_data(grid, hi, n_covariates, formula, alphas)
+    data = simulate_successful_one_way_data(grid, hi, test_fn, alpha)
   )
 }

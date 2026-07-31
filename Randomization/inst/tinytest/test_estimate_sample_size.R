@@ -7,19 +7,19 @@ estimate_sample_size_error_trigger <- function() {
 
   # 1: invalid mcc
   checks[[1]] <- expect_error(
-    estimate_sample_size(means, sds, mcc = "invalid", family = "all")
+    estimate_sample_size(means, sds, test_fn = pairwise_welch_t_test, mcc = "invalid", family = "all")
   )
   # 2: invalid family
   checks[[2]] <- expect_error(
-    estimate_sample_size(means, sds, mcc = "bonferroni", family = "invalid")
+    estimate_sample_size(means, sds, test_fn = pairwise_welch_t_test, mcc = "bonferroni", family = "invalid")
   )
   # 3: means not numeric
   checks[[3]] <- expect_error(
-    estimate_sample_size(means = c("a", "b"), sds, mcc = "bonferroni", family = "all")
+    estimate_sample_size(means = c("a", "b"), sds, test_fn = pairwise_welch_t_test, mcc = "bonferroni", family = "all")
   )
   # 4: means/sds length mismatch
   checks[[4]] <- expect_error(
-    estimate_sample_size(means, sds = c(2, 1.2), mcc = "bonferroni", family = "all")
+    estimate_sample_size(means, sds = c(2, 1.2), test_fn = pairwise_welch_t_test, mcc = "bonferroni", family = "all")
   )
   expect_true(all(checks))
 }
@@ -29,7 +29,7 @@ estimate_sample_size_test <- function() {
   means <- c(control = 10, one = 6, two = 6)
   sds <- c(control = 2, one = 1.2, two = 1.2)
   res <- Randomization::estimate_sample_size(
-    means, sds, mcc = "bonferroni", family = "all",
+    means, sds, test_fn = Randomization::pairwise_welch_t_test, mcc = "bonferroni", family = "all",
     nsim = 200, n_min = 2, n_max = 60, seed = 42
   )
   checks <- logical(3)
@@ -39,3 +39,20 @@ estimate_sample_size_test <- function() {
   expect_true(all(checks))
 }
 estimate_sample_size_test()
+
+estimate_sample_size_student_t_test <- function() {
+  # Same shape as the Welch case above but with equal-variance assumed --
+  # the previously-missing "t-Test (Student)" leaf of test_selection_tree.md.
+  means <- c(control = 10, one = 6, two = 6)
+  sds <- c(control = 2, one = 1.2, two = 1.2)
+  res <- Randomization::estimate_sample_size(
+    means, sds, test_fn = Randomization::pairwise_t_test, mcc = "bonferroni", family = "all",
+    nsim = 200, n_min = 2, n_max = 60, seed = 42
+  )
+  checks <- logical(3)
+  checks[[1]] <- expect_true(is.list(res))
+  checks[[2]] <- expect_true(is.numeric(res$n) && !is.na(res$n))
+  checks[[3]] <- expect_true(res$power >= 0 && res$power <= 1)
+  expect_true(all(checks))
+}
+estimate_sample_size_student_t_test()

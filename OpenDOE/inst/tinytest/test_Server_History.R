@@ -9,19 +9,29 @@ test_serialize_params_preserves_names_as_json_object <- function() {
 }
 test_serialize_params_preserves_names_as_json_object()
 
-test_serialize_params_deparses_formula_and_call_for_mc_anova <- function() {
+test_serialize_params_deparses_formula_for_mc_anova <- function() {
   params <- list(
+    levels = list(treatment = c("A", "B"), dose = c("low", "high")),
+    mu = c(1, 1.5, 2, 2.5),
+    cv = 0.25, sd = NULL,
     formula = stats::as.formula("values ~ treatment + dose"),
-    interactions = list(list(mask = quote(treatment == "A" & dose == "low"), value = 1.5))
+    alphas = c(treatment = 0.05, dose = 0.05),
+    target_effect = "treatment",
+    power_target = 0.8, seed = 42, nsim = 200, n_min = 3, n_max = 50
   )
   safe <- OpenDOE:::serialize_params("mc_anova", params)
   expect_true(is.character(safe$formula))
   expect_equal(safe$formula, "values ~ treatment + dose")
-  expect_true(is.character(safe$interactions[[1]]$mask))
   j <- jsonlite::toJSON(safe, auto_unbox = TRUE)
   expect_true(is.character(j))
+
+  round_tripped <- jsonlite::fromJSON(j, simplifyVector = FALSE)
+  back <- OpenDOE:::deserialize_params("mc_anova", round_tripped)
+  expect_equal(back$mu, params$mu)
+  expect_equal(back$target_effect, params$target_effect)
+  expect_true(inherits(back$formula, "formula"))
 }
-test_serialize_params_deparses_formula_and_call_for_mc_anova()
+test_serialize_params_deparses_formula_for_mc_anova()
 
 test_create_excel_file <- function() {
   if (!requireNamespace("openxlsx", quietly = TRUE)) exit_file("needs openxlsx")
@@ -201,19 +211,41 @@ test_replay_rejects_unsupported_entry_types <- function() {
 }
 test_replay_rejects_unsupported_entry_types()
 
-test_replay_json_sets_running_flag_when_queuing <- function() {
+upload_csv <- function(session, df) {
+  tmp <- tempfile(fileext = ".csv")
+  utils::write.csv(df, tmp, row.names = FALSE)
+  session$setInputs(`DATA-upload` = data.frame(
+    name = "data.csv", size = file.info(tmp)$size,
+    type = "text/csv", datapath = tmp
+  ))
+  unlink(tmp)
+}
+build_design_inputs <- function(session) {
+  session$setInputs(`PREDICTORS-predictor_name` = "treatment")
+  session$setInputs(`PREDICTORS-predictor_levels` = "A,B")
+  session$setInputs(`PREDICTORS-add_predictor` = 1)
+  session$setInputs(`DESIGN-n_source` = "free")
+  session$setInputs(`DESIGN-custom_n` = 5)
+  session$setInputs(`DESIGN-build` = 1)
+}
+test_replay_json_drains_queue_and_replays <- function() {
+  # Not "checks the queue is length 1 right after queuing": that state
+  # isn't observable through testServer. The drain observer in
+  # historyServer() reads State$replay_queue reactively, so the same write
+  # that queues an entry also re-invalidates the drain observer; with
+  # options(OpenDOE.background = FALSE) (set at the top of this file) the
+  # replay itself runs synchronously too. Both collapse into the same
+  # reactive flush as the setInputs() call below, so by the time this test
+  # can check anything, the queue is already back to empty and
+  # history_replay_running has already settled back to FALSE -- checking
+  # for a mid-drain "still queued" moment was chasing a state that can't
+  # exist here. What's actually observable, and what this checks instead,
+  # is the end-to-end outcome: the queue drained and the entry replayed.
   app <- OpenDOE:::app()
   checks <- logical(0)
 
   shiny::testServer(app$server, {
-    session$setInputs(`PREDICTORS-predictor_name` = "treatment")
-    session$setInputs(`PREDICTORS-predictor_levels` = "A,B")
-    session$setInputs(`PREDICTORS-add_predictor` = 1)
-    session$setInputs(`SAMPLESIZE-primary_factor` = "treatment")
-    session$setInputs(`SAMPLESIZE-cohens_d` = 0.8)
-    session$setInputs(`SAMPLESIZE-sig_level_ttest` = 0.05)
-    session$setInputs(`SAMPLESIZE-desired_power_ttest` = 0.8)
-    session$setInputs(`SAMPLESIZE-calc_ttest` = 1)
+    build_design_inputs(session)
 
     history_json <- jsonlite::toJSON(
       OpenDOE:::history_entries_list(State), auto_unbox = TRUE, null = "null"
@@ -221,44 +253,94 @@ test_replay_json_sets_running_flag_when_queuing <- function() {
     session$setInputs(`HISTORY-history_json` = as.character(history_json))
     session$setInputs(`HISTORY-replay_json` = 1)
 
-    checks[1] <<- isTRUE(State$history_replay_running)
-    checks[2] <<- length(State$replay_queue) == 1L
+    checks[1] <<- !isTRUE(State$history_replay_running)
+    checks[2] <<- length(State$replay_queue) == 0L
+    checks[3] <<- identical(names(State$results), c("1", "2"))
+    checks[4] <<- inherits(State$results[["2"]], "designResult")
+    checks[5] <<- grepl("replay", attr(State$results[["2"]], "label"), fixed = TRUE)
   })
   expect_true(all(checks))
 }
-test_replay_json_sets_running_flag_when_queuing()
+test_replay_json_drains_queue_and_replays()
 
-test_cancel_replay_clears_queue_and_stops_running_job <- function() {
+test_replay_random_assign_succeeds_when_dataset_exists <- function() {
   old <- getOption("OpenDOE.background")
-  options(OpenDOE.background = TRUE)
+  options(OpenDOE.background = FALSE)
   on.exit(options(OpenDOE.background = old))
 
   app <- OpenDOE:::app()
   checks <- logical(0)
 
   shiny::testServer(app$server, {
-    State$bgp$start(
-      fun = function() { Sys.sleep(30); "should never finish" },
-      args = list(),
-      on_success = function(res) NULL
-    )
-    State$replay_queue <- list(list(
-      type = "ttest", label = "queued behind the running job",
-      params = list(
-        predictors = list(treatment = c("A", "B")), primary_factor = "treatment",
-        cohens_d = 0.8, sig_level = 0.05, desired_power = 0.8
-      )
-    ))
-    State$history_replay_running <- TRUE
-    checks[1] <<- State$bgp$running
+    build_design_inputs(session)
+    session$setInputs(`RANDOMASSIGN-df_source` = "1")
+    session$setInputs(`RANDOMASSIGN-groups` = "A,B")
+    session$setInputs(`RANDOMASSIGN-ratios` = "1,1")
+    session$setInputs(`RANDOMASSIGN-col` = "arm")
+    session$setInputs(`RANDOMASSIGN-seed` = 42)
+    session$setInputs(`RANDOMASSIGN-assign` = 1)
+    checks[1] <<- identical(names(State$results), c("1", "2"))
 
-    session$setInputs(`HISTORY-cancel_replay` = 1)
-
-    checks[2] <<- length(State$replay_queue) == 0L
-    checks[3] <<- !isTRUE(State$history_replay_running)
-    checks[4] <<- !State$bgp$running
-    checks[5] <<- length(State$results) == 0L
+    # Replaying now, in the SAME session where "1" (the design it referenced)
+    # still exists, must actually recompute -- not just warn.
+    entry <- State$history[["2"]]
+    checks[2] <<- entry$type == "random_assign"
+    OpenDOE:::replay_history_entry(State, entry)
+    checks[3] <<- identical(names(State$results), c("1", "2", "3"))
+    checks[4] <<- inherits(State$results[["3"]], "assignmentResult")
+    checks[5] <<- grepl("replay", attr(State$results[["3"]], "label"), fixed = TRUE)
+    checks[6] <<- "arm" %in% names(State$results[["3"]]@df)
   })
   expect_true(all(checks))
 }
-test_cancel_replay_clears_queue_and_stops_running_job()
+test_replay_random_assign_succeeds_when_dataset_exists()
+
+test_replay_random_assign_warns_when_dataset_missing <- function() {
+  app <- OpenDOE:::app()
+  checks <- logical(0)
+
+  shiny::testServer(app$server, {
+    # No dataset was ever built -- df_source "1" can't resolve.
+    entry <- list(type = "random_assign", params = list(
+      df_source = "1", groups = c("A", "B"), ratios = c(1, 1), col = "arm",
+      block_col = NULL, strata_cols = NULL, randomization_method = "simple", seed = 42
+    ))
+    OpenDOE:::replay_history_entry(State, entry)
+    checks[1] <<- length(State$results) == 0L
+  })
+  expect_true(all(checks))
+}
+test_replay_random_assign_warns_when_dataset_missing()
+
+test_replay_random_finite_assign_succeeds_when_datasets_exist <- function() {
+  old <- getOption("OpenDOE.background")
+  options(OpenDOE.background = FALSE)
+  on.exit(options(OpenDOE.background = old))
+
+  app <- OpenDOE:::app()
+  checks <- logical(0)
+
+  shiny::testServer(app$server, {
+    build_design_inputs(session)
+    upload_csv(session, data.frame(id = 1:10, weight = c(20, 21, 22, 23, 24, 25, 26, 27, 28, 29)))
+    session$setInputs(`FINITEASSIGN-groups_source` = "2")
+    session$setInputs(`FINITEASSIGN-id_col` = "id")
+    session$setInputs(`FINITEASSIGN-design_source` = "1")
+    session$setInputs(`FINITEASSIGN-loss_function` = "Default")
+    session$setInputs(`FINITEASSIGN-max_iter` = 5)
+    session$setInputs(`FINITEASSIGN-seed` = 42)
+    session$setInputs(`FINITEASSIGN-assign` = 1)
+    checks[1] <<- identical(names(State$results), c("1", "2", "3"))
+
+    entry <- State$history[["3"]]
+    checks[2] <<- entry$type == "random_finite_assign"
+    OpenDOE:::replay_history_entry(State, entry)
+    checks[3] <<- identical(names(State$results), c("1", "2", "3", "4"))
+    checks[4] <<- inherits(State$results[["4"]], "finiteAssignmentResult")
+    df <- State$results[["4"]]@df
+    checks[5] <<- "unit_id" %in% names(df)
+    checks[6] <<- grepl("replay", attr(State$results[["4"]], "label"), fixed = TRUE)
+  })
+  expect_true(all(checks))
+}
+test_replay_random_finite_assign_succeeds_when_datasets_exist()

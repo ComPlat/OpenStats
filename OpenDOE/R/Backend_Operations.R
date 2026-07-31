@@ -14,16 +14,50 @@ run_one_way_anova <- function(predictors, primary_factor, cohens_f, sig_level, d
 
 run_estimate_sample_size <- function(means, sds, power_target, alpha, mcc, family, nsim, n_min, n_max, seed) {
   Randomization::estimate_sample_size(
-    means = means, sds = sds, power_target = power_target, alpha = alpha,
+    means = means, sds = sds, test_fn = Randomization::pairwise_welch_t_test,
+    power_target = power_target, alpha = alpha,
     mcc = mcc, family = family, nsim = nsim, n_min = n_min, n_max = n_max, seed = seed
   )
 }
 
-run_determine_sample_size <- function(levels, means, cv, sd, interactions, formula, alphas,
-                                       power_target, seed, nsim, n_min, n_max) {
+run_estimate_sample_size_wilcoxon <- function(means, sds, power_target, alpha, mcc, family, nsim, n_min, n_max, seed) {
+  Randomization::estimate_sample_size(
+    means = means, sds = sds, test_fn = Randomization::pairwise_wilcoxon_test,
+    power_target = power_target, alpha = alpha,
+    mcc = mcc, family = family, nsim = nsim, n_min = n_min, n_max = n_max, seed = seed
+  )
+}
+
+run_estimate_sample_size_student_t <- function(means, sds, power_target, alpha, mcc, family, nsim, n_min, n_max, seed) {
+  Randomization::estimate_sample_size(
+    means = means, sds = sds, test_fn = Randomization::pairwise_t_test,
+    power_target = power_target, alpha = alpha,
+    mcc = mcc, family = family, nsim = nsim, n_min = n_min, n_max = n_max, seed = seed
+  )
+}
+
+run_determine_sample_size <- function(levels, mu, cv, sd, formula, alphas,
+                                       target_effect, power_target, seed, nsim, n_min, n_max) {
   Randomization::determine_sample_size(
-    levels = levels, means = means, cv = cv, sd = sd, interactions = interactions,
-    formula = formula, alphas = alphas, power_target = power_target, seed = seed,
+    levels = levels, mu = mu, cv = cv, sd = sd,
+    formula = formula, alphas = alphas, target_effect = target_effect,
+    power_target = power_target, seed = seed,
+    nsim = nsim, n_min = n_min, n_max = n_max
+  )
+}
+
+run_determine_sample_size_kruskal <- function(level, mu, cv, sd, alpha, power_target, seed, nsim, n_min, n_max) {
+  Randomization::determine_sample_size_one_way(
+    level = level, mu = mu, test_fn = Randomization::kruskal_test, cv = cv, sd = sd, alpha = alpha,
+    power_target = power_target, seed = seed,
+    nsim = nsim, n_min = n_min, n_max = n_max
+  )
+}
+
+run_determine_sample_size_welch_anova <- function(level, mu, cv, sd, alpha, power_target, seed, nsim, n_min, n_max) {
+  Randomization::determine_sample_size_one_way(
+    level = level, mu = mu, test_fn = Randomization::welch_anova_test, cv = cv, sd = sd, alpha = alpha,
+    power_target = power_target, seed = seed,
     nsim = nsim, n_min = n_min, n_max = n_max
   )
 }
@@ -41,10 +75,15 @@ run_completely_randomised_design <- function(predictors, n_per_level) {
   Randomization::completely_randomised_design(predictors = predictors, n_per_level = n_per_level)
 }
 
-run_random_finite_assign <- function(seed, groups, design, max_iter, loss_function) {
+run_random_finite_assign <- function(seed, groups, design, ids, max_iter, loss_function) {
   res <- Randomization::random_finite_assign(
-    seed = seed, groups = groups, design = design,
+    seed = seed, groups = groups, design = design, ids = ids,
     max_iter = max_iter, loss_function = loss_function
   )
-  list(df = cbind(res$assigned, design), loss = res$loss)
+  assigned <- res$assigned
+  # Randomization always adds `unit_index` (a meaningless row position);
+  # OpenDOE requires a real `ids` column instead, which comes back as
+  # `unit_id` -- drop the positional one so only the real identifier shows.
+  assigned$unit_index <- NULL
+  list(df = cbind(assigned, design), loss = res$loss)
 }

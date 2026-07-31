@@ -4,14 +4,10 @@ sampleSizeSidebarUI <- function(id) {
 
 sampleSizeMainUI <- function(id) {
   shiny::tagList(
+    shiny::uiOutput("SAMPLESIZE-wizard_ui"),
     shiny::tags$div(
       class = "doe-section",
-      shiny::tabsetPanel(
-        shiny::tabPanel("Power analysis", shiny::tags$p("Configure inputs in the sidebar.")),
-        shiny::tabPanel("Monte Carlo: multiple comparison", shiny::tags$p("Configure inputs in the sidebar.")),
-        shiny::tabPanel("Monte Carlo: anova", shiny::tags$p("Configure inputs in the sidebar.")),
-        id = "SAMPLESIZE-conditionedPanels"
-      )
+      shiny::uiOutput("SAMPLESIZE-tabs_ui")
     ),
     shiny::uiOutput("SAMPLESIZE-result_box")
   )

@@ -160,7 +160,6 @@ block_infinite <- function() {
   )
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
-  res <- res[, -3] # remove id
   rt <- table(res)
   n_per_treatment <- lapply(groups, function(d) {
     sub <- rt[, , d]
@@ -193,7 +192,6 @@ stratum_block_infinite <- function() {
   )
   checks[[1]] <- expect_equal(nrow(res), nrow(design))
   checks[[2]] <- expect_equal(ncol(res), (ncol(design) + 1L))
-  res <- res[, -3] # remove id
   rt <- table(res)
   n_per_treatment <- lapply(groups, function(d) {
     sub <- rt[, , d]

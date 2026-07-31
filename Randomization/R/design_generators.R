@@ -1,6 +1,10 @@
 expand_design <- function(design, n_per_level) {
+  # drop = FALSE matters here now that the design has no `id` column: with
+  # a single predictor, `design` has exactly one column, and `design[i, ]`
+  # would silently simplify to an atomic vector (losing data.frame-ness),
+  # which then rbinds into a plain matrix instead of a data.frame.
   l <- lapply(seq_len(nrow(design)), function(i) {
-    row <- design[i, ]
+    row <- design[i, , drop = FALSE]
     rows <- lapply(seq_len(n_per_level), function(r) row)
     do.call(rbind, rows)
   })
@@ -9,7 +13,6 @@ expand_design <- function(design, n_per_level) {
 
 completely_randomised_design <- function(predictors, n_per_level) {
   design <- expand.grid(predictors, stringsAsFactors = FALSE)
-  design$id <- seq_len(nrow(design))
   expand_design(design, n_per_level)
 }
 

@@ -78,6 +78,53 @@ parse_ratios <- function(ratios_raw) {
   ratios
 }
 
+step_defs <- function() {
+  c("Predictors", "Sample size", "Design of experiment", "Random assignment", "Finite group assignment")
+}
+
+step_unlocked <- function(State, step) {
+  has_design <- any(vapply(State$results, function(v) inherits(v, c("designResult", "assignmentResult")), logical(1)))
+  switch(step,
+    "Predictors" = TRUE,
+    "Sample size" = length(State$predictors) >= 1L,
+    "Design of experiment" = length(State$predictors) >= 1L,
+    "Random assignment" = has_design,
+    "Finite group assignment" = has_design,
+    TRUE
+  )
+}
+
+step_display_labels <- function() {
+  c(
+    "Predictors" = "Define groups",
+    "Sample size" = "Sample Size calculation",
+    "Design of experiment" = "Design of Experiments",
+    "Random assignment" = "Random assignment",
+    "Finite group assignment" = "Finite assignment"
+  )
+}
+
+step_explanations <- function() {
+  list(
+    "Predictors" =
+      "You have to define the parameters of interest.<br>
+       For example you want to investigate the effect of three different drugs compared to a control.<br>
+       Then you can define here the group 'drug' with four different group-levels: drug-A, drug-B, drug-C and Control.",
+    "Sample size" =
+      "Within this section you can calculate how often a group has to be repeated (= sample size).<br>
+       Considering the example with the drugs you retrieve the number of repetitions for drug-A, drug-B, drug-C and Control.",
+    "Design of experiment" =
+      "Here you create a list of experiments which is called design-matrix.<br>
+       Each row in the matrix is one experiment for one of your group-levels (drug-A, drug-B, drug-C, and Control).",
+    "Random assignment" =
+      "Randomly assigns an infinite resource (e.g. 3 experimental days) to each row of your design-matrix.<br>
+       This spreads every group-level (drug-A, drug-B, drug-C, Control) evenly across days.",
+    "Finite group assignment" =
+      "Assigns a finite resource (e.g. 50 animals with known weights) to each row of your design-matrix,<br>
+       so weights are evenly balanced across group-levels (drug-A, drug-B, drug-C, Control)."
+  )
+}
+
 df_result_choices <- function(State, classes = df_result_classes) {
   ids <- names(State$results)
   matching <- ids[vapply(State$results, function(v) inherits(v, classes), logical(1))]

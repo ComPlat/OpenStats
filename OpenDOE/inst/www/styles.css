@@ -8,3 +8,125 @@
 .doe-section {
   margin-top: 20px;
 }
+
+/* The diagram (#diagram, rendered by output$diagram) is a permanent header
+   above the tabs, not a separate landing page -- explanations show in
+   #diagram-docs on hover (persistent-docs pattern, see doeShowDoc() in
+   UI_Main.R), not inline text, so the boxes can stay compact. Its native
+   tab nav (the outer tabsetPanel only -- nested ones like
+   SAMPLESIZE-conditionedPanels get their own id and keep their normal tabs)
+   stays hidden so clicking a tab directly can't bypass the diagram's lock
+   logic -- navigation only ever happens through the diagram. */
+#conditionedPanels {
+  display: none;
+}
+
+.doe-diagram-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 15px auto;
+}
+
+#diagram {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Border colour matches OpenStats' .boxed-output/.var-box-output convention. */
+.doe-diagram-docs {
+  border: 2px solid #900C3F;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-top: 10px;
+  min-height: 80px;
+  color: #444;
+}
+
+.doe-arrow {
+  font-size: 28px;
+  color: #00c0ef;
+  margin: 0 6px;
+}
+
+.doe-diagram-box {
+  display: inline-block;
+  border: 2px solid #00c0ef;
+  border-radius: 8px;
+  padding: 10px 16px;
+  min-width: 140px;
+  white-space: normal;
+  text-align: center;
+}
+
+.doe-diagram-box-active {
+  background-color: #e6f9fd;
+  font-weight: bold;
+}
+
+.doe-diagram-box-locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Test-selection wizard (Sample size tab, Server_SampleSize.R) -- reuses
+   the diagram's cyan/active-box palette so it reads as part of the same
+   app, not a bolted-on widget. */
+.doe-wizard {
+  max-width: 640px;
+  margin: 0 auto 15px auto;
+  text-align: center;
+}
+
+.doe-wizard-breadcrumb {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.doe-wizard-crumb {
+  display: inline-block;
+  background: #e6f9fd;
+  border-radius: 5px;
+  padding: 3px 8px;
+  margin: 2px 4px;
+}
+
+.doe-wizard-step,
+.doe-wizard-result {
+  border: 2px solid #00c0ef;
+  background: #e6f9fd;
+  border-radius: 8px;
+  padding: 18px 24px;
+}
+
+.doe-wizard-step h4,
+.doe-wizard-result h4 {
+  margin-top: 0;
+}
+
+.doe-wizard-answers {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.doe-wizard-controls {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.doe-wizard-alt-note {
+  font-size: 13px;
+  font-style: italic;
+  color: #007c96;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
