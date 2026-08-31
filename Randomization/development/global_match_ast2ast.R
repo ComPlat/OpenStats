@@ -1,6 +1,14 @@
 # Loss function
 # --------------------------------------------------------------------------------------------
 loss_m2cov_vs_all_perm <- function(groups, blocks, perm, lambda_m2, lambda_cov, UNUSED) {
+  argtypes(
+    groups |> type(mat(double)),
+    blocks |> type(vec(int)),
+    perm |> type(vec(int)),
+    lambda_m2 |> type(double),
+    lambda_cov |> type(double),
+    UNUSED |> type(int)
+  )
   nrows <- length(perm)
   ncols <- dim(groups)[2L]
 
@@ -172,14 +180,6 @@ loss_m2cov_vs_all_perm <- function(groups, blocks, perm, lambda_m2, lambda_cov, 
   return(L)
 }
 
-loss_m2cov_args <- function(groups, blocks, perm, lambda_m2, lambda_cov, UNUSED) {
-  groups |> type(mat(double))
-  blocks |> type(vec(int))
-  perm |> type(vec(int))
-  lambda_m2 |> type(double)
-  lambda_cov |> type(double)
-  UNUSED |> type(int)
-}
 
 one_swap <- function(swaps, perm, best_loss, X, blocks_i,
                      tol = 1e-12, lambda_m2 = 1.0, lambda_cov = 1.0, UNUSED, loss_ast) {
@@ -222,7 +222,7 @@ greedy_optimize <- function(groups_inp, blocks, perm_init, max_iter = 200L, tol 
     }
     Reduce(rbind, indices)
   }
-  loss_ast <- ast2ast::translate(loss_m2cov_vs_all_perm, loss_m2cov_args)
+  loss_ast <- ast2ast::translate(loss_m2cov_vs_all_perm)
   X <- as.matrix(normalize_df(groups_inp))
 
   blocks_i <- as.integer(factor(blocks))

@@ -27,6 +27,15 @@ calc_possible_swaps <- function(blocks_i) {
 # Loss function
 # --------------------------------------------------------------------------------------------
 loss_m2cov_vs_all_perm <- function(groups, blocks, perm, lambda_m2, lambda_cov, w, UNUSED) {
+  argtypes(
+    groups |> type(mat(double)),
+    blocks |> type(vec(int)),
+    perm |> type(vec(int)),
+    lambda_m2 |> type(double),
+    lambda_cov |> type(double),
+    w |> type(vec(double)),
+    UNUSED |> type(int)
+  )
   # groups |> type(mat(double)) |> ref()
   # blocks |> type(vec(int))    |> ref()
   # perm   |> type(vec(int))    |> ref()
@@ -107,15 +116,6 @@ loss_m2cov_vs_all_perm <- function(groups, blocks, perm, lambda_m2, lambda_cov, 
 }
 
 
-loss_m2cov_args <- function(groups, blocks, perm, lambda_m2, lambda_cov, w, UNUSED) {
-  groups |> type(mat(double))
-  blocks |> type(vec(int))
-  perm |> type(vec(int))
-  lambda_m2 |> type(double)
-  lambda_cov |> type(double)
-  w |> type(vec(double))
-  UNUSED |> type(int)
-}
 
 one_swap <- function(swaps, perm, best_loss, X, blocks_i,
                      tol = 1e-12, lambda_m2 = 1.0, lambda_cov = 1.0, w, UNUSED, loss_ast) {
@@ -138,6 +138,13 @@ one_swap <- function(swaps, perm, best_loss, X, blocks_i,
 # Mahalanobis loss (perm-based)
 # ---------------------------------------------------------------------
 loss_mahal_perm <- function(groups, blocks, perm, P, UNUSED) {
+  argtypes(
+    groups |> type(mat(double)),
+    blocks |> type(vec(int)),
+    perm |> type(vec(int)),
+    P |> type(mat(double)),
+    UNUSED |> type(int)
+  )
   # groups |> type(mat(double)) |> ref()
   # blocks |> type(vec(int))    |> ref()
   # perm   |> type(vec(int))    |> ref()
@@ -200,13 +207,6 @@ loss_mahal_perm <- function(groups, blocks, perm, P, UNUSED) {
   return(L)
 }
 
-loss_mahal_args <- function(groups, blocks, perm, P, UNUSED) {
-  groups |> type(mat(double))
-  blocks |> type(vec(int))
-  perm   |> type(vec(int))
-  P      |> type(mat(double))
-  UNUSED |> type(int)
-}
 
 one_swap_mahal <- function(swaps, perm, best_loss, X, blocks_i, P,
                            tol = 1e-12, UNUSED, loss_ast) {
@@ -300,9 +300,9 @@ random_finite_assign <- function(seed, groups, design, max_iter = 50L,
   )
 
   if (loss_function == "Mahalanobis") {
-    loss_ast <- ast2ast::translate(loss_mahal_perm, loss_mahal_args)
+    loss_ast <- ast2ast::translate(loss_mahal_perm)
   } else if (loss_function == "Default") {
-    loss_ast <- ast2ast::translate(loss_m2cov_vs_all_perm, loss_m2cov_args)
+    loss_ast <- ast2ast::translate(loss_m2cov_vs_all_perm)
   }
 
   blocks <- interaction(design) |> as.factor()

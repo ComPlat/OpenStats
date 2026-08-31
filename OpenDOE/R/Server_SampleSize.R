@@ -3,6 +3,19 @@ predictor_combinations <- function(predictors) {
   apply(grid, 1, paste, collapse = " | ")
 }
 
+# Subtabs (main panel) + sidebar are both driven by the same
+# predictor/level state plus the wizard's current leaf.
+sample_size_visible_tabs <- function(State, leaf) {
+  n_predictors <- length(State$predictors)
+  if (n_predictors == 0L) return(character(0))
+  if (is.null(leaf)) return(character(0))
+  tabs <- leaf$tab
+  if (n_predictors == 1L && isTRUE(leaf$closed_form_alt)) {
+    tabs <- c(tabs, "Power analysis")
+  }
+  tabs
+}
+
 sampleSizeServer <- function(id, State) {
   shiny::moduleServer(id, function(input, output, session) {
 
@@ -323,17 +336,8 @@ sampleSizeServer <- function(id, State) {
 
     # Subtabs (main panel) + sidebar, both driven by the same
     # predictor/level state plus the wizard's current leaf
+    # (see sample_size_visible_tabs, defined at file scope)
     # ======================================================================
-    sample_size_visible_tabs <- function(State, leaf) {
-      n_predictors <- length(State$predictors)
-      if (n_predictors == 0L) return(character(0))
-      if (is.null(leaf)) return(character(0))
-      tabs <- leaf$tab
-      if (n_predictors == 1L && isTRUE(leaf$closed_form_alt)) {
-        tabs <- c(tabs, "Power analysis")
-      }
-      tabs
-    }
     output$tabs_ui <- shiny::renderUI({
       leaf <- current_leaf()
       tabs <- sample_size_visible_tabs(State, leaf)
