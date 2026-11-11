@@ -7,6 +7,8 @@ shinyproxy-3.0.1.jar
 *.pdf
 Randomization/development/Global_Match_cache/
 Randomization/development/Global_Match_files/
+development/eln_integration.html
+development/eln_integration_img/
 docs/shinylive/webr/packages/BH/BH_1.84.0-0.data
 Documentation/
 test_data/JeromeMasterarbeit.csv

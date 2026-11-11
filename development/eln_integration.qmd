@@ -1,0 +1,210 @@
+---
+title: "OpenDOE · Chemotion ELN · OpenStats"
+subtitle: "From experimental plan to analysis"
+author: "Konrad Krämer"
+date: 2026-10-27
+format:
+  revealjs:
+    embed-resources: true
+    theme: simple
+    slide-number: true
+    toc: false
+    mermaid:
+      theme: neutral
+---
+
+## Big picture
+
+```{mermaid}
+flowchart LR
+  ELN1["ELN<br/>predictors + controls"] -->|request| DOE["OpenDOE<br/>sample size"]
+  DOE -->|"sample size,<br/>design matrix,<br/>analysis plan"| ELN2["ELN<br/>runs experiments"]
+  ELN2 -->|"results +<br/>analysis plan"| STATS["OpenStats"]
+  STATS -->|results| ELN3["ELN<br/>stores analysis"]
+```
+
+- ELN owns the data
+- OpenDOE plans
+- OpenStats analyses
+
+## OpenDOE
+
+```{=html}
+<style>
+.reveal table.doe-table { font-size: 0.42em; width: 100%; border-collapse: collapse; }
+.reveal table.doe-table th { background: #00939f; color: white; padding: 0.4em 0.6em; }
+.reveal table.doe-table td { vertical-align: top; padding: 0.4em 0.6em; border: 1px solid #ccc; }
+.reveal table.doe-table b { display: block; margin-top: 0.3em; }
+.reveal table.doe-table ul { display: block; margin: 0 0 0.3em 1.2em; }
+.reveal table.doe-table li { font-size: 1em; line-height: 1.3; }
+</style>
+<table class="doe-table">
+  <thead>
+    <tr><th>Design planning</th><th>Sample size calculation</th><th>Random assignment</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <b>Classical designs</b>
+        <ul><li>full factorial</li><li>fractional factorial</li><li>Latin square</li><li>split-plot</li><li>split-block</li></ul>
+        <b>Response surface designs</b>
+        <ul><li>central composite design</li><li>Box-Behnken design</li></ul>
+      </td>
+      <td rowspan="1">
+        <b>Power analysis</b>
+        <ul><li>t-test</li><li>one-way ANOVA</li></ul>
+      </td>
+      <td>
+        <b>Infinite population</b>
+        <ul><li>assignment of infinite groups, e.g. experimental days, to the design matrix</li></ul>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <b>Optimal designs</b>
+        <ul><li>D-optimal</li><li>A-optimal</li><li>I-optimal</li><li>c-optimal</li></ul>
+        <b>Adaptive / sequential design strategies</b>
+        <ul><li>Bayesian optimisation</li></ul>
+      </td>
+      <td>
+        <b>Monte Carlo simulations</b>
+        <ul><li>parametric tests (two-way ANOVA)</li><li>non-parametric tests (Kruskal-Wallis)</li><li>generalised linear models</li><li>linear mixed models</li></ul>
+      </td>
+      <td>
+        <b>Finite population</b>
+        <ul><li>assignment of experimental units to the design matrix by optimisation-based balancing of covariates (e.g. weight of animals)</li></ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+```
+
+## Screen: setup
+
+- create a Screen
+- add generic segment **DesignOfExperiments**
+  - predictors
+  - response
+  - data types
+  - pilot experiments
+  - …
+
+## Screen: planning
+
+```{mermaid}
+%%| fig-height: 5.5
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+  A["DesignOfExperiments segment"] -->|send| B[OpenDOE]
+  B --> C["(Sample size), design matrix, analysis plan"]
+  C -->|"stored in"| A
+  %% long link pushes D below C, so it lands right of the cycle
+  A ---->|"button (name TBD):<br/>create + assign to Screen"| D["`One research plan per row
+  with predictor description`"]
+```
+
+## Screen: analysis
+
+```{mermaid}
+%%| fig-height: 5.5
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+  A["User measures experiments"] --> B["Results as attachment<br/>in each research plan"]
+  B -->|"button: Analysis"| C["All results combined + analysis plan"]
+  C --> D[OpenStats]
+  D -->|"analysis results"| E["Dedicated results research plan<br/>assigned to the Screen"]
+```
+
+## Screen: why one research plan per row
+
+- every result type fits (spectra, images, CSV, …)
+- per-run metadata: date, operator, batch → blocking / LMM
+- many research plans → naming convention + link table in DesignOfExperiments
+- collections not suitable: no generic segments (would need ELN extension)
+
+## Research Plan: setup
+
+- create a Research Plan
+- add generic segment **DesignOfExperiments**
+- OpenDOE results are stored in the Research Plan (not in a Screen)
+
+## Research Plan: planning
+
+```{mermaid}
+%%| fig-height: 5.5
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+  A["DesignOfExperiments segment"] -->|send| B[OpenDOE]
+  B --> C["(Sample size), design matrix, analysis plan"]
+  C -->|"stored in"| A
+  %% long link pushes D below C, so it lands right of the cycle
+  A ---->|"button (name TBD):<br/>create + attach to Research Plan"| D["`One or more wellplates
+  one well per design-matrix row`"]
+```
+
+## Research Plan: analysis
+
+```{mermaid}
+%%| fig-height: 5.5
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+  A["User measures experiments"] --> B["Results entered in wellplate"]
+  B -->|"button: Analysis"| C["Wellplate + analysis plan"]
+  C --> D[OpenStats]
+  D -->|"analysis results"| E["Attached to the Research Plan"]
+```
+
+## Reaction: setup
+
+- the reaction scheme implicitly defines what can be varied
+- button **Create variations (OpenDOE)** opens the DoE modal
+
+![](eln_integration_img/reaction_scheme.png){width=100%}
+
+## Reaction: design of experiments
+
+:::: {.columns}
+::: {.column width="45%"}
+- factors to vary + levels
+  - categorical: samples of the scheme
+  - continuous: min, max, # levels
+- strategy, e.g. Bayesian optimization
+- initial batch size
+:::
+::: {.column width="55%"}
+![](eln_integration_img/reaction_doe_modal.png){width=100%}
+:::
+::::
+
+## Reaction: planning
+
+```{mermaid}
+%%| fig-height: 5.5
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+  A["Reaction scheme"] -->|"button: Create variations"| B["DoE modal"]
+  B -->|send| C[OpenDOE]
+  C -->|"design"| D["`Variations table
+  one variation per design-matrix row`"]
+```
+
+## Reaction: Bayesian optimization
+
+```{mermaid}
+%%| fig-height: 5
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+  A["Variations table"] -->|"user measures"| B["Results in variations table"]
+  B -->|"button: New variations"| C["`OpenDOE
+  Bayesian optimization`"]
+  C -->|"next batch"| A
+```
+
+- in addition to the other designs
+- button **New variations** above the variations table
+- classic designs: same flow, just no **New variations**
+
+## Reaction: variations table
+
+![](eln_integration_img/reaction_variations.png){width=100%}
+
