@@ -38,6 +38,18 @@ test_lhs_design_mixed_types <- function() {
 }
 test_lhs_design_mixed_types()
 
+test_lhs_design_replicates <- function() {
+  predictors <- list(temp = c("20", "60"), solvent = c("A", "B"))
+  types <- c(temp = "continuous", solvent = "categorical")
+  single <- OpenDOE:::lhs_design(predictors, types, n = 4L, seed = 1)
+  tripled <- OpenDOE:::lhs_design(predictors, types, n = 4L, seed = 1, replicates = 3L)
+  expect_equal(nrow(tripled), 12L)
+  expect_equal(tripled[c(1, 4, 7, 10), ], single, check.attributes = FALSE)
+  expect_equal(tripled[1, ], tripled[3, ], check.attributes = FALSE)
+  expect_error(OpenDOE:::lhs_design(predictors, types, n = 4L, seed = 1, replicates = 0L), "replicates")
+}
+test_lhs_design_replicates()
+
 test_round_lab_value_stays_in_bounds <- function() {
   expect_equal(OpenDOE:::round_lab_value(9.9958, 1, 9.996), 9.996)
   expect_equal(OpenDOE:::round_lab_value(4.203242868, 1, 10), 4.2)

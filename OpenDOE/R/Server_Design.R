@@ -33,6 +33,10 @@ designServer <- function(id, State) {
             value = if (is.null(State$eln)) 4L * max(1L, length(State$predictors)) else State$eln$batch_size,
             min = 1, step = 1
           ),
+          shiny::numericInput(
+            "DESIGN-lhs_replicates", "Replicates per experiment",
+            value = if (is.null(State$eln)) 1L else State$eln$replicates, min = 1, step = 1
+          ),
           shiny::numericInput("DESIGN-lhs_seed", "Seed", value = 42, step = 1),
           shiny::actionButton("DESIGN-build", "Build design")
         ))
@@ -63,16 +67,18 @@ designServer <- function(id, State) {
       }
       seed <- input$lhs_seed
       if (is.null(seed) || is.na(seed)) seed <- 42
+      replicates <- input$lhs_replicates
+      if (is.null(replicates) || is.na(replicates)) replicates <- 1L
       params <- list(
         predictors = State$predictors, predictor_types = State$predictor_types,
-        n = as.integer(round(n)), seed = seed
+        n = as.integer(round(n)), seed = seed, replicates = as.integer(round(replicates))
       )
       res <- try(do.call(lhs_design, params), silent = TRUE)
       if (inherits(res, "try-error")) {
         print_err(conditionMessage(attr(res, "condition")))
         return(invisible())
       }
-      label <- paste0("Design of experiment (LHS, n=", params$n, ")")
+      label <- paste0("Design of experiment (LHS, n=", params$n, ", replicates=", params$replicates, ")")
       add_result(State, "lhs_design", label, params, methods::new("designResult", df = res))
     }
 

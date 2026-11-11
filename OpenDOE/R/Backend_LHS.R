@@ -41,9 +41,10 @@ map_lhs_column <- function(u, levels, type) {
   if (type == "categorical") picked else as.numeric(picked)
 }
 
-lhs_design <- function(predictors, predictor_types, n, seed, n_candidates = 100L) {
+lhs_design <- function(predictors, predictor_types, n, seed, replicates = 1L, n_candidates = 100L) {
   if (length(predictors) == 0L) stop("Define predictors first")
   if (is.na(n) || n < 1L) stop("Number of experiments must be at least 1")
+  if (is.na(replicates) || replicates < 1L) stop("Number of replicates must be at least 1")
   set.seed(seed)
   u <- maximin_lhs(n, length(predictors), n_candidates)
   cols <- lapply(seq_along(predictors), function(j) {
@@ -51,5 +52,8 @@ lhs_design <- function(predictors, predictor_types, n, seed, n_candidates = 100L
     map_lhs_column(u[, j], predictors[[name]], predictor_types[[name]])
   })
   names(cols) <- names(predictors)
-  as.data.frame(cols, stringsAsFactors = FALSE, check.names = FALSE)
+  df <- as.data.frame(cols, stringsAsFactors = FALSE, check.names = FALSE)
+  df <- df[rep(seq_len(n), each = replicates), , drop = FALSE]
+  rownames(df) <- NULL
+  df
 }

@@ -82,7 +82,8 @@ deserialize_params <- function(type, params) {
       predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
       predictor_types = unlist(params$predictor_types),
       n = as.integer(params$n),
-      seed = as.numeric(params$seed)
+      seed = as.numeric(params$seed),
+      replicates = if (is.null(params$replicates)) 1L else as.integer(params$replicates)
     ),
     random_assign = list(
       df_source = as.character(params$df_source),
@@ -207,7 +208,7 @@ replay_history_entry <- function(State, entry) {
     lhs_design = State$bgp$start(
       fun = run_lhs_design, args = p,
       on_success = function(res) {
-        label <- paste0("Design of experiment (LHS, n=", p$n, ") (replay)")
+        label <- paste0("Design of experiment (LHS, n=", p$n, ", replicates=", p$replicates, ") (replay)")
         add_result(State, "lhs_design", label, p, methods::new("designResult", df = res))
       }
     ),

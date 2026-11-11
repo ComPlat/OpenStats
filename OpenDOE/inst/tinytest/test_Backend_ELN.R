@@ -107,6 +107,117 @@ test_eln_doe_rows <- function() {
 }
 test_eln_doe_rows()
 
+# Base loading as mass in mg that may also be left out; triplicates
+eln_doe_mock_absent <- function() {
+  doe <- eln_doe_mock()
+  doe$doe_definition$replicates <- 3L
+  doe$doe_definition$factors[[3]]$min <- 5
+  doe$doe_definition$factors[[3]]$max <- 20
+  doe$doe_definition$factors[[3]]$target <- list(
+    kind = "material_amount", sample_id = 31L, entry = "mass", unit = "mg", allow_absent = TRUE
+  )
+  doe
+}
+
+test_eln_absent_predictor <- function() {
+  conv <- OpenDOE:::eln_doe_predictors(eln_doe_mock_absent())
+  expect_equal(
+    names(conv$predictors),
+    c("Catalyst", "Additive", "Base loading present", "Base loading", "Temperature")
+  )
+  expect_equal(conv$predictors$`Base loading present`, c("yes", "no"))
+  expect_equal(conv$predictor_types[["Base loading present"]], "categorical")
+  expect_equal(conv$predictors$`Base loading`, c("5", "20"))
+  expect_equal(conv$eln$replicates, 3L)
+
+  df <- data.frame(
+    Catalyst = c("KK-2", "KK-1"), Additive = "none",
+    `Base loading present` = c("yes", "no"), `Base loading` = c(7.5, 12),
+    Temperature = 50, check.names = FALSE
+  )
+  rows <- OpenDOE:::eln_doe_rows(df, conv$eln)
+  expect_equal(rows[[1]]$`Base loading`, 7.5)
+  expect_true("Base loading" %in% names(rows[[2]]) && is.null(rows[[2]]$`Base loading`))
+  expect_true(is.null(rows[[1]]$`Base loading present`))
+}
+test_eln_absent_predictor()
+
+test_eln_replicates_preset <- function() {
+  if (!requireNamespace("shiny", quietly = TRUE)) return(invisible())
+  app <- OpenDOE:::app()
+  checks <- logical(0)
+  shiny::testServer(app$server, {
+    OpenDOE:::import_eln_doe(State, eln_doe_mock_absent())
+    session$setInputs(`DESIGN-method` = "lhs", `DESIGN-lhs_n` = 4, `DESIGN-lhs_seed` = 1)
+    session$setInputs(`DESIGN-lhs_replicates` = State$eln$replicates, `DESIGN-build` = 1)
+    df <- State$results[["1"]]@df
+    checks[1] <<- nrow(df) == 12L
+    checks[2] <<- State$history[["1"]]$params$replicates == 3L
+    checks[3] <<- all(df$`Base loading present` %in% c("yes", "no"))
+  })
+  expect_true(all(checks))
+}
+test_eln_replicates_preset()
+
+test_eln_convert_property <- function() {
+  expect_equal(OpenDOE:::eln_convert_property(7200, "Second(s)", "Hour(s)"), 2)
+  expect_equal(OpenDOE:::eln_convert_property(60, "°C", "°C"), 60)
+  expect_error(OpenDOE:::eln_convert_property(300, "K", "°C"), "Unexpected unit")
+}
+test_eln_convert_property()
+
+eln_material <- function(amount = 0, mass = 0, equivalent = NULL) {
+  m <- list(mass = list(value = mass, unit = "g"), amount = list(value = amount, unit = "mol"))
+  if (!is.null(equivalent)) m$equivalent <- list(value = equivalent, unit = NULL)
+  m
+}
+
+eln_variation <- function(id, cat1, cat2, additive, base_mg, temperature, yield, ton = NULL) {
+  product <- list(
+    yield = list(value = yield, unit = "%"), mass = list(value = 0.2, unit = "g"),
+    amount = list(value = NULL, unit = NULL), aux = list(shortLabel = "P-1")
+  )
+  if (!is.null(ton)) product$turnoverNumber <- list(value = ton, unit = NULL)
+  list(
+    id = id,
+    properties = list(temperature = list(value = temperature, unit = "°C")),
+    startingMaterials = list(`31` = eln_material(base_mg / 1e5, base_mg / 1000, 1)),
+    reactants = list(
+      `11` = eln_material(cat1, cat1),
+      `12` = eln_material(cat2, cat2),
+      `21` = eln_material(additive)
+    ),
+    products = list(`51` = product),
+    solvents = list()
+  )
+}
+
+test_eln_doe_variations_df <- function() {
+  eln <- OpenDOE:::eln_doe_predictors(eln_doe_mock_absent())$eln
+  variations <- list(
+    eln_variation(1L, cat1 = 0.1, cat2 = 0, additive = 0, base_mg = 12, temperature = 60, yield = 45, ton = 420),
+    eln_variation(2L, cat1 = 0, cat2 = 0.1, additive = 0.5, base_mg = 0, temperature = 80, yield = NULL),
+    eln_variation(3L, cat1 = 0.1, cat2 = 0.1, additive = 0, base_mg = 8, temperature = 70, yield = 10)
+  )
+  res <- OpenDOE:::eln_doe_variations_df(variations, eln)
+  df <- res$df
+
+  expect_equal(res$invalid_ids, "3") # both catalysts present
+  expect_equal(
+    names(df),
+    c("Catalyst", "Additive", "Base loading present", "Base loading", "Temperature",
+      "P-1 yield", "P-1 mass", "P-1 TON")
+  )
+  expect_equal(df$Catalyst, c("KK-1", "KK-2"))
+  expect_equal(df$Additive, c("none", "Additive"))
+  expect_equal(df$`Base loading present`, c("yes", "no"))
+  expect_equal(df$`Base loading`, c(12, 5)) # g in the ELN -> mg; absent -> lower bound
+  expect_equal(df$Temperature, c(60, 80))
+  expect_equal(df$`P-1 yield`, c(45, NA)) # not measured yet
+  expect_equal(df$`P-1 TON`, c(420, NA))
+}
+test_eln_doe_variations_df()
+
 test_eln_import_presets_lhs <- function() {
   if (!requireNamespace("shiny", quietly = TRUE)) return(invisible())
   app <- OpenDOE:::app()

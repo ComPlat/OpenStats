@@ -111,7 +111,7 @@ run_bo_suggest <- function(data, predictor_types, objective, direction, seed, mi
   res
 }
 
-run_lhs_design <- function(predictors, predictor_types, n, seed) {
+run_lhs_design <- function(predictors, predictor_types, n, seed, replicates = 1L) {
   # bg_process strips fun to baseenv(), so package internals must be looked up explicitly
-  asNamespace("OpenDOE")$lhs_design(predictors, predictor_types, n, seed)
+  asNamespace("OpenDOE")$lhs_design(predictors, predictor_types, n, seed, replicates)
 }
