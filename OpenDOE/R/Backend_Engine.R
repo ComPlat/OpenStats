@@ -69,6 +69,8 @@ bg_process <- R6::R6Class("bg_process",
       if (is.null(self$process) || !self$process$is_alive()) return(invisible(NULL))
 
       self$process$kill_tree()
+      # kill_tree only sends the signal; start() checks is_alive(), so wait until the OS has reaped it
+      self$process$wait(1000)
       on_finally <- self$on_finally
       self$process <- NULL
       self$running <- FALSE
