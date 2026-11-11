@@ -109,8 +109,18 @@ boServer <- function(id, State) {
         print_err("Measured result column must be numeric")
         return(invisible())
       }
-      if (sum(!is.na(df[[objective]])) < 3L) {
-        print_err("At least three measured experiments are required (rows with a non-empty measured result)")
+      conv <- try(predictors_from_data(df, predictor_types), silent = TRUE)
+      if (inherits(conv, "try-error")) {
+        print_err(conditionMessage(attr(conv, "condition")))
+        return(invisible())
+      }
+      n_measured <- sum(!is.na(df[[objective]]))
+      n_min <- bo_min_experiments(conv$predictors, conv$predictor_types)
+      if (n_measured < n_min) {
+        print_err(paste0(
+          "At least ", n_min, " measured experiments are required for these predictors (found ", n_measured, "). ",
+          "Categorical predictors count with one dimension per level."
+        ))
         return(invisible())
       }
 

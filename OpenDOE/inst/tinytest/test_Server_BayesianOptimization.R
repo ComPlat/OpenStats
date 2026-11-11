@@ -116,6 +116,13 @@ test_bo_input_checks <- function() {
     session$setInputs(`BO-objective` = "y")
     session$setInputs(`BO-suggest` = 2)
     checks[2] <<- length(State$results) == 2L # two measured rows rejected
+
+    upload_csv(session, data.frame(y = c(0.1, 3.4, 5), conc = c(1, 100, 50), bla = c("A", "A", "B")))
+    session$setInputs(`BO-df_source` = "3")
+    session$setInputs(`BO-predictor_cols` = c("conc", "bla"))
+    session$setInputs(`BO-objective` = "y")
+    session$setInputs(`BO-suggest` = 3)
+    checks[3] <<- length(State$results) == 3L # one-hot dims: 3 rows < 4 required
   })
   expect_true(all(checks))
 }

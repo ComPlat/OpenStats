@@ -88,6 +88,22 @@ test_batch_mixed_suggestions <- function() {
 }
 test_batch_mixed_suggestions()
 
+test_exhausted_categorical_space_suggests_replicate <- function() {
+  data <- data.frame(
+    solvent = c("A", "B", "C", "A", "B", "C", "A", "B"),
+    yield = c(0.42, 0.71, 0.53, 0.39, 0.68, 0.55, 0.44, 0.73)
+  )
+  res <- bo_suggest(
+    data,
+    predictors = list(solvent = c("A", "B", "C")),
+    predictor_types = c(solvent = "categorical"),
+    objectives = c(yield = "maximize")
+  )
+  expect_equal(nrow(res), 1L)
+  expect_true(res$solvent %in% c("A", "B", "C"))
+}
+test_exhausted_categorical_space_suggests_replicate()
+
 test_invalid_input <- function() {
   predictors <- list(x = as.character(0:5))
   types <- c(x = "continuous")
@@ -97,7 +113,24 @@ test_invalid_input <- function() {
   )
   expect_error(
     bo_suggest(data.frame(x = 1:2, y = 1:2), predictors, types, c(y = "maximize")),
-    "At least three"
+    "At least 3"
+  )
+  # mock_data2.csv case: conc + bla (2 levels) = 3 dimensions -> 4 experiments needed
+  expect_error(
+    bo_suggest(
+      data.frame(y = c(0.1, 3.4, 5), conc = c(1, 100, 50), bla = c("A", "A", "B")),
+      list(conc = c("1", "100"), bla = c("A", "B")),
+      c(conc = "continuous", bla = "categorical"), c(y = "maximize")
+    ),
+    "At least 4"
+  )
+  expect_equal(OpenDOE:::bo_min_experiments(list(x = c("0", "1")), c(x = "continuous")), 3L)
+  expect_equal(
+    OpenDOE:::bo_min_experiments(
+      list(x = c("0", "1"), z = c("0", "1"), s = c("A", "B", "C")),
+      c(x = "continuous", z = "continuous", s = "categorical")
+    ),
+    6L
   )
   expect_error(
     bo_suggest(data.frame(x = 1:3, y = 1:3, z = 1:3), predictors, types, c(y = "maximize", z = "minimize")),
@@ -105,7 +138,7 @@ test_invalid_input <- function() {
   )
   expect_error(
     bo_suggest(
-      data.frame(s = c("A", "B", "D"), y = 1:3),
+      data.frame(s = c("A", "B", "C", "D"), y = 1:4),
       list(s = c("A", "B", "C")), c(s = "categorical"), c(y = "maximize")
     ),
     "Unknown levels"

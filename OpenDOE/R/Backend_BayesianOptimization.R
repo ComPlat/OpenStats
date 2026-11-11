@@ -35,6 +35,15 @@ prepare_bo_xdt <- function(data, predictors, predictor_types) {
   data.table::as.data.table(xdt)
 }
 
+# km needs more experiments than input dimensions; categorical/discrete predictors are one-hot encoded,
+# so each of them counts with one dimension per level
+bo_min_experiments <- function(predictors, predictor_types) {
+  dims <- vapply(names(predictors), function(name) {
+    if (predictor_types[[name]] %in% c("continuous_grid", "continuous")) 1L else length(predictors[[name]])
+  }, integer(1))
+  max(3L, sum(dims) + 1L)
+}
+
 build_bo_learner <- function(all_continuous, mixed_surrogate) {
   if (all_continuous) return(mlr3mbo::default_gp(noisy = TRUE))
   if (mixed_surrogate == "rf") return(mlr3mbo::default_rf(noisy = TRUE))
@@ -56,7 +65,10 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
   }
   # Rows without a measured objective are planned but not yet run experiments
   data <- data[stats::complete.cases(data[names(objectives)]), , drop = FALSE]
-  if (nrow(data) < 3L) stop("At least three measured experiments are required")
+  n_min <- bo_min_experiments(predictors, predictor_types)
+  if (nrow(data) < n_min) {
+    stop("At least ", n_min, " measured experiments are required for these predictors (found ", nrow(data), ")")
+  }
 
   lgr::get_logger("mlr3")$set_threshold("warn")
   lgr::get_logger("bbotk")$set_threshold("warn")
@@ -75,7 +87,9 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
   optimizer <- mlr3mbo::acqo(
     bbotk::opt("random_search", batch_size = 1000L),
     terminator = bbotk::trm("evals", n_evals = 10000L),
-    acq_function = acquisition
+    acq_function = acquisition,
+    # purely categorical spaces are exhausted quickly; a replicate of a measured point is a valid suggestion for noisy lab data
+    skip_already_evaluated = FALSE
   )
 
   # Constant liar: a proposed point is added with the mean of the measured results as fake result,

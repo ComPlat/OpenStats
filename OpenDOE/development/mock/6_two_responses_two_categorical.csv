@@ -1,0 +1,9 @@
+solvent,catalyst,yield,cost
+A,Pd,0.48,42
+A,Ni,0.35,18
+B,Pd,0.79,55
+B,Ni,0.62,30
+C,Pd,0.57,38
+C,Ni,0.41,14
+A,Pd,0.46,43
+B,Ni,0.64,29
