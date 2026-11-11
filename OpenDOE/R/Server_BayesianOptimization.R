@@ -52,7 +52,7 @@ boServer <- function(id, State) {
       objective_choices <- setdiff(names(df), input$predictor_cols)
       shiny::tags$div(
         class = "doe-box",
-        shiny::selectInput("BO-objective", "Objective column", choices = objective_choices),
+        shiny::selectInput("BO-objective", "Measured result (column to optimize)", choices = objective_choices),
         shiny::selectInput(
           "BO-direction", "Direction",
           choices = c("Maximize" = "maximize", "Minimize" = "minimize")
@@ -101,15 +101,15 @@ boServer <- function(id, State) {
 
       objective <- input$objective
       if (is.null(objective) || !(objective %in% names(df)) || objective %in% cols) {
-        print_err("Select an objective column which is not a predictor")
+        print_err("Select a measured result column which is not a predictor")
         return(invisible())
       }
       if (!is.numeric(df[[objective]]) && !all(is.na(df[[objective]]))) {
-        print_err("Objective column must be numeric")
+        print_err("Measured result column must be numeric")
         return(invisible())
       }
       if (sum(!is.na(df[[objective]])) < 3L) {
-        print_err("At least three measured experiments are required (rows with a non-empty objective)")
+        print_err("At least three measured experiments are required (rows with a non-empty measured result)")
         return(invisible())
       }
 

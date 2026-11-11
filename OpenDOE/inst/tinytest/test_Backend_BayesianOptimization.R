@@ -1,4 +1,4 @@
-for (p in c("mlr3mbo", "mlr3learners", "DiceKriging", "rgenoud", "ranger")) {
+for (p in c("mlr3mbo", "mlr3learners", "mlr3pipelines", "DiceKriging", "rgenoud", "ranger")) {
   if (!requireNamespace(p, quietly = TRUE)) exit_file(paste("needs", p))
 }
 library(tinytest)
@@ -76,3 +76,47 @@ test_invalid_input <- function() {
   )
 }
 test_invalid_input()
+
+# Regression test from development/benchmark_bo.R: on Branin (budget 20) BO had a median
+# regret of ~0.19 vs ~1.7 for pure LHS. Threshold sits in between, so a broken BO fails.
+branin <- function(x1, x2) {
+  (x2 - 5.1 / (4 * pi^2) * x1^2 + 5 / pi * x1 - 6)^2 + 10 * (1 - 1 / (8 * pi)) * cos(x1) + 10
+}
+
+bo_regret_branin <- function(seed, mixed) {
+  predictors <- list(x1 = c("-5", "10"), x2 = c("0", "15"))
+  types <- c(x1 = "continuous", x2 = "continuous")
+  offset <- c(A = 0, B = 5, C = 10)
+  if (mixed) {
+    predictors$cat <- c("A", "B", "C")
+    types <- c(types, cat = "categorical")
+  }
+  f <- function(df) branin(df$x1, df$x2) + if (mixed) unname(offset[df$cat]) else 0
+  budget <- if (mixed) 24L else 20L
+  set.seed(seed)
+  noise <- stats::rnorm(budget)
+  df <- OpenDOE:::lhs_design(predictors, types, 4L * length(predictors), seed)
+  df$y <- f(df) + noise[seq_len(nrow(df))]
+  while (nrow(df) < budget) {
+    df <- OpenDOE:::run_bo_suggest(df, types, "y", "minimize", seed * 1000L + nrow(df))
+    i <- nrow(df)
+    df$y[i] <- f(df[i, , drop = FALSE]) + noise[i]
+  }
+  best <- df[which.min(df$y), , drop = FALSE]
+  f(best) - 0.397887
+}
+
+# Median over seeds, since a single unlucky seed can miss the optimum even when BO works
+seeds <- 1:3
+
+test_bo_beats_lhs_on_branin <- function() {
+  regrets <- vapply(seeds, bo_regret_branin, numeric(1), mixed = FALSE)
+  expect_true(stats::median(regrets) < 1)
+}
+test_bo_beats_lhs_on_branin()
+
+test_bo_beats_lhs_on_mixed_branin <- function() {
+  regrets <- vapply(seeds, bo_regret_branin, numeric(1), mixed = TRUE)
+  expect_true(stats::median(regrets) < 2)
+}
+test_bo_beats_lhs_on_mixed_branin()

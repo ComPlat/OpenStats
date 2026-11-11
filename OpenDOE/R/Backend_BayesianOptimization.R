@@ -35,7 +35,19 @@ prepare_bo_xdt <- function(data, predictors, predictor_types) {
   data.table::as.data.table(xdt)
 }
 
-bo_suggest <- function(data, predictors, predictor_types, objectives) {
+build_bo_learner <- function(all_continuous, mixed_surrogate) {
+  if (all_continuous) return(mlr3mbo::default_gp(noisy = TRUE))
+  if (mixed_surrogate == "rf") return(mlr3mbo::default_rf(noisy = TRUE))
+  # the archive stores categorical values as character, which km rejects -> factor -> one-hot dummies
+  to_factor <- mlr3pipelines::po("colapply", applicator = as.factor, affect_columns = mlr3pipelines::selector_type("character"))
+  encode <- mlr3pipelines::po("encode", method = "one-hot")
+  graph <- mlr3pipelines::concat_graphs(mlr3pipelines::concat_graphs(to_factor, encode), mlr3mbo::default_gp(noisy = TRUE))
+  learner <- mlr3::as_learner(graph)
+  learner$predict_type <- "se"
+  learner
+}
+
+bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surrogate = "gp_onehot") {
   if (length(objectives) != 1L) stop("Only a single objective is supported so far")
   missing_cols <- setdiff(c(names(predictors), names(objectives)), names(data))
   if (length(missing_cols) > 0L) {
@@ -57,11 +69,7 @@ bo_suggest <- function(data, predictors, predictor_types, objectives) {
   )
 
   all_continuous <- all(predictor_types[names(predictors)] %in% c("continuous_grid", "continuous"))
-  learner <- if (all_continuous) {
-    mlr3mbo::default_gp(noisy = TRUE)
-  } else {
-    mlr3mbo::default_rf(noisy = TRUE)
-  }
+  learner <- build_bo_learner(all_continuous, mixed_surrogate)
   surrogate <- mlr3mbo::srlrn(learner, archive = archive)
   # AEI only accounts for noise with a kriging surrogate (reads the km nugget)
   acquisition <- mlr3mbo::acqf(if (all_continuous) "aei" else "ei", surrogate = surrogate)
