@@ -76,6 +76,7 @@ sampleSizeServer <- function(id, State) {
 
     output$wizard_ui <- shiny::renderUI({
       if (length(State$predictors) == 0L) return(NULL)
+      if (has_gridless_predictors(State$predictor_types)) return(NULL)
       node <- current_node()
       if (is.null(node)) return(NULL)
 
@@ -353,6 +354,9 @@ sampleSizeServer <- function(id, State) {
     output$sidebar_ui <- shiny::renderUI({
       if (length(State$predictors) == 0L) {
         return(shiny::tags$p("Define at least one predictor first."))
+      }
+      if (has_gridless_predictors(State$predictor_types)) {
+        return(shiny::tags$p("Continuous predictors (min, max) can't be used for sample size calculation. Use continuous_grid instead."))
       }
       predictor_names <- names(State$predictors)
       leaf <- current_leaf()

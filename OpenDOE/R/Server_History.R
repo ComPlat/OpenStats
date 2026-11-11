@@ -27,10 +27,6 @@ deserialize_params <- function(type, params) {
       sig_level = as.numeric(params$sig_level),
       desired_power = as.numeric(params$desired_power)
     ),
-    predictor_table = list(
-      predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
-      predictor_types = unlist(params$predictor_types)
-    ),
     # mc/mc_wilcoxon/mc_student_t share the same params shape (only the
     # underlying test differs, decided at replay time by entry$type) --
     # fallthrough.
@@ -82,6 +78,12 @@ deserialize_params <- function(type, params) {
       predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
       n_per_level = as.integer(params$n_per_level)
     ),
+    lhs_design = list(
+      predictors = lapply(params$predictors, function(v) as.character(unlist(v))),
+      predictor_types = unlist(params$predictor_types),
+      n = as.integer(params$n),
+      seed = as.numeric(params$seed)
+    ),
     random_assign = list(
       df_source = as.character(params$df_source),
       groups = as.character(unlist(params$groups)),
@@ -98,6 +100,13 @@ deserialize_params <- function(type, params) {
       design_id = as.character(params$design_id),
       max_iter = as.numeric(params$max_iter),
       loss_function = as.character(params$loss_function),
+      seed = as.numeric(params$seed)
+    ),
+    bo_suggest = list(
+      df_source = as.character(params$df_source),
+      predictor_types = unlist(params$predictor_types),
+      objective = as.character(params$objective),
+      direction = as.character(params$direction),
       seed = as.numeric(params$seed)
     ),
     params
@@ -119,12 +128,6 @@ replay_history_entry <- function(State, entry) {
       on_success = function(res) {
         State$n_per_level <- res
         add_result(State, "anova", "Power analysis: ANOVA (replay)", p, methods::new("sampleSizeResult", n = res))
-      }
-    ),
-    predictor_table = State$bgp$start(
-      fun = build_predictor_df, args = p,
-      on_success = function(df) {
-        add_result(State, "predictor_table", "Predictor table (replay)", p, methods::new("predictorTable", df = df))
       }
     ),
     mc = State$bgp$start(
@@ -200,6 +203,13 @@ replay_history_entry <- function(State, entry) {
         add_result(State, "design", label, p, methods::new("designResult", df = res))
       }
     ),
+    lhs_design = State$bgp$start(
+      fun = run_lhs_design, args = p,
+      on_success = function(res) {
+        label <- paste0("Design of experiment (LHS, n=", p$n, ") (replay)")
+        add_result(State, "lhs_design", label, p, methods::new("designResult", df = res))
+      }
+    ),
     # random_assign/random_finite_assign reference a dataset by Results id
     # rather than storing it (see roadmap.md) -- replayable only if that id
     # still resolves in *this* session (e.g. because you uploaded/rebuilt
@@ -259,6 +269,27 @@ replay_history_entry <- function(State, entry) {
             }
           )
         }
+      }
+    },
+    bo_suggest = {
+      df_source <- p$df_source
+      if (is.null(State$results[[df_source]])) {
+        print_warn(paste0(
+          "Cannot replay bo_suggest: dataset '", df_source, "' doesn't exist in this session. ",
+          "Upload/recreate it first (in the same order as the original session), then replay again."
+        ))
+      } else {
+        args <- p[setdiff(names(p), "df_source")]
+        args$data <- State$results[[df_source]]@df
+        State$bgp$start(
+          fun = run_bo_suggest, args = args,
+          on_success = function(res) {
+            add_result(
+              State, "bo_suggest", "Bayesian optimization: next experiment (replay)", p,
+              methods::new("boSuggestionResult", df = res)
+            )
+          }
+        )
       }
     },
     print_warn(paste("Cannot replay this entry type:", entry$type))

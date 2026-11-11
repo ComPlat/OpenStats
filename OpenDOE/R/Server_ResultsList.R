@@ -61,11 +61,7 @@ resultsListServer <- function(id, State) {
           ui = build_result_box(result_id, value)
         )
 
-        if (inherits(value, "predictorTable")) {
-          output[[paste0("res_", result_id)]] <- DT::renderDT(
-            DT::datatable(value@df, options = list(dom = "t", paging = FALSE), rownames = FALSE)
-          )
-        } else if (inherits(value, df_result_classes)) {
+        if (inherits(value, df_result_classes)) {
           output[[paste0("res_", result_id)]] <- DT::renderDT(
             DT::datatable(value@df, options = list(pageLength = 10), rownames = FALSE)
           )

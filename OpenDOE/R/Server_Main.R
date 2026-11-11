@@ -12,6 +12,7 @@ app <- function() {
       counter = 0L,
       history = list(),
       finite_assign_running = FALSE,
+      bo_running = FALSE,
       replay_queue = list(),
       history_replay_running = FALSE
     )
@@ -25,6 +26,7 @@ app <- function() {
     designServer("DESIGN", State)
     randomAssignServer("RANDOMASSIGN", State)
     finiteAssignServer("FINITEASSIGN", State)
+    boServer("BO", State)
     resultsListServer("RESULTS", State)
     historyServer("HISTORY", State)
 
@@ -72,6 +74,9 @@ app <- function() {
     }, ignoreInit = TRUE)
     shiny::observeEvent(input$goto_history, {
       shiny::updateTabsetPanel(session, "conditionedPanels", selected = "History")
+    }, ignoreInit = TRUE)
+    shiny::observeEvent(input$goto_bo, {
+      shiny::updateTabsetPanel(session, "conditionedPanels", selected = "Bayesian optimization")
     }, ignoreInit = TRUE)
 
   }

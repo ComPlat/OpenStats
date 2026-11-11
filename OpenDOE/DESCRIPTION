@@ -11,6 +11,7 @@ Maintainer: Krämer Konrad <konrad.kraemer@kit.edu>
 Description: Design of Experiments, sample size calculation, and random assignment
 License: GPL-3
 Depends: R (>= 4.1.0)
-Imports: Randomization, shiny, DT, R6, callr, methods, htmltools, jsonlite, openxlsx
+Imports: Randomization, shiny, DT, R6, callr, methods, htmltools, jsonlite, openxlsx,
+    mlr3mbo, mlr3learners, bbotk, paradox, data.table, lgr, DiceKriging, rgenoud, ranger
 Suggests: tinytest
 Encoding: UTF-8

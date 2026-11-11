@@ -46,12 +46,82 @@ print_success <- function(message) {
   shiny::showNotification(message)
 }
 
+PREDICTOR_TYPES <- c("continuous_grid", "continuous", "discrete", "categorical")
+CONTINUOUS_TYPES <- c("continuous_grid", "continuous")
+
 infer_predictor_type <- function(levels) {
   if (length(levels) > 0L && !anyNA(suppressWarnings(as.numeric(levels)))) {
-    "numeric"
+    "discrete"
   } else {
-    "character"
+    "categorical"
   }
+}
+
+validate_predictor <- function(levels, type) {
+  if (!(type %in% PREDICTOR_TYPES)) return(paste0("Unknown predictor type: ", type))
+  if (type == "categorical") return(NULL)
+  values <- suppressWarnings(as.numeric(levels))
+  if (anyNA(values)) return(paste0("A ", type, " predictor needs numeric levels"))
+  if (type == "continuous") {
+    if (length(values) != 2L) return("A continuous predictor needs exactly two values: min, max")
+    if (values[1L] >= values[2L]) return("For a continuous predictor min must be smaller than max")
+  }
+  if (type == "continuous_grid") {
+    if (length(values) != 3L) return("A continuous_grid predictor needs exactly three values: start, end, step")
+    start <- values[1L]
+    end <- values[2L]
+    step <- values[3L]
+    if (start >= end) return("For a continuous_grid predictor start must be smaller than end")
+    if (step <= 0) return("For a continuous_grid predictor step must be positive")
+    n_steps <- (end - start) / step
+    # end has to lie on the grid, so that start/end/step can be recovered from the levels alone
+    if (abs(n_steps - round(n_steps)) > 1e-8) return("For a continuous_grid predictor (end - start) must be a multiple of step")
+  }
+  NULL
+}
+
+expand_predictor_levels <- function(levels, type) {
+  if (type != "continuous_grid") return(levels)
+  values <- as.numeric(levels)
+  n_steps <- round((values[2L] - values[1L]) / values[3L])
+  as.character(values[1L] + seq.int(0L, n_steps) * values[3L])
+}
+
+# continuous predictors have no levels, so they can't be crossed into a design grid
+has_gridless_predictors <- function(predictor_types) {
+  any(predictor_types == "continuous")
+}
+
+infer_bo_predictor_type <- function(col) {
+  if (is.numeric(col)) "continuous" else "categorical"
+}
+
+predictors_from_data <- function(data, predictor_types) {
+  missing_cols <- setdiff(names(predictor_types), names(data))
+  if (length(missing_cols) > 0L) {
+    stop("Missing columns in data: ", paste(missing_cols, collapse = ", "))
+  }
+  predictors <- lapply(names(predictor_types), function(name) {
+    type <- predictor_types[[name]]
+    col <- data[[name]]
+    col <- col[!is.na(col)]
+    if (type == "categorical") return(sort(unique(as.character(col))))
+    if (!is.numeric(col)) stop("A ", type, " predictor needs a numeric column: ", name)
+    if (type == "discrete") return(as.character(sort(unique(col))))
+    if (type == "continuous") {
+      if (length(col) == 0L || min(col) >= max(col)) {
+        stop("A continuous predictor needs at least two distinct values: ", name)
+      }
+      return(as.character(c(min(col), max(col))))
+    }
+    stop("Unsupported predictor type for conversion: ", type)
+  })
+  names(predictors) <- names(predictor_types)
+  list(predictors = predictors, predictor_types = predictor_types)
+}
+
+resolve_predictor_type <- function(type, levels) {
+  if (is.null(type) || type == "") infer_predictor_type(levels) else type
 }
 
 parse_levels <- function(levels_raw) {
@@ -86,7 +156,7 @@ step_unlocked <- function(State, step) {
   has_design <- any(vapply(State$results, function(v) inherits(v, c("designResult", "assignmentResult")), logical(1)))
   switch(step,
     "Predictors" = TRUE,
-    "Sample size" = length(State$predictors) >= 1L,
+    "Sample size" = length(State$predictors) >= 1L && !has_gridless_predictors(State$predictor_types),
     "Design of experiment" = length(State$predictors) >= 1L,
     "Random assignment" = has_design,
     "Finite group assignment" = has_design,

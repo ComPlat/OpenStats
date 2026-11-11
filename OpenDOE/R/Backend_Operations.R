@@ -87,3 +87,25 @@ run_random_finite_assign <- function(seed, groups, design, ids, max_iter, loss_f
   assigned$unit_index <- NULL
   list(df = cbind(assigned, design), loss = res$loss)
 }
+
+run_bo_suggest <- function(data, predictor_types, objective, direction, seed) {
+  set.seed(seed)
+  # bg_process strips fun to baseenv(), so package internals must be looked up explicitly
+  ns <- asNamespace("OpenDOE")
+  conv <- ns$predictors_from_data(data, predictor_types)
+  suggestion <- ns$bo_suggest(data, conv$predictors, conv$predictor_types, stats::setNames(direction, objective))
+  for (col in names(suggestion)) {
+    if (is.numeric(data[[col]])) suggestion[[col]] <- as.numeric(suggestion[[col]])
+    if (conv$predictor_types[[col]] == "continuous") {
+      bounds <- as.numeric(conv$predictors[[col]])
+      suggestion[[col]] <- ns$round_lab_value(suggestion[[col]], bounds[1L], bounds[2L])
+    }
+  }
+  for (col in setdiff(names(data), names(suggestion))) suggestion[[col]] <- NA
+  rbind(data, suggestion[names(data)])
+}
+
+run_lhs_design <- function(predictors, predictor_types, n, seed) {
+  # bg_process strips fun to baseenv(), so package internals must be looked up explicitly
+  asNamespace("OpenDOE")$lhs_design(predictors, predictor_types, n, seed)
+}

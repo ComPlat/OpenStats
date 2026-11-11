@@ -4,12 +4,6 @@ setClass("sampleSizeResult",
   )
 )
 
-setClass("predictorTable",
-  slots = c(
-    df = "data.frame"
-  )
-)
-
 setClass("assignmentResult",
   slots = c(
     df = "data.frame"
@@ -35,4 +29,13 @@ setClass("importedData",
   )
 )
 
-df_result_classes <- c("predictorTable", "assignmentResult", "designResult", "finiteAssignmentResult", "importedData")
+setClass("boSuggestionResult",
+  slots = c(
+    df = "data.frame"
+  )
+)
+
+df_result_classes <- c(
+  "assignmentResult", "designResult", "finiteAssignmentResult", "importedData",
+  "boSuggestionResult"
+)

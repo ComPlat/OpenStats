@@ -12,7 +12,6 @@ test_ttest_flow <- function(srv) {
     session$setInputs(`PREDICTORS-predictor_name` = "treatment")
     session$setInputs(`PREDICTORS-predictor_levels` = "A,B")
     session$setInputs(`PREDICTORS-add_predictor` = 1)
-    session$setInputs(`PREDICTORS-add_to_results` = 1)
 
     session$setInputs(`SAMPLESIZE-primary_factor` = "treatment")
     session$setInputs(`SAMPLESIZE-cohens_d` = 0.8)
@@ -20,14 +19,13 @@ test_ttest_flow <- function(srv) {
     session$setInputs(`SAMPLESIZE-desired_power_ttest` = 0.8)
     session$setInputs(`SAMPLESIZE-calc_ttest` = 1)
 
-    checks[1] <<- identical(names(State$results), c("1", "2"))
-    checks[2] <<- inherits(State$results[["1"]], "predictorTable")
-    checks[3] <<- inherits(State$results[["2"]], "sampleSizeResult")
-    checks[4] <<- State$results[["2"]]@n == State$n_per_level
-    checks[5] <<- attr(State$results[["2"]], "label") == "2 Power analysis: t-test"
-    checks[6] <<- identical(names(State$history), c("1", "2"))
-    checks[7] <<- State$history[["2"]]$type == "ttest"
-    checks[8] <<- State$history[["2"]]$params$cohens_d == 0.8
+    checks[1] <<- identical(names(State$results), "1")
+    checks[2] <<- inherits(State$results[["1"]], "sampleSizeResult")
+    checks[3] <<- State$results[["1"]]@n == State$n_per_level
+    checks[4] <<- attr(State$results[["1"]], "label") == "1 Power analysis: t-test"
+    checks[5] <<- identical(names(State$history), "1")
+    checks[6] <<- State$history[["1"]]$type == "ttest"
+    checks[7] <<- State$history[["1"]]$params$cohens_d == 0.8
   })
   expect_true(all(checks))
 }

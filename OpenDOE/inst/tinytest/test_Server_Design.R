@@ -85,3 +85,32 @@ test_design_free_rejects_invalid_n <- function() {
   expect_true(all(checks))
 }
 test_design_free_rejects_invalid_n()
+
+test_design_lhs <- function() {
+  app <- OpenDOE:::app()
+  checks <- logical(0)
+  shiny::testServer(app$server, {
+    session$setInputs(`PREDICTORS-predictor_name` = "temp")
+    session$setInputs(`PREDICTORS-predictor_type` = "continuous")
+    session$setInputs(`PREDICTORS-predictor_levels` = "20,60")
+    session$setInputs(`PREDICTORS-add_predictor` = 1)
+
+    session$setInputs(`DESIGN-method` = "factorial")
+    session$setInputs(`DESIGN-n_source` = "free")
+    session$setInputs(`DESIGN-custom_n` = 2)
+    session$setInputs(`DESIGN-build` = 1)
+    checks[1] <<- length(State$results) == 0L # factorial rejects continuous
+
+    session$setInputs(`DESIGN-method` = "lhs")
+    session$setInputs(`DESIGN-lhs_n` = 4)
+    session$setInputs(`DESIGN-lhs_seed` = 42)
+    session$setInputs(`DESIGN-build` = 2)
+    checks[2] <<- identical(names(State$results), "1")
+    checks[3] <<- inherits(State$results[["1"]], "designResult")
+    df <- State$results[["1"]]@df
+    checks[4] <<- nrow(df) == 4L && identical(range(df$temp), c(20, 60))
+    checks[5] <<- State$history[["1"]]$type == "lhs_design"
+  })
+  expect_true(all(checks))
+}
+test_design_lhs()

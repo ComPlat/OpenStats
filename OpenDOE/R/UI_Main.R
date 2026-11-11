@@ -13,7 +13,8 @@ main_ui <- function() {
     htmltools::div(
       shiny::downloadButton("HISTORY-save_history", "Save results & history"),
       shiny::actionLink("goto_data", "Import data", style = "margin-left: 15px;"),
-      shiny::actionLink("goto_history", "History", style = "margin-left: 15px;")
+      shiny::actionLink("goto_history", "History", style = "margin-left: 15px;"),
+      shiny::actionLink("goto_bo", "Bayesian optimization", style = "margin-left: 15px;")
     ),
 
     htmltools::div(
@@ -50,6 +51,10 @@ main_ui <- function() {
         shiny::conditionalPanel(
           condition = "input.conditionedPanels == 'Finite group assignment'",
           finiteAssignSidebarUI("FINITEASSIGN")
+        ),
+        shiny::conditionalPanel(
+          condition = "input.conditionedPanels == 'Bayesian optimization'",
+          boSidebarUI("BO")
         )
       ),
       shiny::mainPanel(
@@ -73,6 +78,10 @@ main_ui <- function() {
           shiny::tabPanel(
             "Finite group assignment",
             finiteAssignMainUI("FINITEASSIGN")
+          ),
+          shiny::tabPanel(
+            "Bayesian optimization",
+            boMainUI("BO")
           ),
           shiny::tabPanel(
             "Data",

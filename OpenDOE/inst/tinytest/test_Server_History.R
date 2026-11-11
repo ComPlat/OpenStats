@@ -35,10 +35,8 @@ test_serialize_params_deparses_formula_for_mc_anova()
 
 test_create_excel_file <- function() {
   if (!requireNamespace("openxlsx", quietly = TRUE)) exit_file("needs openxlsx")
-  r1 <- methods::new("predictorTable", df = data.frame(
-    `treatment (character)` = c("A", "B"), check.names = FALSE
-  ))
-  attr(r1, "label") <- "1 Predictor table"
+  r1 <- methods::new("designResult", df = data.frame(treatment = c("A", "B")))
+  attr(r1, "label") <- "1 Design of experiment"
   r2 <- methods::new("sampleSizeResult", n = 26)
   attr(r2, "label") <- "2 Power analysis: t-test"
   l <- list(r1, r2, "some history json text")
@@ -48,7 +46,7 @@ test_create_excel_file <- function() {
   expect_true(file.exists(fn))
   raw <- openxlsx::read.xlsx(fn, sheet = "Results", colNames = FALSE)
   flat <- as.character(unlist(raw))
-  expect_true("1 Predictor table" %in% flat)
+  expect_true("1 Design of experiment" %in% flat)
   expect_true("2 Power analysis: t-test" %in% flat)
   expect_true("History (JSON)" %in% flat)
   expect_true("some history json text" %in% flat)
@@ -70,7 +68,6 @@ test_save_history_content_builds_valid_excel <- function() {
     session$setInputs(`PREDICTORS-predictor_name` = "treatment")
     session$setInputs(`PREDICTORS-predictor_levels` = "A,B")
     session$setInputs(`PREDICTORS-add_predictor` = 1)
-    session$setInputs(`PREDICTORS-add_to_results` = 1)
 
     session$setInputs(`SAMPLESIZE-primary_factor` = "treatment")
     session$setInputs(`SAMPLESIZE-cohens_d` = 0.8)
@@ -91,10 +88,9 @@ test_save_history_content_builds_valid_excel <- function() {
 
   raw <- openxlsx::read.xlsx(fn, sheet = "Results", colNames = FALSE)
   flat <- as.character(unlist(raw))
-  checks[1] <- "1 Predictor table" %in% flat
-  checks[2] <- "2 Power analysis: t-test" %in% flat
-  checks[3] <- "History (JSON)" %in% flat
-  checks[4] <- any(grepl('"ttest"', flat, fixed = TRUE)) && any(grepl('"type"', flat, fixed = TRUE))
+  checks[1] <- "1 Power analysis: t-test" %in% flat
+  checks[2] <- "History (JSON)" %in% flat
+  checks[3] <- any(grepl('"ttest"', flat, fixed = TRUE)) && any(grepl('"type"', flat, fixed = TRUE))
   expect_true(all(checks))
 }
 test_save_history_content_builds_valid_excel()
