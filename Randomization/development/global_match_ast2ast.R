@@ -200,7 +200,8 @@ one_swap <- function(swaps, perm, best_loss, X, blocks_i,
 
 # Optimizer
 # --------------------------------------------------------------------------------------------
-greedy_optimize <- function(groups_inp, blocks, perm_init, max_iter = 200L, tol = 1e-12, verbose = TRUE) {
+greedy_optimize <- function(groups_inp, blocks, perm_init, max_iter = 200L, tol = 1e-12, verbose = TRUE,
+                            loss_ast = NULL) {
   normalize_df <- function(df) {
     as.data.frame(lapply(df, function(col) {
       m <- mean(col, na.rm = TRUE)
@@ -222,7 +223,8 @@ greedy_optimize <- function(groups_inp, blocks, perm_init, max_iter = 200L, tol 
     }
     Reduce(rbind, indices)
   }
-  loss_ast <- ast2ast::translate(loss_m2cov_vs_all_perm)
+  # allow a pre-translated loss so callers (benchmarks) don't recompile each run
+  if (is.null(loss_ast)) loss_ast <- ast2ast::translate(loss_m2cov_vs_all_perm)
   X <- as.matrix(normalize_df(groups_inp))
 
   blocks_i <- as.integer(factor(blocks))
