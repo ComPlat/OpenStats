@@ -46,17 +46,39 @@ boServer <- function(id, State) {
       )
     })
 
+    output$objective_controls <- shiny::renderUI({
+      df <- selected_df()
+      if (is.null(df)) return(NULL)
+      objective_choices <- setdiff(names(df), c(input$predictor_cols, "pareto_optimal"))
+      shiny::tags$div(
+        class = "doe-box",
+        shiny::selectInput(
+          "BO-objective", "Measured result(s) (columns to optimize)", choices = objective_choices,
+          selected = intersect(shiny::isolate(input$objective), objective_choices), multiple = TRUE
+        )
+      )
+    })
+
+    output$direction_controls <- shiny::renderUI({
+      objectives <- input$objective
+      if (length(objectives) == 0L) return(NULL)
+      shiny::tags$div(
+        class = "doe-box",
+        shiny::h4("Direction"),
+        lapply(seq_along(objectives), function(i) {
+          shiny::selectInput(
+            paste0("BO-direction_", i), objectives[[i]],
+            choices = c("Maximize" = "maximize", "Minimize" = "minimize")
+          )
+        })
+      )
+    })
+
     output$run_controls <- shiny::renderUI({
       df <- selected_df()
       if (is.null(df)) return(NULL)
-      objective_choices <- setdiff(names(df), input$predictor_cols)
       shiny::tags$div(
         class = "doe-box",
-        shiny::selectInput("BO-objective", "Measured result (column to optimize)", choices = objective_choices),
-        shiny::selectInput(
-          "BO-direction", "Direction",
-          choices = c("Maximize" = "maximize", "Minimize" = "minimize")
-        ),
         shiny::numericInput("BO-n_points", "Number of suggested experiments", value = 1, min = 1, step = 1),
         shiny::numericInput("BO-seed", "Seed", value = 42, step = 1),
         shiny::actionButton("BO-suggest", "Suggest next experiment(s)")
@@ -101,20 +123,25 @@ boServer <- function(id, State) {
       names(predictor_types) <- cols
 
       objective <- input$objective
-      if (is.null(objective) || !(objective %in% names(df)) || objective %in% cols) {
-        print_err("Select a measured result column which is not a predictor")
+      if (length(objective) == 0L || !all(objective %in% names(df)) || any(objective %in% cols)) {
+        print_err("Select at least one measured result column which is not a predictor")
         return(invisible())
       }
-      if (!is.numeric(df[[objective]]) && !all(is.na(df[[objective]]))) {
-        print_err("Measured result column must be numeric")
+      numeric_ok <- vapply(objective, function(o) is.numeric(df[[o]]) || all(is.na(df[[o]])), logical(1))
+      if (!all(numeric_ok)) {
+        print_err(paste0("Measured result columns must be numeric: ", paste(objective[!numeric_ok], collapse = ", ")))
         return(invisible())
       }
+      direction <- vapply(seq_along(objective), function(i) {
+        d <- input[[paste0("direction_", i)]]
+        if (is.null(d) || d == "") "maximize" else d
+      }, character(1))
       conv <- try(predictors_from_data(df, predictor_types), silent = TRUE)
       if (inherits(conv, "try-error")) {
         print_err(conditionMessage(attr(conv, "condition")))
         return(invisible())
       }
-      n_measured <- sum(!is.na(df[[objective]]))
+      n_measured <- sum(stats::complete.cases(df[objective]))
       n_min <- bo_min_experiments(conv$predictors, conv$predictor_types)
       if (n_measured < n_min) {
         print_err(paste0(
@@ -133,7 +160,7 @@ boServer <- function(id, State) {
 
       params <- list(
         df_source = df_source, predictor_types = predictor_types,
-        objective = objective, direction = input$direction, seed = input$seed,
+        objective = objective, direction = direction, seed = input$seed,
         n_points = as.integer(round(n_points))
       )
 

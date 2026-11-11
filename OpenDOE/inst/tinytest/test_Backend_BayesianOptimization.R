@@ -104,6 +104,85 @@ test_exhausted_categorical_space_suggests_replicate <- function() {
 }
 test_exhausted_categorical_space_suggests_replicate()
 
+test_pareto_optimal <- function() {
+  # example from the explanation: exp 3 is beaten by 2, exp 5 by 1
+  data <- data.frame(
+    yield = c(0.90, 0.70, 0.60, 0.40, 0.85, NA),
+    cost = c(80, 30, 50, 10, 90, NA)
+  )
+  res <- OpenDOE:::pareto_optimal(data, c(yield = "maximize", cost = "minimize"))
+  expect_equal(res, c(TRUE, TRUE, FALSE, TRUE, FALSE, NA))
+}
+test_pareto_optimal()
+
+mock_two_responses <- function() {
+  data.frame(
+    temp = c(20, 30, 40, 50, 60, 70, 80, 90),
+    yield = c(0.21, 0.38, 0.55, 0.68, 0.74, 0.70, 0.58, 0.41),
+    cost = c(12, 15, 19, 24, 30, 37, 45, 54),
+    purity = c(0.95, 0.93, 0.90, 0.88, 0.85, 0.80, 0.74, 0.70)
+  )
+}
+
+test_two_objectives_ehvi <- function() {
+  res <- bo_suggest(
+    mock_two_responses(),
+    predictors = list(temp = c("20", "90")),
+    predictor_types = c(temp = "continuous"),
+    objectives = c(yield = "maximize", cost = "minimize"),
+    n_points = 2L
+  )
+  expect_equal(nrow(res), 2L)
+  expect_true(all(res$temp >= 20 & res$temp <= 90))
+}
+test_two_objectives_ehvi()
+
+test_three_objectives_smsego <- function() {
+  res <- bo_suggest(
+    mock_two_responses(),
+    predictors = list(temp = c("20", "90")),
+    predictor_types = c(temp = "continuous"),
+    objectives = c(yield = "maximize", cost = "minimize", purity = "maximize")
+  )
+  expect_equal(nrow(res), 1L)
+  expect_true(res$temp >= 20 && res$temp <= 90)
+}
+test_three_objectives_smsego()
+
+test_two_objectives_mixed <- function() {
+  data <- data.frame(
+    temp = c(20, 35, 50, 65, 80, 95, 45, 70),
+    solvent = c("A", "B", "C", "A", "B", "C", "B", "C"),
+    yield = c(0.20, 0.52, 0.49, 0.61, 0.83, 0.38, 0.66, 0.57),
+    cost = c(14, 26, 22, 33, 47, 45, 30, 36)
+  )
+  res <- bo_suggest(
+    data,
+    predictors = list(temp = c("20", "95"), solvent = c("A", "B", "C")),
+    predictor_types = c(temp = "continuous", solvent = "categorical"),
+    objectives = c(yield = "maximize", cost = "minimize")
+  )
+  expect_equal(nrow(res), 1L)
+  expect_true(res$solvent %in% c("A", "B", "C"))
+}
+test_two_objectives_mixed()
+
+test_run_bo_suggest_adds_pareto_column <- function() {
+  data <- mock_two_responses()[c("temp", "yield", "cost")]
+  data$pareto_optimal <- TRUE # stale column from a previous round
+  res <- OpenDOE:::run_bo_suggest(
+    data, c(temp = "continuous"), c("yield", "cost"), c("maximize", "minimize"), seed = 1, n_points = 2L
+  )
+  expect_equal(nrow(res), 10L)
+  expect_true(all(is.na(res$pareto_optimal[9:10])))
+  expect_equal(
+    res$pareto_optimal[1:8],
+    OpenDOE:::pareto_optimal(data[1:8, ], c(yield = "maximize", cost = "minimize"))
+  )
+  expect_true(any(!res$pareto_optimal[1:8]))
+}
+test_run_bo_suggest_adds_pareto_column()
+
 test_invalid_input <- function() {
   predictors <- list(x = as.character(0:5))
   types <- c(x = "continuous")
@@ -133,8 +212,8 @@ test_invalid_input <- function() {
     6L
   )
   expect_error(
-    bo_suggest(data.frame(x = 1:3, y = 1:3, z = 1:3), predictors, types, c(y = "maximize", z = "minimize")),
-    "single objective"
+    bo_suggest(data.frame(x = 1:3, y = 1:3), predictors, types, character(0)),
+    "at least one measured result"
   )
   expect_error(
     bo_suggest(

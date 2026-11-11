@@ -101,8 +101,14 @@ run_bo_suggest <- function(data, predictor_types, objective, direction, seed, mi
       suggestion[[col]] <- ns$round_lab_value(suggestion[[col]], bounds[1L], bounds[2L])
     }
   }
+  # a re-uploaded result still carries the column from the previous round, which is stale by now
+  data$pareto_optimal <- NULL
   for (col in setdiff(names(data), names(suggestion))) suggestion[[col]] <- NA
-  rbind(data, suggestion[names(data)])
+  res <- rbind(data, suggestion[names(data)])
+  if (length(objective) > 1L) {
+    res$pareto_optimal <- ns$pareto_optimal(res, stats::setNames(direction, objective))
+  }
+  res
 }
 
 run_lhs_design <- function(predictors, predictor_types, n, seed) {

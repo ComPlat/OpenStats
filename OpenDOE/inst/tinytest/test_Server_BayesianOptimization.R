@@ -127,3 +127,37 @@ test_bo_input_checks <- function() {
   expect_true(all(checks))
 }
 test_bo_input_checks()
+
+test_bo_two_objectives <- function() {
+  old <- getOption("OpenDOE.background")
+  options(OpenDOE.background = FALSE)
+  on.exit(options(OpenDOE.background = old))
+
+  app <- OpenDOE:::app()
+  checks <- logical(0)
+
+  shiny::testServer(app$server, {
+    upload_csv(session, data.frame(
+      temp = c(20, 30, 40, 50, 60, 70, 80, 90),
+      yield = c(0.21, 0.38, 0.55, 0.68, 0.74, 0.70, 0.58, 0.41),
+      cost = c(12, 15, 19, 24, 30, 37, 45, 54)
+    ))
+    session$setInputs(`BO-df_source` = "1")
+    session$setInputs(`BO-predictor_cols` = "temp")
+    session$setInputs(`BO-objective` = c("yield", "cost"))
+    session$setInputs(`BO-direction_1` = "maximize")
+    session$setInputs(`BO-direction_2` = "minimize")
+    session$setInputs(`BO-n_points` = 2)
+    session$setInputs(`BO-seed` = 42)
+    session$setInputs(`BO-suggest` = 1)
+
+    checks[1] <<- identical(names(State$results), c("1", "2"))
+    df <- State$results[["2"]]@df
+    checks[2] <<- nrow(df) == 10L
+    checks[3] <<- "pareto_optimal" %in% names(df)
+    checks[4] <<- all(is.na(df$pareto_optimal[9:10])) && !anyNA(df$pareto_optimal[1:8])
+    checks[5] <<- identical(State$history[["2"]]$params$direction, c("maximize", "minimize"))
+  })
+  expect_true(all(checks))
+}
+test_bo_two_objectives()

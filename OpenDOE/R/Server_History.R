@@ -105,8 +105,8 @@ deserialize_params <- function(type, params) {
     bo_suggest = list(
       df_source = as.character(params$df_source),
       predictor_types = unlist(params$predictor_types),
-      objective = as.character(params$objective),
-      direction = as.character(params$direction),
+      objective = as.character(unlist(params$objective)),
+      direction = as.character(unlist(params$direction)),
       seed = as.numeric(params$seed),
       n_points = if (is.null(params$n_points)) 1L else as.integer(params$n_points)
     ),

@@ -56,8 +56,41 @@ build_bo_learner <- function(all_continuous, mixed_surrogate) {
   learner
 }
 
+standardize_objectives <- function(ydt) {
+  data.table::as.data.table(lapply(ydt, function(y) {
+    s <- stats::sd(y)
+    if (is.na(s) || s == 0) s <- 1
+    (y - mean(y)) / s
+  }))
+}
+
+# objectives: named vector column -> "maximize"/"minimize"; NA rows (not yet measured) stay NA
+pareto_optimal <- function(data, objectives) {
+  y <- as.matrix(data[names(objectives)])
+  y[, objectives == "maximize"] <- -y[, objectives == "maximize"]
+  measured <- stats::complete.cases(y)
+  res <- rep(NA, nrow(y))
+  idx <- which(measured)
+  res[idx] <- vapply(idx, function(i) {
+    !any(vapply(idx, function(j) all(y[j, ] <= y[i, ]) && any(y[j, ] < y[i, ]), logical(1)))
+  }, logical(1))
+  res
+}
+
+build_bo_acquisition <- function(surrogate, n_objectives, all_continuous) {
+  if (n_objectives == 1L) {
+    # AEI only accounts for noise with a kriging surrogate (reads the km nugget)
+    return(mlr3mbo::acqf(if (all_continuous) "aei" else "ei", surrogate = surrogate))
+  }
+  if (n_objectives == 2L) return(mlr3mbo::acqf("ehvi", surrogate = surrogate))
+  acquisition <- mlr3mbo::acqf("smsego", surrogate = surrogate)
+  # progress = remaining budget in mlr3mbo's own loop; unknown in ask/tell, 0 is the most conservative choice
+  acquisition$progress <- 0
+  acquisition
+}
+
 bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surrogate = "gp_onehot", n_points = 1L) {
-  if (length(objectives) != 1L) stop("Only a single objective is supported so far")
+  if (length(objectives) < 1L) stop("Select at least one measured result")
   if (is.na(n_points) || n_points < 1L) stop("Number of suggestions must be at least 1")
   missing_cols <- setdiff(c(names(predictors), names(objectives)), names(data))
   if (length(missing_cols) > 0L) {
@@ -76,14 +109,15 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
   domain <- build_bo_domain(predictors, predictor_types)
   codomain <- build_bo_codomain(objectives)
   archive <- bbotk::ArchiveBatch$new(search_space = domain, codomain = codomain)
-  ydt <- data.table::as.data.table(lapply(data[names(objectives)], as.numeric))
+  # standardized, because the hypervolume reference point is "worst + 1" and would otherwise
+  # weight objectives on different scales (yield 0-1 vs cost 0-1000) very differently
+  ydt <- standardize_objectives(lapply(data[names(objectives)], as.numeric))
   archive$add_evals(xdt = prepare_bo_xdt(data, predictors, predictor_types), ydt = ydt)
 
   all_continuous <- all(predictor_types[names(predictors)] %in% c("continuous_grid", "continuous"))
-  learner <- build_bo_learner(all_continuous, mixed_surrogate)
-  surrogate <- mlr3mbo::srlrn(learner, archive = archive)
-  # AEI only accounts for noise with a kriging surrogate (reads the km nugget)
-  acquisition <- mlr3mbo::acqf(if (all_continuous) "aei" else "ei", surrogate = surrogate)
+  learners <- lapply(seq_along(objectives), function(i) build_bo_learner(all_continuous, mixed_surrogate))
+  surrogate <- mlr3mbo::srlrn(if (length(learners) == 1L) learners[[1L]] else learners, archive = archive)
+  acquisition <- build_bo_acquisition(surrogate, length(objectives), all_continuous)
   optimizer <- mlr3mbo::acqo(
     bbotk::opt("random_search", batch_size = 1000L),
     terminator = bbotk::trm("evals", n_evals = 10000L),
