@@ -1,7 +1,8 @@
 designSidebarUI <- function(id) {
   shiny::tagList(
     shiny::h4("Design of experiment"),
-    shiny::uiOutput("DESIGN-design_controls")
+    shiny::uiOutput("DESIGN-design_controls"),
+    shiny::uiOutput("ELN-send_controls")
   )
 }
 

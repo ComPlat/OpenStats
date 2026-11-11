@@ -17,7 +17,7 @@ designServer <- function(id, State) {
 
     output$design_controls <- shiny::renderUI({
       method <- input$method
-      if (is.null(method)) method <- "factorial"
+      if (is.null(method)) method <- if (is.null(State$eln)) "factorial" else "lhs"
 
       method_select <- shiny::selectInput(
         "DESIGN-method", "Method",
@@ -30,7 +30,8 @@ designServer <- function(id, State) {
           method_select,
           shiny::numericInput(
             "DESIGN-lhs_n", "Number of experiments",
-            value = 4L * max(1L, length(State$predictors)), min = 1, step = 1
+            value = if (is.null(State$eln)) 4L * max(1L, length(State$predictors)) else State$eln$batch_size,
+            min = 1, step = 1
           ),
           shiny::numericInput("DESIGN-lhs_seed", "Seed", value = 42, step = 1),
           shiny::actionButton("DESIGN-build", "Build design")

@@ -14,7 +14,8 @@ app <- function() {
       finite_assign_running = FALSE,
       bo_running = FALSE,
       replay_queue = list(),
-      history_replay_running = FALSE
+      history_replay_running = FALSE,
+      eln = NULL
     )
     bgp <- bg_process$new()
     State$bgp <- bgp
@@ -29,6 +30,7 @@ app <- function() {
     boServer("BO", State)
     resultsListServer("RESULTS", State)
     historyServer("HISTORY", State)
+    elnServer(input, output, session, State)
 
     output$diagram <- shiny::renderUI({
       steps <- step_defs()

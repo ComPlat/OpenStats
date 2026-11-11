@@ -13,5 +13,5 @@ License: GPL-3
 Depends: R (>= 4.1.0)
 Imports: Randomization, shiny, DT, R6, callr, methods, htmltools, jsonlite, openxlsx,
     mlr3, mlr3mbo, mlr3learners, mlr3pipelines, bbotk, paradox, data.table, lgr, DiceKriging, rgenoud, ranger
-Suggests: tinytest
+Suggests: tinytest, COMELN
 Encoding: UTF-8
