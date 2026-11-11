@@ -88,12 +88,12 @@ run_random_finite_assign <- function(seed, groups, design, ids, max_iter, loss_f
   list(df = cbind(assigned, design), loss = res$loss)
 }
 
-run_bo_suggest <- function(data, predictor_types, objective, direction, seed, mixed_surrogate = "gp_onehot") {
+run_bo_suggest <- function(data, predictor_types, objective, direction, seed, mixed_surrogate = "gp_onehot", n_points = 1L) {
   set.seed(seed)
   # bg_process strips fun to baseenv(), so package internals must be looked up explicitly
   ns <- asNamespace("OpenDOE")
   conv <- ns$predictors_from_data(data, predictor_types)
-  suggestion <- ns$bo_suggest(data, conv$predictors, conv$predictor_types, stats::setNames(direction, objective), mixed_surrogate)
+  suggestion <- ns$bo_suggest(data, conv$predictors, conv$predictor_types, stats::setNames(direction, objective), mixed_surrogate, n_points)
   for (col in names(suggestion)) {
     if (is.numeric(data[[col]])) suggestion[[col]] <- as.numeric(suggestion[[col]])
     if (conv$predictor_types[[col]] == "continuous") {

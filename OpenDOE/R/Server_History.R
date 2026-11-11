@@ -107,7 +107,8 @@ deserialize_params <- function(type, params) {
       predictor_types = unlist(params$predictor_types),
       objective = as.character(params$objective),
       direction = as.character(params$direction),
-      seed = as.numeric(params$seed)
+      seed = as.numeric(params$seed),
+      n_points = if (is.null(params$n_points)) 1L else as.integer(params$n_points)
     ),
     params
   )
@@ -285,7 +286,7 @@ replay_history_entry <- function(State, entry) {
           fun = run_bo_suggest, args = args,
           on_success = function(res) {
             add_result(
-              State, "bo_suggest", "Bayesian optimization: next experiment (replay)", p,
+              State, "bo_suggest", paste0("Bayesian optimization: next experiment(s) (n=", p$n_points, ") (replay)"), p,
               methods::new("boSuggestionResult", df = res)
             )
           }

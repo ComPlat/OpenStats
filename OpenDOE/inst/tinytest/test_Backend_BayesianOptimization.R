@@ -52,6 +52,42 @@ test_unmeasured_rows_dropped <- function() {
 }
 test_unmeasured_rows_dropped()
 
+test_batch_suggestions_are_distinct <- function() {
+  set.seed(1)
+  data <- data.frame(x = c(0.5, 2.5, 4.5, 1.5))
+  data$y <- sin(data$x)
+  res <- bo_suggest(
+    data,
+    predictors = list(x = c("0", "5")),
+    predictor_types = c(x = "continuous"),
+    objectives = c(y = "maximize"),
+    n_points = 3L
+  )
+  expect_equal(nrow(res), 3L)
+  expect_true(all(res$x >= 0 & res$x <= 5))
+  expect_true(min(diff(sort(res$x))) > 0.05)
+}
+test_batch_suggestions_are_distinct()
+
+test_batch_mixed_suggestions <- function() {
+  data <- data.frame(
+    temp = c(20, 40, 60, 30, 50, 45),
+    solvent = c("A", "B", "C", "A", "B", "C")
+  )
+  data$yield <- data$temp / 10 + (data$solvent == "B")
+  res <- bo_suggest(
+    data,
+    predictors = list(temp = c("20", "60"), solvent = c("A", "B", "C")),
+    predictor_types = c(temp = "continuous", solvent = "categorical"),
+    objectives = c(yield = "maximize"),
+    n_points = 2L
+  )
+  expect_equal(nrow(res), 2L)
+  expect_true(all(res$solvent %in% c("A", "B", "C")))
+  expect_true(all(res$temp >= 20 & res$temp <= 60))
+}
+test_batch_mixed_suggestions()
+
 test_invalid_input <- function() {
   predictors <- list(x = as.character(0:5))
   types <- c(x = "continuous")

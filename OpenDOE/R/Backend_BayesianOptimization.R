@@ -47,8 +47,9 @@ build_bo_learner <- function(all_continuous, mixed_surrogate) {
   learner
 }
 
-bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surrogate = "gp_onehot") {
+bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surrogate = "gp_onehot", n_points = 1L) {
   if (length(objectives) != 1L) stop("Only a single objective is supported so far")
+  if (is.na(n_points) || n_points < 1L) stop("Number of suggestions must be at least 1")
   missing_cols <- setdiff(c(names(predictors), names(objectives)), names(data))
   if (length(missing_cols) > 0L) {
     stop("Missing columns in data: ", paste(missing_cols, collapse = ", "))
@@ -63,10 +64,8 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
   domain <- build_bo_domain(predictors, predictor_types)
   codomain <- build_bo_codomain(objectives)
   archive <- bbotk::ArchiveBatch$new(search_space = domain, codomain = codomain)
-  archive$add_evals(
-    xdt = prepare_bo_xdt(data, predictors, predictor_types),
-    ydt = data.table::as.data.table(lapply(data[names(objectives)], as.numeric))
-  )
+  ydt <- data.table::as.data.table(lapply(data[names(objectives)], as.numeric))
+  archive$add_evals(xdt = prepare_bo_xdt(data, predictors, predictor_types), ydt = ydt)
 
   all_continuous <- all(predictor_types[names(predictors)] %in% c("continuous_grid", "continuous"))
   learner <- build_bo_learner(all_continuous, mixed_surrogate)
@@ -79,8 +78,19 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
     acq_function = acquisition
   )
 
-  surrogate$update()
-  acquisition$update()
-  res <- optimizer$optimize()
-  as.data.frame(res)[names(predictors)]
+  # Constant liar: a proposed point is added with the mean of the measured results as fake result,
+  # so the refitted GP is certain there and the next proposal lands elsewhere.
+  # The archive is a local copy built from data, so the lies never reach the user's data.
+  lie <- data.table::as.data.table(lapply(ydt, mean))
+  suggestions <- vector("list", n_points)
+  for (i in seq_len(n_points)) {
+    surrogate$update()
+    acquisition$update()
+    res <- optimizer$optimize()
+    # OpenDOE doesn't import data.table, so data.table syntax (with = FALSE) silently falls back to data.frame semantics
+    x <- data.table::as.data.table(as.data.frame(res)[names(predictors)])
+    suggestions[[i]] <- x
+    if (i < n_points) archive$add_evals(xdt = x, ydt = lie)
+  }
+  as.data.frame(data.table::rbindlist(suggestions))
 }

@@ -60,6 +60,12 @@ test_bo_sync_flow <- function() {
     checks[8] <<- !isTRUE(State$bo_running)
     checks[9] <<- State$history[["2"]]$type == "bo_suggest"
     checks[10] <<- State$history[["2"]]$params$predictor_types[["temp"]] == "continuous"
+
+    session$setInputs(`BO-n_points` = 3)
+    session$setInputs(`BO-suggest` = 3)
+    df3 <- State$results[["3"]]@df
+    checks[11] <<- nrow(df3) == 7L && all(is.na(df3$yield[5:7]))
+    checks[12] <<- State$history[["3"]]$params$n_points == 3L
   })
   expect_true(all(checks))
 }

@@ -57,8 +57,9 @@ boServer <- function(id, State) {
           "BO-direction", "Direction",
           choices = c("Maximize" = "maximize", "Minimize" = "minimize")
         ),
+        shiny::numericInput("BO-n_points", "Number of suggested experiments", value = 1, min = 1, step = 1),
         shiny::numericInput("BO-seed", "Seed", value = 42, step = 1),
-        shiny::actionButton("BO-suggest", "Suggest next experiment")
+        shiny::actionButton("BO-suggest", "Suggest next experiment(s)")
       )
     })
 
@@ -113,9 +114,17 @@ boServer <- function(id, State) {
         return(invisible())
       }
 
+      n_points <- input$n_points
+      if (is.null(n_points)) n_points <- 1
+      if (is.na(n_points) || n_points < 1) {
+        print_err("Number of suggested experiments must be at least 1")
+        return(invisible())
+      }
+
       params <- list(
         df_source = df_source, predictor_types = predictor_types,
-        objective = objective, direction = input$direction, seed = input$seed
+        objective = objective, direction = input$direction, seed = input$seed,
+        n_points = as.integer(round(n_points))
       )
 
       State$bo_running <- TRUE
@@ -124,7 +133,7 @@ boServer <- function(id, State) {
         args = c(list(data = df), params[setdiff(names(params), "df_source")]),
         on_success = function(res) {
           add_result(
-            State, "bo_suggest", "Bayesian optimization: next experiment", params,
+            State, "bo_suggest", paste0("Bayesian optimization: next experiment(s) (n=", params$n_points, ")"), params,
             methods::new("boSuggestionResult", df = res)
           )
         },
