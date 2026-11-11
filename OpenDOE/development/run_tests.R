@@ -10,3 +10,5 @@ tinytest::run_test_file(paste0(path, "test_Server_History.R"))
 tinytest::run_test_file(paste0(path, "test_Server_Predictors.R"))
 tinytest::run_test_file(paste0(path, "test_Server_RandomAssign.R"))
 tinytest::run_test_file(paste0(path, "test_Server_SampleSize.R"))
+
+OpenDOE:::opendoe()

@@ -1,0 +1,77 @@
+{
+  "id": "42",
+  "request_id": "1337",
+  "element_info": {},
+  "Output": {
+    "schema_version": "0.1",
+    "status": "success",
+    "message": "",
+    "display": {
+      "model": "n_way_anova",
+      "method": "monte_carlo",
+      "assumptions": { "normally_distributed": true, "homogeneous_variances": true },
+      "key_settings": { "alpha": 0.05, "power_target": 0.8, "target_effect": "Dose" },
+      "result": { "n_per_group": 6, "n_total": 36, "power": 0.862 }
+    },
+    "software": {
+      "R": "4.5.1",
+      "OpenDOE": "0.1.0",
+      "Randomization": "0.1.0",
+      "RNGkind": ["Mersenne-Twister", "Inversion", "Rejection"]
+    },
+    "response": "Yield",
+    "predictors": [
+      { "name": "Dose",        "role": "primary_factor",   "type": "ordinal", "levels": ["low", "mid", "high"] },
+      { "name": "Temperature", "role": "secondary_factor", "type": "factor",  "levels": ["20", "37"] }
+    ],
+    "design": {
+      "type": "completely_randomized",
+      "structure": "full_factorial",
+      "balanced": true,
+      "n_cells": 6
+    },
+    "sample_size": {
+      "model": "n_way_anova",
+      "method": "monte_carlo",
+      "assumptions": {
+        "normally_distributed": true,
+        "homogeneous_variances": true
+      },
+      "settings": {
+        "formula": "Yield ~ Dose + Temperature",
+        "cell_means": [
+          { "Dose": "low",  "Temperature": "20", "mean": 10 },
+          { "Dose": "mid",  "Temperature": "20", "mean": 12 },
+          { "Dose": "high", "Temperature": "20", "mean": 14 },
+          { "Dose": "low",  "Temperature": "37", "mean": 10 },
+          { "Dose": "mid",  "Temperature": "37", "mean": 13 },
+          { "Dose": "high", "Temperature": "37", "mean": 15 }
+        ],
+        "variance_model": "cv",
+        "cv": 0.25,
+        "alphas": { "Dose": 0.05, "Temperature": 0.05 },
+        "alternative": "two.sided",
+        "target_effect": "Dose",
+        "power_target": 0.8,
+        "nsim": 2000,
+        "n_min": 3,
+        "n_max": 50,
+        "seed": 42
+      },
+      "result": {
+        "n_per_group": 6,
+        "n_total": 36,
+        "power": 0.862,
+        "power_se": 0.0077,
+        "power_by_effect": { "Dose": 0.862, "Temperature": 0.086 }
+      }
+    },
+    "analysis_plan": [
+      { "type": "Version", "Nr": "1_2" },
+      { "type": "CreateFormula", "formula": "Yield ~ Dose + Temperature", "Model Type": "Linear", "details": "" },
+      { "type": "ShapiroOnResiduals", "formula": "Yield ~ Dose + Temperature" },
+      { "type": "LeveneTest", "formula": "Yield ~ Dose + Temperature", "Data center": "median" },
+      { "type": "ANOVA" }
+    ]
+  }
+}
