@@ -1,8 +1,17 @@
+# power: power, power_se, power_by_effect of the Monte Carlo runs; empty for closed form.
 setClass("sampleSizeResult",
   slots = c(
-    n = "numeric"
-  )
+    n = "numeric",
+    power = "list"
+  ),
+  prototype = list(power = list())
 )
+
+sample_size_power <- function(res) {
+  power <- res[intersect(c("power", "power_se", "power_by_effect"), names(res))]
+  if (!is.null(power$power_by_effect)) power$power_by_effect <- as.list(power$power_by_effect)
+  power
+}
 
 setClass("assignmentResult",
   slots = c(

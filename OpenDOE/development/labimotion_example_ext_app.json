@@ -1,0 +1,221 @@
+{
+  "id": "2",
+  "request_id": "SSC-20261112-085127-de72cf",
+  "element_info": {
+    "id": "140",
+    "name": "New Animal Study Protocol",
+    "short_label": "CHI-AT1",
+    "klass_uuid": "11765e9b-4d26-40d1-9614-60c2b5e60ba8",
+    "version": "1.33"
+  },
+  "Selection_Controls": {
+    "name": "Define the Controls and Comparators",
+    "data": [
+      {
+        "uuid": "9dabb11f-0afa-429d-8473-93fd20ced833",
+        "cells": [
+          {
+            "id": "c8c65c30-a2fb-4107-990b-ac40f6767826",
+            "name": "Name",
+            "value": "Cd44 ft/ft"
+          },
+          {
+            "id": "1c338da6-a412-49f9-9f4d-02e9d229bc30",
+            "name": "Type",
+            "value": "Genetic Control"
+          },
+          {
+            "id": "c5e3a5c0-5d0b-40f4-84a0-8ef141ee0647",
+            "name": "Description",
+            "value": "Cd44 ft/ft without"
+          },
+          {
+            "id": "c939fe8e-a5c8-4ca5-8d4d-3ae43ab7d221",
+            "name": "In case of Failure",
+            "value": "If turnors in this group fail"
+          }
+        ]
+      }
+    ]
+  },
+  "Outcome_Measures_Table": {
+    "name": "Outcome Measures",
+    "data": [
+      {
+        "uuid": "dea75892-d997-4e6a-a336-fd5aca036816",
+        "cells": [
+          {
+            "id": "1605fe6c-5895-4baa-95a5-a64022c4bca9",
+            "name": "Outcome Measure",
+            "value": "Primary"
+          },
+          {
+            "id": "be19d683-bf27-4855-ba27-afb7073f1e02",
+            "name": "Outcome Role",
+            "value": "Primary Outcome"
+          },
+          {
+            "id": "bcb9ca31-b39b-4b99-80f8-f6108b5bc0be",
+            "name": "Outcome Type",
+            "value": "Continuous"
+          },
+          {
+            "id": "2d3f20c7-9220-4bb7-bbe3-5db0434db2a9",
+            "name": "Acquisition Method",
+            "value": "Calper Measurement"
+          },
+          {
+            "id": "89bbfb49-42ff-44b2-9d01-886e61ae60f0",
+            "name": "Device",
+            "value": "Digital"
+          },
+          {
+            "id": "12f7502e-1d79-4478-aa40-7975d85514c7",
+            "name": "Unit",
+            "value": "mm3"
+          },
+          {
+            "id": "b4b8ee1f-21d5-47aa-abbb-3f6cffc095af",
+            "name": "Timepoint(s)",
+            "value": "3 weeks after cell injection"
+          },
+          {
+            "id": "a3af331c-7dde-4f2b-8b50-9fdd09a437ce",
+            "name": "Relevance for the study objectives",
+            "value": "Main target"
+          }
+        ]
+      },
+      {
+        "uuid": "ba6adacf-f89f-4cc2-959f-7c6843d170e7",
+        "cells": [
+          {
+            "id": "1605fe6c-5895-4baa-95a5-a64022c4bca9",
+            "name": "Outcome Measure",
+            "value": "Turnor Weight"
+          },
+          {
+            "id": "be19d683-bf27-4855-ba27-afb7073f1e02",
+            "name": "Outcome Role",
+            "value": "Secondary Outcome"
+          },
+          {
+            "id": "bcb9ca31-b39b-4b99-80f8-f6108b5bc0be",
+            "name": "Outcome Type",
+            "value": "Continuous"
+          },
+          {
+            "id": "2d3f20c7-9220-4bb7-bbe3-5db0434db2a9",
+            "name": "Acquisition Method",
+            "value": "Weight of the excised turnor"
+          },
+          {
+            "id": "89bbfb49-42ff-44b2-9d01-886e61ae60f0",
+            "name": "Device",
+            "value": ""
+          },
+          {
+            "id": "12f7502e-1d79-4478-aa40-7975d85514c7",
+            "name": "Unit",
+            "value": "mg"
+          },
+          {
+            "id": "b4b8ee1f-21d5-47aa-abbb-3f6cffc095af",
+            "name": "Timepoint(s)",
+            "value": "3 weeks after cell injection"
+          },
+          {
+            "id": "a3af331c-7dde-4f2b-8b50-9fdd09a437ce",
+            "name": "Relevance for the study objectives",
+            "value": ""
+          }
+        ]
+      }
+    ]
+  },
+  "Predictors": {
+    "name": "Predictor Variables",
+    "data": [
+      {
+        "uuid": "cc8df513-a7a6-4c45-a675-a0bcf63c771b",
+        "cells": [
+          {
+            "id": "9770ba81-35d4-4eb4-b23b-8aed50c0e96e",
+            "name": "Variable",
+            "value": "Genotype"
+          },
+          {
+            "id": "0002cd14-0315-4670-a989-318e9c6d074a",
+            "name": "Predictor Role",
+            "value": "Primary Factor"
+          },
+          {
+            "id": "b1b161f6-6628-47db-b597-788a2e222ede",
+            "name": "Predictor Type",
+            "value": "Categorial"
+          },
+          {
+            "id": "296a5f1e-0b1b-4e1e-9293-e2a16fc90b4a",
+            "name": "Value / Range",
+            "value": "Cd 44"
+          },
+          {
+            "id": "e6d23925-5325-434a-877c-3df2cdf1cff9",
+            "name": "Unit",
+            "value": ""
+          },
+          {
+            "id": "7252674e-a857-49ac-ad16-f5dac10694ad",
+            "name": "Model Term",
+            "value": "Fixed Effect"
+          },
+          {
+            "id": "7b5a0f47-c0da-4348-bfa0-90e9203bdb9b",
+            "name": "Comment",
+            "value": ""
+          }
+        ]
+      },
+      {
+        "uuid": "a627976d-814e-45a4-9012-9fcda9cb7c5c",
+        "cells": [
+          {
+            "id": "9770ba81-35d4-4eb4-b23b-8aed50c0e96e",
+            "name": "Variable",
+            "value": "Cage"
+          },
+          {
+            "id": "0002cd14-0315-4670-a989-318e9c6d074a",
+            "name": "Predictor Role",
+            "value": "Confounder"
+          },
+          {
+            "id": "b1b161f6-6628-47db-b597-788a2e222ede",
+            "name": "Predictor Type",
+            "value": "Categorial"
+          },
+          {
+            "id": "296a5f1e-0b1b-4e1e-9293-e2a16fc90b4a",
+            "name": "Value / Range",
+            "value": "1"
+          },
+          {
+            "id": "e6d23925-5325-434a-877c-3df2cdf1cff9",
+            "name": "Unit",
+            "value": ""
+          },
+          {
+            "id": "7252674e-a857-49ac-ad16-f5dac10694ad",
+            "name": "Model Term",
+            "value": "Random Effect"
+          },
+          {
+            "id": "7b5a0f47-c0da-4348-bfa0-90e9203bdb9b",
+            "name": "Comment",
+            "value": ""
+          }
+        ]
+      }
+    ]
+  }
+}

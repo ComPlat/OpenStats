@@ -98,5 +98,54 @@ predictorsServer <- function(id, State) {
       DT::datatable(df, options = list(dom = "t", paging = FALSE), rownames = FALSE)
     })
 
+    # Controls from the ELN animal planning: the ELN does not link them to a predictor
+    # ======================================================================
+    assign_eln_control <- function(i, field, value) {
+      ess <- State$eln_sample_size
+      controls <- eln_assign_control(ess$controls, i, field, value)
+      if (identical(controls, ess$controls)) return(invisible())
+      ess$controls <- controls
+      State$eln_sample_size <- ess
+    }
+
+    shiny::observeEvent(State$eln_sample_size, {
+      lapply(seq_along(State$eln_sample_size$controls), function(i) {
+        shiny::observeEvent(input[[paste0("eln_control_predictor_", i)]], {
+          assign_eln_control(i, "predictor", input[[paste0("eln_control_predictor_", i)]])
+        }, ignoreInit = TRUE)
+        shiny::observeEvent(input[[paste0("eln_control_level_", i)]], {
+          assign_eln_control(i, "level", input[[paste0("eln_control_level_", i)]])
+        }, ignoreInit = TRUE)
+      })
+    }, once = TRUE)
+
+    output$eln_controls_box <- shiny::renderUI({
+      controls <- State$eln_sample_size$controls
+      if (length(controls) == 0L) return(NULL)
+      predictor_names <- names(State$predictors)
+      rows <- lapply(seq_along(controls), function(i) {
+        control <- controls[[i]]
+        levels <- if (!is.na(control$predictor)) State$predictors[[control$predictor]] else NULL
+        selected_or_empty <- function(x) if (is.na(x)) "" else x
+        shiny::fluidRow(
+          shiny::column(4, shiny::tags$strong(control$name), shiny::tags$br(), shiny::tags$small(control$type)),
+          shiny::column(4, shiny::selectInput(
+            paste0("PREDICTORS-eln_control_predictor_", i), "Predictor",
+            choices = c("-" = "", predictor_names), selected = selected_or_empty(control$predictor)
+          )),
+          shiny::column(4, shiny::selectInput(
+            paste0("PREDICTORS-eln_control_level_", i), "Level",
+            choices = c("-" = "", levels), selected = selected_or_empty(control$level)
+          ))
+        )
+      })
+      shiny::tags$div(
+        class = "doe-box",
+        shiny::h4("Controls from the ELN"),
+        shiny::tags$p("Assign every control to the predictor level it stands for. Missing levels can be added with 'Update predictor'."),
+        rows
+      )
+    })
+
   })
 }

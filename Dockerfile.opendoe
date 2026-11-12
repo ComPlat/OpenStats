@@ -1,0 +1,69 @@
+FROM rocker/shiny:4.4.2
+
+RUN apt-get update && apt-get install -y \
+  --no-install-recommends \
+  libssl-dev \
+  libcurl4-gnutls-dev \
+  libsodium-dev \
+  libxml2-dev \
+  libicu-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV _R_SHLIB_STRIP_=true
+ENV SHINY_LOG_STDERR=1
+
+RUN install2.r --error --skipinstalled \
+  shiny \
+  DT \
+  R6 \
+  callr \
+  htmltools \
+  jsonlite \
+  openxlsx \
+  httr \
+  openssl \
+  jose \
+  pwr \
+  Rcpp \
+  RcppThread \
+  mlr3 \
+  mlr3mbo \
+  mlr3learners \
+  mlr3pipelines \
+  bbotk \
+  paradox \
+  data.table \
+  lgr \
+  DiceKriging \
+  rgenoud \
+  ranger
+
+RUN mkdir -p /srv/shiny-server/OpenDOE \
+ && chown -R shiny:shiny /home/shiny /srv/shiny-server
+
+COPY ./comeln/ /tmp/comeln
+COPY ./Randomization/ /tmp/Randomization
+COPY ./OpenDOE/ /tmp/OpenDOE
+
+RUN R CMD INSTALL /tmp/comeln && \
+    R CMD INSTALL /tmp/Randomization && \
+    R CMD INSTALL /tmp/OpenDOE && \
+    rm -rf /tmp/comeln /tmp/Randomization /tmp/OpenDOE
+
+COPY ./Start_OpenDOE_App.R /srv/shiny-server/OpenDOE/app.R
+
+RUN printf '%s\n' \
+  'run_as shiny;' \
+  'server {' \
+  '  listen 4000;' \
+  '  location / {' \
+  '    app_dir /srv/shiny-server/OpenDOE;' \
+  '    log_dir /var/log/shiny-server;' \
+  '    directory_index on;' \
+  '  }' \
+  '}' > /etc/shiny-server/shiny-server.conf
+
+EXPOSE 4000
+
+CMD ["/usr/bin/shiny-server"]

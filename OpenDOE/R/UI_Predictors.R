@@ -25,6 +25,7 @@ predictorsSidebarUI <- function(id) {
 predictorsMainUI <- function(id) {
   shiny::tagList(
     shiny::h4("Predictors (preview)"),
-    shiny::uiOutput("PREDICTORS-predictors_box")
+    shiny::uiOutput("PREDICTORS-predictors_box"),
+    shiny::uiOutput("PREDICTORS-eln_controls_box")
   )
 }

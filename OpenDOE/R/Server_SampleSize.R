@@ -475,7 +475,7 @@ sampleSizeServer <- function(id, State) {
             return(invisible())
           }
           State$n_per_level <- res$n
-          add_result(State, leaf$run_type, label, params, methods::new("sampleSizeResult", n = res$n))
+          add_result(State, leaf$run_type, label, params, methods::new("sampleSizeResult", n = res$n, power = sample_size_power(res)))
         },
         on_finally = function() State$mc_running <- FALSE
       )
@@ -519,7 +519,7 @@ sampleSizeServer <- function(id, State) {
             return(invisible())
           }
           State$n_per_level <- res$n
-          add_result(State, "mc_anova", "Monte Carlo: ANOVA", params, methods::new("sampleSizeResult", n = res$n))
+          add_result(State, "mc_anova", "Monte Carlo: ANOVA", params, methods::new("sampleSizeResult", n = res$n, power = sample_size_power(res)))
         },
         on_finally = function() State$mc_running <- FALSE
       )
@@ -571,7 +571,7 @@ sampleSizeServer <- function(id, State) {
             return(invisible())
           }
           State$n_per_level <- res$n
-          add_result(State, leaf$run_type, label, params, methods::new("sampleSizeResult", n = res$n))
+          add_result(State, leaf$run_type, label, params, methods::new("sampleSizeResult", n = res$n, power = sample_size_power(res)))
         },
         on_finally = function() State$mc_running <- FALSE
       )

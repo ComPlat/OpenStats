@@ -1,5 +1,8 @@
 sampleSizeSidebarUI <- function(id) {
-  shiny::uiOutput("SAMPLESIZE-sidebar_ui")
+  shiny::tagList(
+    shiny::uiOutput("SAMPLESIZE-sidebar_ui"),
+    shiny::uiOutput("ELN-send_sample_size_controls")
+  )
 }
 
 sampleSizeMainUI <- function(id) {

@@ -15,7 +15,8 @@ app <- function() {
       bo_running = FALSE,
       replay_queue = list(),
       history_replay_running = FALSE,
-      eln = NULL
+      eln = NULL,
+      eln_sample_size = NULL
     )
     bgp <- bg_process$new()
     State$bgp <- bgp
