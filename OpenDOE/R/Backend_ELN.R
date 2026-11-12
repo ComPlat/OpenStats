@@ -335,6 +335,13 @@ write_eln_doe_batch <- function(df, eln, path) {
   invisible(path)
 }
 
+# A BO result also carries the data it was fitted on (for the next standalone round); the ELN only gets the suggestions.
+eln_send_df <- function(State, id) {
+  result <- State$results[[id]]
+  if (!inherits(result, "boSuggestionResult")) return(result@df)
+  utils::tail(result@df, State$history[[id]]$params$n_points)
+}
+
 send_eln_doe_batch <- function(session, df, eln) {
   if (!requireNamespace("COMELN", quietly = TRUE)) stop("Sending to the ELN requires the 'COMELN' package")
   path <- tempfile(fileext = ".json")

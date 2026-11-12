@@ -269,6 +269,9 @@ test_eln_follow_up_bo <- function() {
     new_rows <- utils::tail(State$results[["2"]]@df, 2L)
     checks[5] <<- all(new_rows$Temperature >= 40 & new_rows$Temperature <= 90)
     checks[6] <<- all(new_rows$`Base loading present` %in% c("yes", "no"))
+    sent <- OpenDOE:::eln_send_df(State, "2")
+    checks[7] <<- identical(nrow(sent), 2L) && identical(sent, new_rows)
+    checks[8] <<- length(OpenDOE:::eln_doe_rows(sent, State$eln)) == 2L
   })
   expect_true(all(checks))
 }

@@ -54,7 +54,7 @@ elnServer <- function(input, output, session, State) {
       print_err("Select a design first")
       return(invisible())
     }
-    res <- try(send_eln_doe_batch(session, result@df, State$eln), silent = TRUE)
+    res <- try(send_eln_doe_batch(session, eln_send_df(State, input$`ELN-send_source`), State$eln), silent = TRUE)
     if (inherits(res, "try-error")) print_err(conditionMessage(attr(res, "condition")))
   }, ignoreInit = TRUE)
 }
