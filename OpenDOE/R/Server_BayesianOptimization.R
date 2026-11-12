@@ -1,5 +1,12 @@
 BO_PREDICTOR_TYPES <- c("continuous", "discrete", "categorical")
 
+# Variations imported from the ELN: predictors, types and bounds come from the doe_definition.
+bo_eln_preset <- function(State, df_source) {
+  eln <- State$eln
+  if (is.null(eln$df_source) || !identical(df_source, eln$df_source)) return(NULL)
+  list(predictors = State$predictors, predictor_types = State$predictor_types, n_points = eln$batch_size)
+}
+
 boServer <- function(id, State) {
   shiny::moduleServer(id, function(input, output, session) {
 
@@ -16,8 +23,13 @@ boServer <- function(id, State) {
         return(shiny::tags$p("Import measured experiments in the \"Data\" tab first."))
       }
       df_source <- input$df_source
-      if (is.null(df_source) || !(df_source %in% choices)) df_source <- choices[[1]]
+      if (is.null(df_source) || !(df_source %in% choices)) {
+        df_source <- if (isTRUE(State$eln$df_source %in% choices)) State$eln$df_source else choices[[1]]
+      }
       cols <- names(State$results[[df_source]]@df)
+      selected_cols <- shiny::isolate(input$predictor_cols)
+      preset <- bo_eln_preset(State, df_source)
+      if (is.null(selected_cols) && !is.null(preset)) selected_cols <- names(preset$predictors)
 
       shiny::tags$div(
         class = "doe-box",
@@ -25,7 +37,7 @@ boServer <- function(id, State) {
         shiny::selectInput("BO-df_source", "Measured experiments", choices = choices, selected = df_source),
         shiny::selectInput(
           "BO-predictor_cols", "Predictor columns", choices = cols,
-          selected = intersect(shiny::isolate(input$predictor_cols), cols), multiple = TRUE
+          selected = intersect(selected_cols, cols), multiple = TRUE
         )
       )
     })
@@ -34,14 +46,13 @@ boServer <- function(id, State) {
       df <- selected_df()
       cols <- intersect(input$predictor_cols, names(df))
       if (is.null(df) || length(cols) == 0L) return(NULL)
+      preset_types <- bo_eln_preset(State, input$df_source)$predictor_types
       shiny::tags$div(
         class = "doe-box",
         shiny::h4("Predictor types"),
         lapply(seq_along(cols), function(i) {
-          shiny::selectInput(
-            paste0("BO-type_", i), cols[[i]],
-            choices = BO_PREDICTOR_TYPES, selected = infer_bo_predictor_type(df[[cols[[i]]]])
-          )
+          selected <- if (cols[[i]] %in% names(preset_types)) preset_types[[cols[[i]]]] else infer_bo_predictor_type(df[[cols[[i]]]])
+          shiny::selectInput(paste0("BO-type_", i), cols[[i]], choices = BO_PREDICTOR_TYPES, selected = selected)
         })
       )
     })
@@ -77,9 +88,13 @@ boServer <- function(id, State) {
     output$run_controls <- shiny::renderUI({
       df <- selected_df()
       if (is.null(df)) return(NULL)
+      preset <- bo_eln_preset(State, input$df_source)
       shiny::tags$div(
         class = "doe-box",
-        shiny::numericInput("BO-n_points", "Number of suggested experiments", value = 1, min = 1, step = 1),
+        shiny::numericInput(
+          "BO-n_points", "Number of suggested experiments",
+          value = if (is.null(preset)) 1L else preset$n_points, min = 1, step = 1
+        ),
         shiny::numericInput("BO-seed", "Seed", value = 42, step = 1),
         shiny::actionButton("BO-suggest", "Suggest next experiment(s)")
       )
@@ -136,7 +151,13 @@ boServer <- function(id, State) {
         d <- input[[paste0("direction_", i)]]
         if (is.null(d) || d == "") "maximize" else d
       }, character(1))
-      conv <- try(predictors_from_data(df, predictor_types), silent = TRUE)
+      # fixed bounds only where the user kept the type from the doe_definition
+      preset <- bo_eln_preset(State, df_source)
+      fixed <- names(predictor_types)[vapply(names(predictor_types), function(col) {
+        col %in% names(preset$predictor_types) && preset$predictor_types[[col]] == predictor_types[[col]]
+      }, logical(1))]
+      bounds <- if (length(fixed) == 0L) NULL else preset$predictors[fixed]
+      conv <- try(bo_predictors(df, predictor_types, bounds), silent = TRUE)
       if (inherits(conv, "try-error")) {
         print_err(conditionMessage(attr(conv, "condition")))
         return(invisible())
@@ -161,7 +182,7 @@ boServer <- function(id, State) {
       params <- list(
         df_source = df_source, predictor_types = predictor_types,
         objective = objective, direction = direction, seed = input$seed,
-        n_points = as.integer(round(n_points))
+        n_points = as.integer(round(n_points)), bounds = bounds
       )
 
       State$bo_running <- TRUE

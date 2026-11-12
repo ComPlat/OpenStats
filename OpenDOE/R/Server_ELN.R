@@ -8,7 +8,8 @@ elnServer <- function(input, output, session, State) {
       return(invisible())
     }
 
-    res <- try(import_eln_doe(State, fetch_eln_doe(session)), silent = TRUE)
+    import <- if (mode == "initial") import_eln_doe else import_eln_doe_variations
+    res <- try(import(State, fetch_eln_doe(session)), silent = TRUE)
     if (inherits(res, "try-error")) {
       print_err(conditionMessage(attr(res, "condition")))
       return(invisible())
@@ -20,14 +21,24 @@ elnServer <- function(input, output, session, State) {
         "Build the first ", State$eln$batch_size, " experiments with the Latin hypercube."
       ))
       shiny::updateTabsetPanel(session, "conditionedPanels", selected = "Design of experiment")
-    } else {
-      print_noti("Imported the factors from the ELN. Suggesting the next batch (Bayesian optimization) is not available yet.")
+      return(invisible())
     }
+
+    if (length(res$invalid_ids) > 0L) {
+      print_warn(paste0(
+        "Ignored variation(s) ", paste(res$invalid_ids, collapse = ", "),
+        ": none or several samples of a material selection are present."
+      ))
+    }
+    print_success(paste0(
+      "Imported ", nrow(res$df), " variation(s) from the ELN. Select the measured result(s) and suggest the next batch."
+    ))
+    shiny::updateTabsetPanel(session, "conditionedPanels", selected = "Bayesian optimization")
   }, once = TRUE)
 
   output$`ELN-send_controls` <- shiny::renderUI({
     if (is.null(State$eln)) return(NULL)
-    choices <- df_result_choices(State, "designResult")
+    choices <- df_result_choices(State, c("designResult", "boSuggestionResult"))
     if (length(choices) == 0L) return(NULL)
     shiny::tags$div(
       class = "doe-box",
@@ -39,7 +50,7 @@ elnServer <- function(input, output, session, State) {
 
   shiny::observeEvent(input$`ELN-send`, {
     result <- State$results[[input$`ELN-send_source`]]
-    if (is.null(result) || !inherits(result, "designResult")) {
+    if (is.null(result) || !inherits(result, c("designResult", "boSuggestionResult"))) {
       print_err("Select a design first")
       return(invisible())
     }

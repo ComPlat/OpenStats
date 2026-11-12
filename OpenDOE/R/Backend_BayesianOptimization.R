@@ -96,8 +96,19 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
   if (length(missing_cols) > 0L) {
     stop("Missing columns in data: ", paste(missing_cols, collapse = ", "))
   }
+
+  # paradox only accepts syntactic names as ids ("Base loading", "P-1 yield" from the ELN aren't)
+  predictor_names <- names(predictors)
+  ids <- make.names(c(predictor_names, names(objectives)), unique = TRUE)
+  predictor_ids <- ids[seq_along(predictor_names)]
+  data <- stats::setNames(data[c(predictor_names, names(objectives))], ids)
+  predictor_types <- stats::setNames(predictor_types[predictor_names], predictor_ids)
+  predictors <- stats::setNames(predictors, predictor_ids)
+  objectives <- stats::setNames(objectives, ids[-seq_along(predictor_names)])
   # Rows without a measured objective are planned but not yet run experiments
-  data <- data[stats::complete.cases(data[names(objectives)]), , drop = FALSE]
+  measured <- stats::complete.cases(data[names(objectives)])
+  pending <- data[!measured & stats::complete.cases(data[names(predictors)]), , drop = FALSE]
+  data <- data[measured, , drop = FALSE]
   n_min <- bo_min_experiments(predictors, predictor_types)
   if (nrow(data) < n_min) {
     stop("At least ", n_min, " measured experiments are required for these predictors (found ", nrow(data), ")")
@@ -129,7 +140,14 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
   # Constant liar: a proposed point is added with the mean of the measured results as fake result,
   # so the refitted GP is certain there and the next proposal lands elsewhere.
   # The archive is a local copy built from data, so the lies never reach the user's data.
+  # Planned experiments without a result yet get the same lie, so they aren't proposed again.
   lie <- data.table::as.data.table(lapply(ydt, mean))
+  if (nrow(pending) > 0L) {
+    archive$add_evals(
+      xdt = prepare_bo_xdt(pending, predictors, predictor_types),
+      ydt = data.table::as.data.table(lapply(lie, rep, nrow(pending)))
+    )
+  }
   suggestions <- vector("list", n_points)
   for (i in seq_len(n_points)) {
     surrogate$update()
@@ -140,5 +158,5 @@ bo_suggest <- function(data, predictors, predictor_types, objectives, mixed_surr
     suggestions[[i]] <- x
     if (i < n_points) archive$add_evals(xdt = x, ydt = lie)
   }
-  as.data.frame(data.table::rbindlist(suggestions))
+  stats::setNames(as.data.frame(data.table::rbindlist(suggestions)), predictor_names)
 }

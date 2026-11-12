@@ -31,20 +31,25 @@ eln_label_field <- function(sample, key) {
   as.character(value)
 }
 
-# The ELN gives every reactant/solvent the short label "reactant"/"solvent",
-# so short labels are only used when they are unique within the factor.
-eln_level_labels <- function(samples) {
-  ids <- vapply(samples, function(s) as.character(s$id), character(1))
-  short <- vapply(samples, eln_label_field, character(1), key = "shortLabel")
-  name <- vapply(samples, eln_label_field, character(1), key = "name")
-  name[is.na(name)] <- paste("sample", ids[is.na(name)])
+# name is the preferred label the ELN shows in the variations table header; short labels are
+# meaningless there ("reactant" for every reactant, the sample label for products).
+eln_material_label <- function(x, id) {
+  label <- eln_label_field(x, "name")
+  if (is.na(label)) label <- eln_label_field(x, "shortLabel")
+  if (is.na(label)) label <- paste("sample", id)
+  label
+}
 
-  labels <- short
-  ambiguous <- is.na(short) | short %in% short[duplicated(short)]
-  labels[ambiguous] <- name[ambiguous]
+eln_unique_labels <- function(labels, ids) {
   clash <- labels %in% labels[duplicated(labels)]
   labels[clash] <- paste0(labels[clash], " (", ids[clash], ")")
   labels
+}
+
+eln_level_labels <- function(samples) {
+  ids <- vapply(samples, function(s) as.character(s$id), character(1))
+  labels <- vapply(seq_along(samples), function(i) eln_material_label(samples[[i]], ids[[i]]), character(1))
+  eln_unique_labels(labels, ids)
 }
 
 # Same naming as doePresentPredictorName in the ELN modal.
@@ -169,11 +174,15 @@ eln_variation_material <- function(row, sample_id) {
 # Amount, mass or volume, whatever the material type carries (solvents only have a volume).
 eln_material_quantity <- function(material) {
   if (is.null(material)) return(NA_real_)
-  for (entry in c("amount", "mass", "volume")) {
-    value <- eln_entry_value(material, entry)
-    if (!is.na(value)) return(value)
-  }
-  NA_real_
+  sample_cols <- c("amount", "mass", "volume") # TODO: update stuff like conc.
+  values <- sapply(sample_cols, \(entry) {
+    eln_entry_value(material, entry)
+  })
+  values <- values[!is.na(values)]
+  if (length(values) == 0L) return(NA_real_)
+  values_without_zero <- values[values != 0]
+  if (length(values_without_zero) == 0L) return(0)
+  return(values_without_zero[[1L]])
 }
 
 eln_variation_level <- function(row, factor, level_id) {
@@ -222,14 +231,11 @@ eln_product_labels <- function(variations) {
   for (row in variations) {
     for (id in names(row$products)) {
       if (!is.null(products[[id]])) next
-      aux <- row$products[[id]]$aux
-      label <- eln_label_field(aux, "shortLabel")
-      if (is.na(label)) label <- eln_label_field(aux, "name")
-      if (is.na(label)) label <- paste("product", id)
-      products[[id]] <- label
+      products[[id]] <- eln_material_label(row$products[[id]]$aux, id)
     }
   }
-  unlist(products)
+  if (length(products) == 0L) return(NULL)
+  eln_unique_labels(unlist(products), names(products))
 }
 
 # ELN variations -> one row per experiment: predictor columns (levels/values as in the predictors)
@@ -270,6 +276,18 @@ eln_doe_variations_df <- function(variations, eln) {
   }
   keep <- c(predictor_names, response_names[vapply(response_names, function(col) !all(is.na(df[[col]])), logical(1))])
   list(df = df[keep], invalid_ids = invalid_ids)
+}
+
+# follow_up: the variations become a dataset for the BO tab; State$eln$df_source remembers it,
+# so the BO tab can preset predictors, types and bounds from the doe_definition.
+import_eln_doe_variations <- function(State, doe) {
+  conv <- import_eln_doe(State, doe)
+  res <- eln_doe_variations_df(doe$variations, State$eln)
+  add_result(State, "eln_variations", "Variations from the ELN", list(), methods::new("importedData", df = res$df))
+  eln <- State$eln
+  eln$df_source <- as.character(State$counter)
+  State$eln <- eln
+  invisible(c(conv, res))
 }
 
 # Rows for the ELN: factor name -> sample id (material_selection, "none" -> null) or number

@@ -52,6 +52,49 @@ test_unmeasured_rows_dropped <- function() {
 }
 test_unmeasured_rows_dropped()
 
+test_pending_rows_are_avoided <- function() {
+  data <- data.frame(x = c(0.5, 2.5, 4.5, 1.5))
+  data$y <- sin(data$x)
+  args <- list(predictors = list(x = as.character(0:5)), predictor_types = c(x = "continuous"), objectives = c(y = "maximize"))
+  set.seed(1)
+  first <- do.call(bo_suggest, c(list(data), args))$x
+  set.seed(1)
+  again <- do.call(bo_suggest, c(list(rbind(data, data.frame(x = first, y = NA))), args))$x
+  expect_true(abs(again - first) > 0.05)
+}
+test_pending_rows_are_avoided()
+
+test_non_syntactic_names <- function() {
+  set.seed(1)
+  data <- data.frame(
+    `Base loading` = c(1, 2, 3, 4, 5), `Catalyst` = c("Pd(OAc)2", "B", "Pd(OAc)2", "B", "Pd(OAc)2"),
+    check.names = FALSE
+  )
+  data$`P-1 yield` <- data$`Base loading` * 10
+  res <- bo_suggest(
+    data,
+    predictors = list(`Base loading` = c("1", "5"), Catalyst = c("Pd(OAc)2", "B")),
+    predictor_types = c(`Base loading` = "continuous", Catalyst = "categorical"),
+    objectives = c(`P-1 yield` = "maximize")
+  )
+  expect_equal(names(res), c("Base loading", "Catalyst"))
+  expect_true(res$Catalyst %in% c("Pd(OAc)2", "B"))
+}
+test_non_syntactic_names()
+
+test_bo_predictors_fixed_bounds <- function() {
+  data <- data.frame(temp = c(60, 70, 80), solvent = c("A", "A", "B"))
+  conv <- OpenDOE:::bo_predictors(
+    data, c(temp = "continuous", solvent = "categorical"),
+    bounds = list(temp = c("40", "90"), other = c("1", "2"))
+  )
+  expect_equal(names(conv$predictors), c("temp", "solvent"))
+  expect_equal(conv$predictors$temp, c("40", "90"))
+  expect_equal(conv$predictors$solvent, c("A", "B"))
+  expect_equal(OpenDOE:::bo_predictors(data, c(temp = "continuous"))$predictors$temp, c("60", "80"))
+}
+test_bo_predictors_fixed_bounds()
+
 test_batch_suggestions_are_distinct <- function() {
   set.seed(1)
   data <- data.frame(x = c(0.5, 2.5, 4.5, 1.5))

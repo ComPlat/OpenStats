@@ -109,7 +109,8 @@ deserialize_params <- function(type, params) {
       objective = as.character(unlist(params$objective)),
       direction = as.character(unlist(params$direction)),
       seed = as.numeric(params$seed),
-      n_points = if (is.null(params$n_points)) 1L else as.integer(params$n_points)
+      n_points = if (is.null(params$n_points)) 1L else as.integer(params$n_points),
+      bounds = if (is.null(params$bounds)) NULL else lapply(params$bounds, function(v) as.character(unlist(v)))
     ),
     params
   )

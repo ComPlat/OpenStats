@@ -120,6 +120,13 @@ predictors_from_data <- function(data, predictor_types) {
   list(predictors = predictors, predictor_types = predictor_types)
 }
 
+bo_predictors <- function(data, predictor_types, bounds = NULL) {
+  fixed <- intersect(names(predictor_types), names(bounds))
+  conv <- predictors_from_data(data, predictor_types[setdiff(names(predictor_types), fixed)])
+  predictors <- c(conv$predictors, bounds[fixed])
+  list(predictors = predictors[names(predictor_types)], predictor_types = predictor_types)
+}
+
 resolve_predictor_type <- function(type, levels) {
   if (is.null(type) || type == "") infer_predictor_type(levels) else type
 }
