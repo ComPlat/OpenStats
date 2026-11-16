@@ -125,6 +125,10 @@ main_app_ui <- function() {
             "History",
             HistoryEditorUI("HISTORY")
           ),
+          shiny::tabPanel(
+            "Chat",
+            ChatUI("CHAT")
+          ),
           id = "conditionedPanels"
         ),
         resultsUI("RESULTS")

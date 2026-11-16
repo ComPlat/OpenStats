@@ -1425,6 +1425,27 @@ create_formula_V1_2 <- R6::R6Class(
     com = NULL,
     com_class = NULL,
 
+    description = paste(
+      "Defines the linear model (formula) that translates the scientific question",
+      "into a statistical model. All later analyses (e.g. t_test) use this formula.",
+      "Use only column names shown by get_state.",
+      "Returns the model summary."
+    ),
+    params = list(
+      response = list(
+        type = "string",
+        description = "Name of the column with the measured outcome, e.g. uptake."
+      ),
+      predictors = list(
+        type = "string",
+        description = paste(
+          "Right-hand side of the formula without ~, e.g. Treatment or Treatment * Type.",
+          "Allowed: column names, + for main effects, * for main effects with interaction,",
+          ": for an interaction only, and functions like log or sqrt."
+        )
+      )
+    ),
+
     initialize = function(response_var, right_site, df, com = communicator_V1_2) {
       self$response_var <- response_var
       self$right_site <- right_site
@@ -1525,6 +1546,64 @@ create_formula_V1_2 <- R6::R6Class(
     }
   )
 )
+# Checks live here and not in validate(): the history passes
+# response_var as a call object (f[2]) instead of a string
+create_formula_run_tool_V1_2 <- function(args, DataModelState, ResultsState) {
+  df <- DataModelState$df
+  if (is.null(df)) {
+    stop("No dataset loaded.")
+  }
+  response <- args[["response"]]
+  predictors <- args[["predictors"]]
+  if (!is.character(response) || length(response) != 1L || !response %in% names(df)) {
+    stop("response has to be one of the columns: ", paste(names(df), collapse = ", "))
+  }
+  if (!is.character(predictors) || length(predictors) != 1L || grepl("~", predictors, fixed = TRUE)) {
+    stop("predictors has to be the right-hand side of the formula without ~")
+  }
+  obj <- create_formula_V1_2$new(response, predictors, df, backend_communicator_V1_2)
+  obj$validate()
+  obj$eval(ResultsState, DataModelState, "Linear")
+}
+create_formula_V1_2$run_tool <- create_formula_run_tool_V1_2
+
+# Explains reference levels and group means, so the coefficients
+# do not have to be decoded by the LLM
+create_formula_tool_text_V1_2 <- function(res, DataModelState) {
+  f <- DataModelState$formula@formula
+  mf <- stats::model.frame(f, DataModelState$df)
+  response <- names(mf)[1]
+  y <- mf[[1]]
+  r4 <- llm_format_V1_2
+  parts <- vapply(names(mf)[-1], function(v) {
+    x <- mf[[v]]
+    if (is.numeric(x)) {
+      return(sprintf("%s: numeric; its coefficient is the change of %s per unit of %s", v, response, v))
+    }
+    x <- factor(x)
+    means <- tapply(y, x, mean)
+    sprintf(
+      "%s: reference level %s; coefficients %s<level> are differences to %s\n  Mean %s per level: %s",
+      v, levels(x)[1], v, levels(x)[1], response,
+      paste(names(means), r4(means), sep = " = ", collapse = ", ")
+    )
+  }, character(1))
+  paste0(
+    "Formula: ", paste(deparse(f), collapse = " "), "\n",
+    paste(parts, collapse = "\n"), "\n",
+    "(Intercept) is the mean of ", response,
+    " at the reference levels (and numeric predictors at 0).\n",
+    if (any(grepl(":", attr(stats::terms(f), "term.labels"), fixed = TRUE))) {
+      paste(
+        "The model has interactions: a main-effect coefficient is the effect",
+        "at the reference level of the interacting variable, not an overall effect.\n"
+      )
+    },
+    "\n",
+    llm_result_to_text_V1_2(res)
+  )
+}
+create_formula_V1_2$tool_text <- create_formula_tool_text_V1_2
 
 shapiro_on_data_V1_2 <- R6::R6Class(
   "shapiro_on_data_V1_2",
@@ -1996,6 +2075,31 @@ t_test_V1_2 <- R6::R6Class(
     alternative_hyp = NULL,
     com = NULL,
 
+    description = paste(
+      "Conducts a t-test using the formula currently defined in the app.",
+      "Do not pass a formula; check it with get_state and use create_formula if needed.",
+      "Requires a formula with one grouping variable that has exactly two levels."
+    ),
+    params = list(
+      variances_equal = list(
+        type = "enum",
+        values = c("eq", "noeq"),
+        default = "eq",
+        description = "Input which indicates whether the variances of the groups are equal. noeq results in a Welch's test."
+      ),
+      conf_level = list(
+        type = "number",
+        default = 0.95,
+        description = "A numeric value between 0 and 1 which indicates the desired confidence value."
+      ),
+      alternative_hyp = list(
+        type = "enum",
+        values = c("two.sided", "less", "greater"),
+        default = "two.sided",
+        description = "Input value which indicates which alternative hypothesis should be used."
+      )
+    ),
+
     initialize = function(df, formula,
                           variances_equal, conf_level,
                           alternative_hyp, com = communicator_V1_2) {
@@ -2007,7 +2111,17 @@ t_test_V1_2 <- R6::R6Class(
       self$com = com$new()
     },
 
-    validate = function() {},
+    validate = function() {
+      stopifnot(
+        "conf_level has to be a number between 0 and 1" =
+          is.numeric(self$conf_level) && length(self$conf_level) == 1L &&
+          !is.na(self$conf_level) && self$conf_level > 0 && self$conf_level < 1,
+        "variances_equal has to be eq or noeq" =
+          isTRUE(self$variances_equal %in% c("eq", "noeq")),
+        "alternative_hyp has to be two.sided, less or greater" =
+          isTRUE(self$alternative_hyp %in% c("two.sided", "less", "greater"))
+      )
+    },
 
     eval = function(ResultsState) {
       withCallingHandlers(
@@ -2054,6 +2168,45 @@ t_test_V1_2 <- R6::R6Class(
     }
   )
 )
+t_test_run_tool_V1_2 <- function(args, DataModelState, ResultsState) {
+  if (is.null(DataModelState$formula)) {
+    stop("No formula defined. Define a formula first.")
+  }
+  obj <- t_test_V1_2$new(
+    DataModelState$df,
+    DataModelState$formula,
+    args[["variances_equal"]],
+    args[["conf_level"]],
+    args[["alternative_hyp"]],
+    backend_communicator_V1_2
+  )
+  obj$validate()
+  obj$eval(ResultsState)
+}
+t_test_V1_2$run_tool <- t_test_run_tool_V1_2
+
+# Names the groups behind estimate1/estimate2, small models mix them up
+t_test_tool_text_V1_2 <- function(res, DataModelState) {
+  f <- DataModelState$formula@formula
+  groups <- levels(factor(stats::model.frame(f, DataModelState$df)[[2]]))
+  if (length(groups) != 2L) {
+    return(llm_result_to_text_V1_2(res))
+  }
+  r4 <- llm_format_V1_2
+  paste0(
+    res$method, " (alternative: ", res$alternative, ")\n",
+    "Groups of ", deparse(f[[3]]), ":\n",
+    "  ", groups[1], ": mean ", r4(res$estimate1), "\n",
+    "  ", groups[2], ": mean ", r4(res$estimate2), "\n",
+    "Difference ", groups[1], " - ", groups[2], ": ", r4(res$estimate), "\n",
+    "Confidence interval of the difference: ",
+    r4(res$conf.low), " to ", r4(res$conf.high), "\n",
+    "t = ", r4(res$statistic), ", df = ", r4(res$parameter),
+    ", p = ", r4(res$p.value)
+  )
+}
+t_test_V1_2$tool_text <- t_test_tool_text_V1_2
+
 wilcox_rank_sum_V1_2 <- R6::R6Class(
   "wilcox_rank_sum_V1_2",
   public = list(

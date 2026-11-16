@@ -39,7 +39,9 @@ Imports:
   permutes,
   reformulas,
   buildmer,
-  rlang
+  rlang,
+  ellmer,
+  shinychat
 Suggests:
   tinytest,
   shinytest2,
