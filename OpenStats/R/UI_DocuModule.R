@@ -58,6 +58,9 @@ get_docu <- function(panel, DataModelState) {
   } else if (panel == "Split") {
     path <- docu_path("SplitData.html")
     title <- "Subsetting the dataset"
+  } else if (panel == "Chat") {
+    path <- docu_path("chat.html")
+    title <- "Chat with the statistics assistant"
   }
 
   return(list(path, title))
@@ -100,6 +103,10 @@ show_docu <- function(input, DataModelState) {
     } else {
       path <- path_list[[1]]
       title <- path_list[[2]]
+      if (!nzchar(path)) {
+        shiny::showNotification("No documentation available for this tab.", type = "message")
+        return()
+      }
       shiny::showModal(shiny::modalDialog(
         title = title,
         shiny::includeHTML(path),

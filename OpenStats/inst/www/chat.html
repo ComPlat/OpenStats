@@ -1,0 +1,35 @@
+<div class="boxed-output">
+  <h4><strong>💬 Chat Tab - Statistics Assistant</strong></h4>
+  <p>
+    The chat lets you describe your scientific question in your own words.
+    The assistant translates it into a statistical model, runs the analyses
+    and explains the results in plain language.
+  </p>
+  <div class="box">
+    <strong>Step 1:</strong> Load your dataset in the <code>Data</code> tab.
+  </div>
+  <div class="box">
+    <strong>Step 2:</strong> Ask your question, e.g.
+    <em>"Does chilling affect the CO2 uptake of the plants?"</em>
+  </div>
+  <div class="box">
+    <strong>Step 3:</strong> Check the results in the results list. Every step of the
+    assistant (formula, tests, diagnostic plots) is added there and to the history,
+    exactly as if you had used the other tabs.
+  </div>
+  <h2>🛠 Notes</h2>
+  <ul>
+    <li>The assistant can only act through the analyses of OpenStats; it cannot change your data.</li>
+    <li>Click a tool name in the chat (e.g. <code>t_test</code>) to see the exact call and the numbers the assistant received.</li>
+    <li>Language models can misinterpret results. Always compare the explanation with the results list.</li>
+    <li><code>Clear chat</code> starts a new conversation; the results are kept.</li>
+  </ul>
+  <h2>⚙️ Setup</h2>
+  <p>
+    The chat is only available when a language model is configured, e.g.
+    <code>options(OpenStats.llm = "ollama/qwen3:4b-instruct")</code> for a local model via Ollama,
+    or <code>options(OpenStats.llm = "anthropic/claude-opus-5-5")</code> together with the
+    environment variable <code>ANTHROPIC_API_KEY</code>.
+    With an external provider, your data are sent to that provider.
+  </p>
+</div>
