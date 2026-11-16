@@ -16,10 +16,9 @@ cooks_distance_plot <- function(df, formula) {
   cd <- cooks.distance(model)
   cd <- data.frame(CooksDistance = cd,
     Index = 1:length(cd))
-  n <- nrow(df)
-  # NOTE: number of predictors -1 (remove intercept via -1)
-  k <- length(coef(model)) - 1 
-  cutoff <- 4 / (n - k - 1)
+  # Same threshold as the highlighted points in diagnostic_plots();
+  # length(cd) instead of nrow(df) as rows with NA are dropped by the model
+  cutoff <- 4 / length(cd)
   p <- ggplot(data = cd, aes(Index, CooksDistance)) +
     geom_point() +
     geom_line() +

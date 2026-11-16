@@ -29,30 +29,85 @@ llm_format_V1_2 <- function(x) {
   format(signif(x, 4))
 }
 
-llm_result_to_text_V1_2 <- function(res) {
-  if (is.data.frame(res)) {
-    return(paste(utils::capture.output(print(res)), collapse = "\n"))
+
+llm_plot_text_V1_2 <- function(p) {
+  if (!inherits(p, "ggplot")) {
+    return(paste("Plot of class", class(p)[1]))
   }
-  if (isS4(res)) {
-    tables <- Filter(
-      function(s) is.data.frame(methods::slot(res, s)),
-      methods::slotNames(res)
-    )
-    if (length(tables) > 0L) {
-      parts <- vapply(tables, function(s) {
-        paste0(s, ":\n", llm_result_to_text_V1_2(methods::slot(res, s)))
-      }, character(1))
-      return(paste(parts, collapse = "\n\n"))
+  labs <- ggplot2::get_labs(p)
+  aes_names <- intersect(names(labs), c("x", "y", "colour", "fill", "shape", "linetype", "group"))
+  aes_text <- paste(aes_names, unlist(labs[aes_names]), sep = ": ", collapse = ", ")
+  geoms <- vapply(p$layers, function(l) sub("^Geom", "", class(l$geom)[1]), character(1))
+  paste0(
+    "Plot", if (!is.null(labs$title)) paste0(": ", labs$title), "\n",
+    "  Layers: ", paste(unique(geoms), collapse = ", "), "\n",
+    "  Mapping: ", aes_text, "\n",
+    "  Data points: ", if (is.data.frame(p$data)) nrow(p$data) else "unknown"
+  )
+}
+
+llm_plots_text_V1_2 <- function(plots) {
+  if (inherits(plots, "ggplot")) {
+    plots <- list(plots)
+  }
+  texts <- vapply(seq_along(plots), function(i) {
+    paste0("Page ", i, ": ", llm_plot_text_V1_2(plots[[i]]))
+  }, character(1))
+  paste(texts, collapse = "\n")
+}
+
+llm_tool_result_text_V1_2 <- function(cls, args, DataModelState, ResultsState,
+                                     counter_before, background, warnings) {
+  text <- shiny::isolate({
+    # start_direct and tick report errors via notification instead of stopping
+    if (ResultsState$counter == counter_before) {
+      status <- ResultsState$bgp$running_status
+      if (background && is.character(status) && startsWith(status, "Error")) {
+        stop(status)
+      }
+      if (background && is.character(status) && startsWith(status, "Cancel")) {
+        stop("The analysis was cancelled by the user.")
+      }
+      stop("The analysis failed. The error is shown as notification in the app.")
     }
+    name <- utils::tail(names(ResultsState$all_data), 1L)
+    res <- ResultsState$all_data[[name]]
+    body <- if (is.function(cls$tool_text)) {
+      cls$tool_text(res, DataModelState, args)
+    } else {
+      llm_text(res)
+    }
+    paste0("Result name: ", name, "\n", body)
+  })
+  if (length(warnings) > 0L) {
+    text <- paste0(text, "\nWarnings:\n", paste(warnings, collapse = "\n"))
   }
-  paste("Result of class", paste(class(res), collapse = ", "), "created.")
+  text
+}
+
+# The polling observer of bg_process stores the result;
+# this only waits until it is done
+llm_wait_for_bgp_V1_2 <- function(ResultsState, interval = 0.25) {
+  promises::promise(function(resolve, reject) {
+    check <- function() {
+      if (isTRUE(shiny::isolate(ResultsState$bgp$is_running))) {
+        later::later(check, interval)
+      } else {
+        resolve(NULL)
+      }
+    }
+    check()
+  })
 }
 
 llm_run_tool_V1_2 <- function(cls, args, DataModelState, ResultsState) {
   warnings <- character()
   args <- llm_fill_defaults_V1_2(args, cls$public_fields$params)
   # Tool calls run in promise callbacks, outside of any reactive context
-  shiny::isolate({
+  started <- shiny::isolate({
+    if (isTRUE(ResultsState$bgp$is_running)) {
+      stop("Another analysis is still running. Wait until it has finished.")
+    }
     counter_before <- ResultsState$counter
     withCallingHandlers(
       cls$run_tool(args, DataModelState, ResultsState),
@@ -61,23 +116,21 @@ llm_run_tool_V1_2 <- function(cls, args, DataModelState, ResultsState) {
         invokeRestart("muffleWarning")
       }
     )
-    # start_direct reports errors via notification instead of stopping
-    if (ResultsState$counter == counter_before) {
-      stop("The analysis failed. The error is shown as notification in the app.")
-    }
-    name <- utils::tail(names(ResultsState$all_data), 1L)
-    res <- ResultsState$all_data[[name]]
-    body <- if (is.function(cls$tool_text)) {
-      cls$tool_text(res, DataModelState)
-    } else {
-      llm_result_to_text_V1_2(res)
-    }
-    text <- paste0("Result name: ", name, "\n", body)
+    list(
+      counter_before = counter_before,
+      background = isTRUE(ResultsState$bgp$is_running)
+    )
   })
-  if (length(warnings) > 0L) {
-    text <- paste0(text, "\nWarnings:\n", paste(warnings, collapse = "\n"))
+  finish <- function(...) {
+    llm_tool_result_text_V1_2(
+      cls, args, DataModelState, ResultsState,
+      started$counter_before, started$background, warnings
+    )
   }
-  text
+  if (started$background) {
+    return(promises::then(llm_wait_for_bgp_V1_2(ResultsState), finish))
+  }
+  finish()
 }
 
 llm_column_info_V1_2 <- function(name, x, max_levels = 20L) {

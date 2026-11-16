@@ -41,7 +41,9 @@ Imports:
   buildmer,
   rlang,
   ellmer,
-  shinychat
+  shinychat,
+  promises,
+  later
 Suggests:
   tinytest,
   shinytest2,

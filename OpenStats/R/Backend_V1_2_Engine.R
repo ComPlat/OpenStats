@@ -1567,40 +1567,67 @@ create_formula_run_tool_V1_2 <- function(args, DataModelState, ResultsState) {
 }
 create_formula_V1_2$run_tool <- create_formula_run_tool_V1_2
 
-# Explains reference levels and group means, so the coefficients
-# do not have to be decoded by the LLM
-create_formula_tool_text_V1_2 <- function(res, DataModelState) {
+llm_round_df_V1_2 <- function(df) {
+  df <- as.data.frame(df)
+  num <- vapply(df, is.numeric, logical(1))
+  df[num] <- lapply(df[num], signif, digits = 4)
+  df
+}
+
+# Effects the LLM can read directly: estimated means and slopes per group
+# (emmeans/emtrends), instead of coefficients that depend on the coding
+create_formula_effects_text_V1_2 <- function(model, f, df) {
+  predictors <- all.vars(f[[3]])
+  is_num <- vapply(predictors, function(v) is.numeric(df[[v]]), logical(1))
+  factors <- predictors[!is_num]
+  numerics <- predictors[is_num]
+  term_vars <- lapply(attr(stats::terms(f), "term.labels"), function(t) all.vars(str2lang(t)))
+  partners <- function(v) {
+    setdiff(unique(unlist(Filter(function(t) v %in% t && length(t) > 1L, term_vars))), v)
+  }
+  table <- function(x) llm_table_text_V1_2(llm_round_df_V1_2(summary(x)))
+  at_mean <- if (length(numerics) > 0L) {
+    paste0(" (numeric predictors at their mean: ",
+      paste0(numerics, " = ", llm_format_V1_2(colMeans(df[numerics], na.rm = TRUE)), collapse = ", "), ")")
+  } else {
+    ""
+  }
+  parts <- character()
+  for (v in factors) {
+    by <- intersect(partners(v), factors)
+    spec <- stats::as.formula(paste("~", v, if (length(by) > 0L) paste("|", paste(by, collapse = "*"))))
+    em <- suppressMessages(emmeans::emmeans(model, spec))
+    parts <- c(parts, paste0(
+      "Estimated mean per level of ", v, if (length(by) > 0L) paste0(" for each ", paste(by, collapse = "/")), at_mean, ":\n",
+      table(em), "\n",
+      "Differences between the levels of ", v, " (Tukey adjusted):\n",
+      table(graphics::pairs(em))
+    ))
+  }
+  for (v in numerics) {
+    by <- intersect(partners(v), factors)
+    spec <- stats::as.formula(paste("~", if (length(by) > 0L) paste(by, collapse = "*") else "1"))
+    et <- suppressMessages(emmeans::emtrends(model, spec, var = v))
+    parts <- c(parts, paste0(
+      "Slope of ", v, " (change of the response per unit of ", v, ")",
+      if (length(by) > 0L) paste0(" for each level of ", paste(by, collapse = "/")), ":\n",
+      table(et),
+      if (length(by) > 0L) paste0("\nDifferences of the slopes:\n", table(graphics::pairs(et)))
+    ))
+  }
+  paste(parts, collapse = "\n\n")
+}
+
+create_formula_tool_text_V1_2 <- function(res, DataModelState, args) {
   f <- DataModelState$formula@formula
-  mf <- stats::model.frame(f, DataModelState$df)
-  response <- names(mf)[1]
-  y <- mf[[1]]
-  r4 <- llm_format_V1_2
-  parts <- vapply(names(mf)[-1], function(v) {
-    x <- mf[[v]]
-    if (is.numeric(x)) {
-      return(sprintf("%s: numeric; its coefficient is the change of %s per unit of %s", v, response, v))
-    }
-    x <- factor(x)
-    means <- tapply(y, x, mean)
-    sprintf(
-      "%s: reference level %s; coefficients %s<level> are differences to %s\n  Mean %s per level: %s",
-      v, levels(x)[1], v, levels(x)[1], response,
-      paste(names(means), r4(means), sep = " = ", collapse = ", ")
-    )
-  }, character(1))
+  df <- DataModelState$df
+  model <- lm(f, data = df)
   paste0(
-    "Formula: ", paste(deparse(f), collapse = " "), "\n",
-    paste(parts, collapse = "\n"), "\n",
-    "(Intercept) is the mean of ", response,
-    " at the reference levels (and numeric predictors at 0).\n",
-    if (any(grepl(":", attr(stats::terms(f), "term.labels"), fixed = TRUE))) {
-      paste(
-        "The model has interactions: a main-effect coefficient is the effect",
-        "at the reference level of the interacting variable, not an overall effect.\n"
-      )
-    },
-    "\n",
-    llm_result_to_text_V1_2(res)
+    "Formula: ", paste(deparse(f), collapse = " "), "\n\n",
+    "Effects (use these for the interpretation):\n\n",
+    create_formula_effects_text_V1_2(model, f, df), "\n\n",
+    "Raw coefficients (depend on the reference levels; prefer the effects above).\n",
+    llm_text(res)
   )
 }
 create_formula_V1_2$tool_text <- create_formula_tool_text_V1_2
@@ -1784,13 +1811,33 @@ diagnostic_plots_V1_2 <- R6::R6Class(
     formula = NULL,
     com = NULL,
 
+    description = paste(
+      "Creates diagnostic plots of the residuals for the formula currently defined in the app:",
+      "residuals vs fitted (linearity), QQ plot (normality), scale-location (equal variance),",
+      "residuals vs leverage and Cook's distance (influential points).",
+      "Returns the patterns of the plots as numbers.",
+      "Use it after create_formula to check the model assumptions."
+    ),
+    params = list(
+      max_points = list(
+        type = "integer",
+        default = 5L,
+        description = "Maximum number of influential rows listed."
+      )
+    ),
+
     initialize = function(df, formula, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
       self$com <- com$new()
     },
 
-    validate = function() {},
+    validate = function() {
+      stopifnot(
+        "Diagnostic plots require a linear, generalised linear or linear mixed model" =
+          inherits(self$formula, c("LinearFormula", "GeneralisedLinearFormula", "LinearMixedFormula"))
+      )
+    },
 
     eval = function(ResultsState) {
       withCallingHandlers(
@@ -1824,6 +1871,141 @@ diagnostic_plots_V1_2 <- R6::R6Class(
     }
   )
 )
+diagnostic_plots_run_tool_V1_2 <- function(args, DataModelState, ResultsState) {
+  if (is.null(DataModelState$formula)) {
+    stop("No formula defined. Define a formula first.")
+  }
+  obj <- diagnostic_plots_V1_2$new(
+    DataModelState$df,
+    DataModelState$formula,
+    backend_communicator_V1_2
+  )
+  obj$validate()
+  obj$eval(ResultsState)
+}
+diagnostic_plots_V1_2$run_tool <- diagnostic_plots_run_tool_V1_2
+
+diagnostic_plots_fit_model_V1_2 <- function(df, formula) {
+  if (inherits(formula, "LinearMixedFormula")) {
+    return(lmerTest::lmer(formula@formula, data = df))
+  }
+  if (inherits(formula, "GeneralisedLinearFormula")) {
+    family <- env_utils_V1_2$build_glm_family(formula@family, formula@link_fct)
+    return(glm(formula@formula, data = df, family = family))
+  }
+  lm(formula@formula, data = df)
+}
+
+# The LLM cannot see the plots, so their patterns are condensed into numbers.
+# Thresholds follow the ones used to highlight points in diagnostic_plots()
+diagnostic_plots_tool_text_V1_2 <- function(res, DataModelState, args) {
+  model <- diagnostic_plots_fit_model_V1_2(DataModelState$df, DataModelState$formula)
+  resids <- residuals(model)
+  fitted_values <- as.numeric(fitted(model))
+  n <- length(resids)
+  r4 <- llm_format_V1_2
+  resid_sd <- stats::sd(resids)
+
+  k <- max(2L, min(5L, n %/% 10L))
+  breaks <- unique(stats::quantile(fitted_values, seq(0, 1, length.out = k + 1L)))
+  bins <- cut(fitted_values, breaks, include.lowest = TRUE)
+  bin_mean <- tapply(resids, bins, mean)
+  bin_sd <- tapply(resids, bins, stats::sd)
+  bin_n <- tapply(resids, bins, length)
+  bin_t <- bin_mean / (resid_sd / sqrt(bin_n))
+
+  # Binning by fitted values mixes groups (e.g. Treatment shifts the fitted
+  # values) and can hide curvature; residuals per numeric predictor reveal it
+  mf <- stats::model.frame(model)
+  numeric_preds <- Filter(function(v) is.numeric(mf[[v]]), names(mf)[-1])
+  per_predictor <- lapply(numeric_preds, function(v) {
+    x <- mf[[v]]
+    groups <- if (length(unique(x)) <= 10L) {
+      factor(x)
+    } else {
+      cut(x, unique(stats::quantile(x, seq(0, 1, length.out = k + 1L))), include.lowest = TRUE)
+    }
+    g_mean <- tapply(resids, groups, mean)
+    list(mean = g_mean, t = g_mean / (resid_sd / sqrt(tapply(resids, groups, length))))
+  })
+  names(per_predictor) <- numeric_preds
+  per_predictor_text <- vapply(numeric_preds, function(v) {
+    g <- per_predictor[[v]]
+    paste0(
+      "  by ", v, ":\n",
+      paste0("    ", names(g$mean), ": ", r4(g$mean), " (", r4(g$t), " standard errors)", collapse = "\n")
+    )
+  }, character(1))
+
+  z <- (resids - mean(resids)) / resid_sd
+  qq_cor <- stats::cor(sort(z), stats::qnorm(stats::ppoints(n)))
+
+  n_coef <- length(if (inherits(model, "merMod")) lme4::fixef(model) else stats::coef(model))
+  leverage <- stats::hatvalues(model)
+  cooks <- stats::cooks.distance(model)
+  high_leverage <- names(resids)[leverage > 2 * (n_coef + 1) / n]
+  influential <- utils::head(sort(cooks[cooks > 4 / n], decreasing = TRUE), args[["max_points"]])
+  sd_ratio <- max(bin_sd) / min(bin_sd)
+
+  # Small models overlook single lines in long texts, so every
+  # violated rule of thumb is repeated at the top
+  findings <- character()
+  for (b in names(bin_t)[abs(bin_t) > 2]) {
+    findings <- c(findings, sprintf("fitted values %s: mean residual %s standard errors from 0, possible systematic pattern", b, r4(bin_t[[b]])))
+  }
+  for (v in numeric_preds) {
+    g_t <- per_predictor[[v]]$t
+    for (b in names(g_t)[abs(g_t) > 2]) {
+      findings <- c(findings, sprintf("%s = %s: mean residual %s standard errors from 0, possible curvature in %s", v, b, r4(g_t[[b]]), v))
+    }
+  }
+  if (sd_ratio > 2) {
+    findings <- c(findings, sprintf("ratio largest/smallest residual SD = %s, possible unequal variance", r4(sd_ratio)))
+  }
+  if (sum(abs(z) > 3) > 0L) {
+    findings <- c(findings, sprintf("%d standardised residuals beyond 3, possible outliers or heavy tails", sum(abs(z) > 3)))
+  }
+  # 4/n flags points in almost every dataset; as finding only the classic cutoff
+  very_influential <- names(cooks)[cooks > 1]
+  if (length(very_influential) > 0L) {
+    findings <- c(findings, sprintf("very influential rows (Cook's distance > 1): %s", paste(very_influential, collapse = ", ")))
+  }
+  findings_text <- if (length(findings) == 0L) {
+    "  No rule of thumb is violated.\n"
+  } else {
+    paste0(paste0("  - ", findings, collapse = "\n"), "\n")
+  }
+
+  paste0(
+    "Diagnostics for ", paste(deparse(DataModelState$formula@formula), collapse = " "),
+    " (n = ", n, ", residual SD = ", r4(resid_sd), ")\n\n",
+    "Findings (rules of thumb violated, details below):\n", findings_text, "\n",
+    "Linearity (residuals vs fitted): mean residual per range of fitted values\n",
+    paste0("  ", names(bin_mean), ": ", r4(bin_mean),
+      " (", r4(bin_t), " standard errors)", collapse = "\n"), "\n",
+    if (length(per_predictor_text) > 0L) {
+      paste0("Mean residual per value of each numeric predictor\n", paste(per_predictor_text, collapse = "\n"), "\n")
+    },
+    "  Rule of thumb: more than 2 standard errors away from 0 in some ranges",
+    " suggests a systematic pattern such as curvature.\n\n",
+    "Equal variance (scale-location): residual SD per range of fitted values\n",
+    paste0("  ", names(bin_sd), ": ", r4(bin_sd), collapse = "\n"), "\n",
+    "  Ratio largest/smallest SD: ", r4(sd_ratio),
+    " (rule of thumb: above 2 suggests unequal variance)\n\n",
+    "Normality (QQ plot):\n",
+    "  Correlation of sample and normal quantiles: ", r4(qq_cor), "\n",
+    "  Skewness: ", r4(mean(z^3)), ", excess kurtosis: ", r4(mean(z^4) - 3), "\n",
+    "  |standardised residual| > 2: ", sum(abs(z) > 2), " of ", n,
+    " (about ", round(0.05 * n), " expected), > 3: ", sum(abs(z) > 3), "\n\n",
+    "Influential points (row names):\n",
+    "  Cook's distance > 4/n: ",
+    if (length(influential) == 0L) "none" else paste0(names(influential), " (", r4(influential), ")", collapse = ", "),
+    "\n",
+    "  High leverage (> 2(p+1)/n): ",
+    if (length(high_leverage) == 0L) "none" else paste(utils::head(high_leverage, args[["max_points"]]), collapse = ", ")
+  )
+}
+diagnostic_plots_V1_2$tool_text <- diagnostic_plots_tool_text_V1_2
 
 dose_response_V1_2 <- R6::R6Class(
   "dose_response_V1_2",
@@ -2186,11 +2368,11 @@ t_test_run_tool_V1_2 <- function(args, DataModelState, ResultsState) {
 t_test_V1_2$run_tool <- t_test_run_tool_V1_2
 
 # Names the groups behind estimate1/estimate2, small models mix them up
-t_test_tool_text_V1_2 <- function(res, DataModelState) {
+t_test_tool_text_V1_2 <- function(res, DataModelState, args) {
   f <- DataModelState$formula@formula
   groups <- levels(factor(stats::model.frame(f, DataModelState$df)[[2]]))
   if (length(groups) != 2L) {
-    return(llm_result_to_text_V1_2(res))
+    return(llm_text(res))
   }
   r4 <- llm_format_V1_2
   paste0(
@@ -2595,6 +2777,26 @@ perm_ANOVA_V1_2 <- R6::R6Class(
     model_type = NULL,
     com = NULL,
 
+    description = paste(
+      "Permutation ANOVA for the formula currently defined in the app",
+      "(linear or linear mixed model). Robust alternative to the classical ANOVA",
+      "when residuals are not normally distributed.",
+      "Runs in the background and can take a while.",
+      "Do not pass a formula; check it with get_state and use create_formula if needed."
+    ),
+    params = list(
+      perm = list(
+        type = "integer",
+        default = 5000L,
+        description = "Number of permutations, typically 1000 to 20000. More permutations give more precise p-values but take longer."
+      ),
+      seed = list(
+        type = "integer",
+        default = 1234L,
+        description = "Seed for the random number generator, makes the result reproducible."
+      )
+    ),
+
     initialize = function(df, formula, perm, seed, model_type, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
@@ -2604,7 +2806,18 @@ perm_ANOVA_V1_2 <- R6::R6Class(
       self$com = com$new()
     },
 
-    validate = function() {},
+    validate = function() {
+      stopifnot(
+        "perm has to be a positive whole number" =
+          is.numeric(self$perm) && length(self$perm) == 1L &&
+          !is.na(self$perm) && self$perm >= 1 && self$perm == round(self$perm),
+        "seed has to be a whole number" =
+          is.numeric(self$seed) && length(self$seed) == 1L &&
+          !is.na(self$seed) && self$seed == round(self$seed),
+        "Permutation ANOVA requires a linear or linear mixed model" =
+          isTRUE(self$model_type[1] %in% c("LinearFormula", "LinearMixedFormula"))
+      )
+    },
 
     eval = function(ResultsState) {
       withCallingHandlers(
@@ -2651,6 +2864,23 @@ perm_ANOVA_V1_2 <- R6::R6Class(
     }
   )
 )
+perm_ANOVA_run_tool_V1_2 <- function(args, DataModelState, ResultsState) {
+  formula <- DataModelState$formula
+  if (is.null(formula)) {
+    stop("No formula defined. Define a formula first.")
+  }
+  obj <- perm_ANOVA_V1_2$new(
+    DataModelState$df,
+    formula,
+    args[["perm"]],
+    args[["seed"]],
+    class(formula),
+    backend_communicator_V1_2
+  )
+  obj$validate()
+  obj$eval(ResultsState)
+}
+perm_ANOVA_V1_2$run_tool <- perm_ANOVA_run_tool_V1_2
 
 pairwise_comparisons_V1_2 <- R6::R6Class(
   "pairwise_comparisons_V1_2",

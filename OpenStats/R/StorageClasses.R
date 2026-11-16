@@ -99,3 +99,58 @@ setClass("diagnosticPlots",
     current_page = "integer"
   )
 )
+
+# Text representation of a result for the LLM.
+# Mirrors the dispatch of build_result_box in Server_ResultsList.R
+methods::setGeneric("llm_text", function(res) standardGeneric("llm_text"))
+
+# Long tables would overflow the small context windows of local models
+llm_table_text_V1_2 <- function(df, max_rows = 50L) {
+  df <- as.data.frame(df)
+  more <- ""
+  if (nrow(df) > max_rows) {
+    more <- sprintf("\n... (%d of %d rows shown)", max_rows, nrow(df))
+    df <- utils::head(df, max_rows)
+  }
+  paste0(paste(utils::capture.output(print(df)), collapse = "\n"), more)
+}
+
+llm_text_any <- function(res) {
+  if (is.data.frame(res)) {
+    return(llm_table_text_V1_2(res))
+  }
+  paste(utils::capture.output(print(res)), collapse = "\n")
+}
+llm_text_summary_model <- function(res) {
+  paste0(
+    llm_plot_text_V1_2(res@p@p), "\n\n",
+    "Coefficients:\n", llm_table_text_V1_2(res@summary), "\n\n",
+    "Information criteria:\n", llm_table_text_V1_2(res@information_criterions)
+  )
+}
+llm_text_summary_data_frame <- function(res) {
+  llm_table_text_V1_2(res@summary)
+}
+llm_text_dose_response <- function(res) {
+  paste0(
+    "Fitted parameters:\n", llm_table_text_V1_2(res@df), "\n\n",
+    llm_plots_text_V1_2(res@p)
+  )
+}
+llm_text_diagnostic_plots <- function(res) {
+  llm_plots_text_V1_2(res@p)
+}
+llm_text_plot <- function(res) {
+  llm_plot_text_V1_2(res@p)
+}
+llm_text_summary_plot_data_frame <- function(res) {
+  llm_plot_text_V1_2(res@p)
+}
+
+methods::setMethod("llm_text", "ANY", llm_text_any)
+methods::setMethod("llm_text", "summaryModel", llm_text_summary_model)
+methods::setMethod("llm_text", "summaryDataFrame", llm_text_summary_data_frame)
+methods::setMethod("llm_text", "doseResponse", llm_text_dose_response)
+methods::setMethod("llm_text", "diagnosticPlots", llm_text_diagnostic_plots)
+methods::setMethod("llm_text", "plot", llm_text_plot)
+methods::setMethod("llm_text", "summaryPlotDataFrame", llm_text_summary_plot_data_frame)
