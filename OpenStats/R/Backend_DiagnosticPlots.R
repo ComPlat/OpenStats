@@ -17,8 +17,8 @@ cooks_distance_plot <- function(df, formula) {
   cd <- data.frame(CooksDistance = cd,
     Index = 1:length(cd))
   # Same threshold as the highlighted points in diagnostic_plots();
-  # length(cd) instead of nrow(df) as rows with NA are dropped by the model
-  cutoff <- 4 / length(cd)
+  # nrow(cd) instead of nrow(df) as rows with NA are dropped by the model
+  cutoff <- 4 / nrow(cd)
   p <- ggplot(data = cd, aes(Index, CooksDistance)) +
     geom_point() +
     geom_line() +

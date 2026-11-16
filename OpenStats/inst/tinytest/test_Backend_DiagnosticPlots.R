@@ -199,10 +199,7 @@ test_cooks_distance_cutoff <- function() {
   built <- ggplot2::ggplot_build(p)
   hline_layer <- built$plot$layers[[3]]
   hline_data <- ggplot2::layer_data(built, 3)
-  n <- nrow(df)
-  model <- lm(uptake ~ conc, data = df)
-  k <- length(coef(model)) - 1
-  cutoff <- 4 / (n - k - 1)
+  cutoff <- 4 / nrow(df)
   expect_equal(hline_data$yintercept, cutoff)
   expect_equal(hline_layer$aes_params$linetype, "dashed")
 }
@@ -211,8 +208,7 @@ test_cooks_distance_cutoff()
 test_cooks_distance_labels_filtered <- function() {
   df <- CO2
   model <- lm(uptake ~ conc, data = df)
-  k <- length(coef(model)) - 1
-  cutoff <- 4 / (nrow(df) - k - 1)
+  cutoff <- 4 / nrow(df)
 
   cd <- cooks.distance(model)
   cd <- data.frame(CooksDistance = cd,
