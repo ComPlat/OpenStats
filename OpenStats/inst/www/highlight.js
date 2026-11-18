@@ -20,6 +20,13 @@
       "";
   }
 
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && steps.length) {
+      steps = [];
+      show();
+    }
+  });
+
   document.addEventListener("click", function(e) {
     if (!steps.length || !e.target.closest(steps[0].selector)) return;
     steps.shift();

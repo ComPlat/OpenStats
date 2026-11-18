@@ -27,8 +27,8 @@ llm_teach_system_prompt_V1_2 <- paste(
   "Never do the analysis for the user; the user runs every step in the app.",
   "You can only read the app: get_state shows the data and the formula,",
   "get_results shows the results the user created. Never invent results.",
-  "Call get_state before your first answer and use only the column names it shows;",
-  "never invent column names.",
+  "The current app state is given at the end of this prompt;",
+  "use only the column names it shows and never invent column names.",
   "First ask about the statistics background of the user",
   "(beginner, some experience, advanced) and adapt the depth of your explanations.",
   "Guide with a ladder of hints:",
@@ -57,14 +57,29 @@ llm_app_guide_V1_2 <- function() {
   paste(lines[nzchar(lines)], collapse = "\n")
 }
 
+# Small models skip get_state and guess column names,
+# so the state is part of the prompt and refreshed before every user message
+llm_teach_prompt_V1_2 <- function(DataModelState, ResultsState) {
+  read <- function(name, args) {
+    shiny::isolate(tryCatch(
+      eval_tool_V1_2(name, args, DataModelState, ResultsState),
+      error = function(e) conditionMessage(e)
+    ))
+  }
+  paste0(
+    llm_teach_system_prompt_V1_2, "\n\n",
+    "App guide:\n", llm_app_guide_V1_2(), "\n\n",
+    "Current app state:\n",
+    read("get_state", list(max_levels = 20L)), "\n\n",
+    read("get_results", list(result_name = ""))
+  )
+}
+
 llm_set_mode_V1_2 <- function(client, get_mode, DataModelState, ResultsState) {
   mode <- get_mode()
   tools <- llm_tools_V1_2(DataModelState, ResultsState, get_mode)
   if (mode == "teach") {
-    client$set_system_prompt(paste0(
-      llm_teach_system_prompt_V1_2, "\n\n",
-      "App guide:\n", llm_app_guide_V1_2()
-    ))
+    client$set_system_prompt(llm_teach_prompt_V1_2(DataModelState, ResultsState))
     tools <- tools[llm_teach_tools_V1_2]
   } else {
     client$set_system_prompt(llm_system_prompt_V1_2)
@@ -143,7 +158,7 @@ ChatServer <- function(id, DataModelState, ResultsState) {
   # The tool itself has no access to the session
   client$on_tool_result(function(result) {
     if (result@request@name == "highlight" && is.null(result@error)) {
-      steps <- llm_click_paths_V1_2[[result@request@arguments$path]]
+      steps <- click_paths_V1_2[[result@request@arguments$path]]
       session$sendCustomMessage("highlight_path", list(steps = steps))
     }
   })
@@ -159,6 +174,9 @@ ChatServer <- function(id, DataModelState, ResultsState) {
   # Higher priority than the observer of shinychat sending the message
   shiny::observeEvent(session$input[[paste0(id, "_user_input")]], {
     client$set_turns(llm_clean_turns_V1_2(client$get_turns()))
+    if (get_mode() == "teach") {
+      client$set_system_prompt(llm_teach_prompt_V1_2(DataModelState, ResultsState))
+    }
   }, priority = 1)
 
   shiny::observeEvent(session$input[[paste0(id, "-copy")]], {

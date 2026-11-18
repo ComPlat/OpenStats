@@ -117,6 +117,9 @@ check_formula <- function(formula) {
   if (length(terms) != 2) {
     stop("Formula must have exactly two terms: response ~ predictor")
   }
+  if (!rhs_is_plain(formula)) {
+    stop(not_plain_message())
+  }
   return(TRUE)
 }
 

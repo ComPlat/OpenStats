@@ -59,6 +59,10 @@ th {
     <li>Select the <strong>response variable</strong> from the left-side dropdown (e.g., <code>blood_pressure</code>).</li>
     <li>Click predictor buttons to build the fixed-effects part (e.g., <code>treatment + time</code>).</li>
     <li>Add a random-effect term using the <code>|</code> button: type or drop <code>(1|patient)</code>.</li>
+    <li>Optional transformations of the fixed effects: <code>log</code>, <code>log10</code>, <code>sqrt</code>,
+      <code>exp</code>, <code>as.factor</code>, <code>poly</code> and <code>I</code>, e.g. <code>log(time)</code>
+      or <code>I(time^2)</code> (<code>time^2</code> without <code>I()</code> is rejected).
+      Other transformations have to be created as a new column in the DataWrangling tab.</li>
     <li>Click <strong>Create Statistical Model</strong>.</li>
   </ol>
 </div>

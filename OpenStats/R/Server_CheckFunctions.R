@@ -11,11 +11,32 @@ calc_n_covariates <- function(DataModelState) {
   if (is.data.frame(ug)) return(length(interaction(ug)))
   return(0L)
 }
+# TRUE if every term is a column or an interaction of columns.
+# Tests which work with grouping columns (df[, indep]) instead of the model
+# cannot handle terms like log(conc) or I(conc^2)
+rhs_is_plain <- function(formula) {
+  is_plain <- function(x) {
+    is.symbol(x) ||
+      (is.call(x) && identical(x[[1]], as.name(":")) &&
+        all(vapply(as.list(x)[-1], is_plain, logical(1))))
+  }
+  labels <- attr(stats::terms(formula), "term.labels")
+  all(vapply(lapply(labels, str2lang), is_plain, logical(1)))
+}
+
+not_plain_message <- function() {
+  paste(
+    "This test needs the predictors as plain columns.",
+    "Create transformed predictors (e.g. log) as new columns in the DataWrangling tab."
+  )
+}
+
 is_one_way_aov <- function(DataModelState) {
   formula <- DataModelState$formula
   if (is.null(formula)) return(0L)
   f <- formula@formula
   if (is.null(f)) return(0L)
+  if (!rhs_is_plain(f)) return(FALSE)
   predictors <- all.vars(f[[3]])
   if (length(predictors) == 1L) return(TRUE)
   FALSE
@@ -37,6 +58,7 @@ check_correlation <- function(DataModelState) {
   if (!inherits(formula, "LinearFormula")) return("Only linear models are supported.")
 
   f <- formula@formula
+  if (!rhs_is_plain(f)) return(not_plain_message())
   response <- all.vars(f[[2]])
   predictor <- all.vars(f[[3]])
 
@@ -71,6 +93,7 @@ check_dose_response <- function(DataModelState) {
   if (!inherits(formula, "LinearFormula") && !inherits(formula, "GeneralisedLinearFormula")) return("Only (generalised) linear models are supported.")
 
   f <- formula@formula
+  if (!rhs_is_plain(f)) return(not_plain_message())
   response <- all.vars(f[[2]])
   predictor <- all.vars(f[[3]])
 
@@ -105,6 +128,7 @@ check_primary_assay <- function(DataModelState) {
   if (!inherits(formula, "LinearFormula") && !inherits(formula, "GeneralisedLinearFormula")) return("Only (generalised) linear models are supported.")
 
   f <- formula@formula
+  if (!rhs_is_plain(f)) return(not_plain_message())
   response <- all.vars(f[[2]])
   predictor <- all.vars(f[[3]])
 

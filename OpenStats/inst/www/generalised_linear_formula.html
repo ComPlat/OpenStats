@@ -76,6 +76,11 @@ th {
   <ul>
     <li>Choose predictors by clicking on variable buttons.</li>
     <li>Use the <code>+</code>, <code>*</code>, or <code>:</code> operators for combinations and interactions.</li>
+    <li>Transformations: <code>log</code>, <code>log10</code>, <code>sqrt</code>, <code>exp</code>,
+      <code>as.factor</code>, <code>poly</code> and <code>I</code>, e.g. <code>log(dose)</code> or <code>I(dose^2)</code>.
+      <code>dose^2</code> without <code>I()</code> is rejected, because in a formula <code>^</code> does not compute a power.
+      Other transformations (e.g. <code>round</code>, <code>abs</code> or a division) have to be created as a new column
+      in the DataWrangling tab.</li>
     <li>Edit the formula in the code area if needed.</li>
   </ul>
 </div>

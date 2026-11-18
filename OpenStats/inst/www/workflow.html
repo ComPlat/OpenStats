@@ -37,6 +37,12 @@
       (<code>+</code> adds a predictor, <code>*</code> adds an interaction),
       or type into the text field below them, e.g. <code>conc * Treatment</code>.
       In a Linear Mixed Model, <code>(1|group)</code> adds a random effect.</li>
+    <li>Under <code>Transformations</code>: <code>log</code>, <code>log10</code>, <code>sqrt</code>, <code>exp</code>,
+      <code>as.factor</code>, <code>poly</code> and <code>I</code>, e.g. <code>log(conc)</code>,
+      <code>poly(conc, 2)</code> or <code>I(conc^2)</code> for a quadratic term
+      (<code>conc^2</code> without <code>I()</code> is rejected).
+      Other transformations (e.g. <code>round</code>, <code>abs</code>) have to be created as a new column in the
+      <code>DataWrangling</code> tab.</li>
     <li>The status field below shows <code>Status: OK</code> when the predictors are valid.</li>
     <li>Generalised Linear Model: also choose the distribution family and the link function.</li>
     <li><code>Create statistical model</code> sets the model; it is then shown in the sidebar.

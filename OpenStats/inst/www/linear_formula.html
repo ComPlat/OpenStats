@@ -78,8 +78,13 @@ th {
       <li><strong>Subtract (-):</strong> Remove a predictor variable from the model.</li>
       <li><strong>Multiply (*):</strong> Assess interactions between variables.</li>
       <li><strong>Colon (:):</strong> Include interactions between two variables.</li>
-      <li><strong>Divide (/):</strong> Include nested effects that consider both variable levels.</li>
     </ul>
+    <li><strong>Transformations:</strong> <code>log</code>, <code>log10</code>, <code>sqrt</code>, <code>exp</code>,
+      <code>as.factor</code>, <code>poly</code> and <code>I</code>, e.g. <code>log(conc)</code>,
+      <code>poly(conc, 2)</code> or <code>I(conc^2)</code> for a quadratic term.
+      <code>conc^2</code> without <code>I()</code> is rejected, because in a formula <code>^</code> does not compute a power.
+      Other transformations (e.g. <code>round</code>, <code>abs</code> or a division) have to be created as a new column
+      in the DataWrangling tab. Some tests (e.g. Kruskal-Wallis, Levene, PostHoc tests) need plain columns as predictors.</li>
     <li><strong>Editable Code Area:</strong> A text area where you can manually edit the right side of the model if needed. This is useful for users who want to refine their formulas directly.</li>
   </ul>
 </div>

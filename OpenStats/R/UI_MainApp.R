@@ -40,6 +40,14 @@ main_app_ui <- function() {
             label = NULL,
             icon = shiny::icon("question-circle")
           ),
+          htmltools::tagAppendAttributes(
+            shiny::selectInput(
+              "GUIDE-path", label = NULL,
+              choices = c("Guide me ..." = "", click_path_titles_V1_2),
+              selectize = FALSE, width = "170px"
+            ),
+            style = "margin-bottom: 0;"
+          ),
           shiny::uiOutput("message_log_btn"),
           shiny::textOutput("running_status"),
           shiny::actionButton(

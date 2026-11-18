@@ -49,7 +49,15 @@ assServer <- function(id, DataModelState, ResultsState) {
         )
         return(res)
       }
-      pred_is_numeric <- is.numeric(DataModelState$df[[DataModelState$formula@formula[[3]] ]]) 
+      pred_is_numeric <- try(is.numeric(DataModelState$df[[DataModelState$formula@formula[[3]] ]]), silent = TRUE)
+      if (inherits(pred_is_numeric, "try-error")) {
+        res <- htmltools::div(
+          htmltools::h4(htmltools::strong("Test of variance homogenity")),
+          info_div("The Levene test can only be applied for formulas with a column as predictor"),
+          class = "var-box-output"
+        )
+        return(res)
+      }
       if (pred_is_numeric) {
         res <- htmltools::div(
           htmltools::h4(htmltools::strong("Test of variance homogenity")),

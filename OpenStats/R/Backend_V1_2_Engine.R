@@ -1462,6 +1462,7 @@ create_formula_V1_2 <- R6::R6Class(
         formula <- paste(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
         env_check_ast_V1_2$check_ast(formula, colnames(self$df))
+        env_check_ast_V1_2$check_formula_rhs(formula[[3]])
         DataModelState$formula <- new("LinearFormula", formula = formula)
         model <- lm(formula, data = self$df)
         eq <- equatiomatic::extract_eq(model, wrap = TRUE)
@@ -1478,6 +1479,7 @@ create_formula_V1_2 <- R6::R6Class(
         formula <- paste(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
         env_check_ast_V1_2$check_ast(formula, colnames(self$df))
+        env_check_ast_V1_2$check_formula_rhs(formula[[3]])
         DataModelState$formula <- new("GeneralisedLinearFormula",
           formula = formula, family = family, link_fct = link_fct
         )
@@ -1511,6 +1513,7 @@ create_formula_V1_2 <- R6::R6Class(
         formula <- paste(self$response_var, " ~ ", self$right_site)
         formula <- as.formula(formula)
         env_check_ast_V1_2$check_ast(formula, colnames(self$df))
+        env_check_ast_V1_2$check_formula_rhs(formula[[3]])
         DataModelState$formula <- new("LinearMixedFormula", formula = formula)
         model <- lmerTest::lmer(formula, data = self$df)
         eq <- try(equatiomatic::extract_eq(model, wrap = TRUE), silent = TRUE)

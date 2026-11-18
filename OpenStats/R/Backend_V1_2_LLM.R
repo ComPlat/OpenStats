@@ -323,9 +323,13 @@ get_results_V1_2 <- R6::R6Class(
   )
 )
 
-# Click paths for the teach mode. A step is skipped when its `done` selector
-# matches, e.g. the formula editor is already open
-llm_click_paths_V1_2 <- list(
+# Click paths for the workflow guide and the teach mode of the chat.
+# A step is skipped when its `done` selector matches, e.g. the formula editor is already open
+click_path_titles_V1_2 <- c(
+  "Create a linear model" = "create_linear_model"
+)
+
+click_paths_V1_2 <- list(
   create_linear_model = list(
     list(
       label = "'Open formula editor' in the sidebar",
@@ -365,7 +369,7 @@ highlight_V1_2 <- R6::R6Class(
     params = list(
       path = list(
         type = "enum",
-        values = names(llm_click_paths_V1_2),
+        values = names(click_paths_V1_2),
         description = "The click path. create_linear_model: define a linear model in the formula editor."
       )
     ),
@@ -377,12 +381,12 @@ highlight_V1_2 <- R6::R6Class(
     validate = function() {
       stopifnot(
         "path has to be one of the click paths" =
-          is.character(self$path) && length(self$path) == 1L && self$path %in% names(llm_click_paths_V1_2)
+          is.character(self$path) && length(self$path) == 1L && self$path %in% names(click_paths_V1_2)
       )
     },
 
     eval = function() {
-      labels <- vapply(llm_click_paths_V1_2[[self$path]], function(step) step$label, character(1))
+      labels <- vapply(click_paths_V1_2[[self$path]], function(step) step$label, character(1))
       paste0(
         "The app now highlights, one after the other:\n",
         paste0(seq_along(labels), ". ", labels, collapse = "\n")

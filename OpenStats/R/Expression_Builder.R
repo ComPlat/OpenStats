@@ -159,54 +159,90 @@ data_wrangling_palette <- function() {
 }
 
 
+# Functions which do not merge values (no round, abs, ...): tests based on
+# grouping columns would otherwise silently use other groups than the model
+formula_functions <- function() {
+  c("I", "poly", "log", "log10", "sqrt", "exp", "as.factor")
+}
+formula_function_docs <- function() {
+  c(
+    list(
+      I = "Compute inside a formula, e.g. I(conc^2) adds a quadratic term. Without I(), conc^2 does not compute a power.",
+      poly = "Orthogonal polynomial, e.g. poly(conc, 2) adds a linear and a quadratic term.",
+      as.factor = "Treat a numeric column as groups, e.g. as.factor(conc).",
+      "^" = "Power, only inside I(), e.g. I(conc^2)."
+    ),
+    data_wrangling_docs()[c("log", "log10", "sqrt", "exp")]
+  )
+}
+formula_function_specs <- function() {
+  c(
+    list(
+      I = list(min_args = 1, max_args = 1),
+      poly = list(min_args = 2, max_args = 3)
+    ),
+    data_wrangling_specs()[c("log", "log10", "sqrt", "exp", "as.factor")]
+  )
+}
+formula_function_palette <- function() {
+  c(as.list(formula_functions()), list("^", "(", ")", ","))
+}
+
 linear_formula_docs <- function() {
-  list(
-    "+" = "Include an additional predictor variable in the model",
-    "-" = "Removes an additional predictor variable in the model",
-    "*" = "Multiply variables to assess interactions in the model",
-    ":" = "Includes the interaction between two variables in the model"
+  c(
+    list(
+      "+" = "Include an additional predictor variable in the model",
+      "-" = "Removes an additional predictor variable in the model",
+      "*" = "Multiply variables to assess interactions in the model",
+      ":" = "Includes the interaction between two variables in the model"
+    ),
+    formula_function_docs()
   )
 }
 generalized_linear_formula_docs <- linear_formula_docs
 linear_formula_specs <- function() {
-  list()
+  formula_function_specs()
 }
-generalized_linear_formula_specs <- linear_formula_specs 
+generalized_linear_formula_specs <- linear_formula_specs
 linear_formula_operator_set <- function() {
-  functions <- character(0)
+  functions <- formula_functions()
   comparison <- character(0)
   list(
-    operations_all = c("+", "-", "*", ":"),
+    operations_all = c("+", "-", "*", ":", "^", "(", ")", ",", functions),
     expression_ops = c("+", "-", ":"),
     term_ops = c("*"),
     comparison_ops = comparison,
     function_ops = functions
   )
 }
-generalized_linear_formula_operator_set <- linear_formula_operator_set 
+generalized_linear_formula_operator_set <- linear_formula_operator_set
 linear_formula_palette <- function() {
   list(
-    "Functions" = list("+", "-", "*", ":")
+    "Functions" = list("+", "-", "*", ":"),
+    "Transformations" = formula_function_palette()
   )
 }
-generalized_linear_formula_palette <- linear_formula_palette 
+generalized_linear_formula_palette <- linear_formula_palette
 
 linear_mixed_formula_docs <- function() {
-  list(
-    "+" = "Include an additional predictor variable in the model",
-    "-" = "Removes an additional predictor variable in the model",
-    "*" = "Multiply variables to assess interactions in the model",
-    "|" = "Nesting"
+  c(
+    list(
+      "+" = "Include an additional predictor variable in the model",
+      "-" = "Removes an additional predictor variable in the model",
+      "*" = "Multiply variables to assess interactions in the model",
+      "|" = "Nesting"
+    ),
+    formula_function_docs()
   )
 }
 linear_mixed_formula_specs <- function() {
-  list()
+  formula_function_specs()
 }
 linear_mixed_formula_operator_set <- function() {
-  functions <- character(0)
+  functions <- formula_functions()
   comparison <- character(0)
   list(
-    operations_all = c("+", "-", "*", "|"),
+    operations_all = c("+", "-", "*", "|", "^", "(", ")", ",", functions),
     expression_ops = c("+", "-", "|"),
     term_ops = c("*"),
     comparison_ops = comparison,
@@ -215,7 +251,8 @@ linear_mixed_formula_operator_set <- function() {
 }
 linear_mixed_formula_palette <- function() {
   list(
-    "Functions" = list("+", "-", "*", "|")
+    "Functions" = list("+", "-", "*", "|"),
+    "Transformations" = formula_function_palette()
   )
 }
 
