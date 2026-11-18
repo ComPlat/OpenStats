@@ -25,7 +25,8 @@ main_app_ui <- function() {
       shiny::includeScript(system.file("www/jszip.min.js", package = "OpenStats")),
       shiny::includeScript(system.file("www/download.js", package = "OpenStats")),
       shiny::includeScript(system.file("www/parser.js", package = "OpenStats")),
-      shiny::includeScript(system.file("www/expression.js", package = "OpenStats"))
+      shiny::includeScript(system.file("www/expression.js", package = "OpenStats")),
+      shiny::includeScript(system.file("www/highlight.js", package = "OpenStats"))
     ),
     shiny::tags$head(
       shiny::includeCSS(system.file("www/styles.css", package = "OpenStats"))
@@ -133,7 +134,8 @@ main_app_ui <- function() {
         ),
         resultsUI("RESULTS")
       )
-    )
+    ),
+    FormulaEditorModalUI("FO")
   )
 }
 # nocov end ui-scaffold

@@ -120,6 +120,8 @@ show_docu <- function(input, DataModelState) {
   obs_formula <- shiny::observeEvent(input[["FO-formula_docu"]], {
     type <- input[["FO-model_type"]]
     path_list <- get_docu(paste0(type, "Formula"))
+    # stacked Bootstrap modals break the backdrop and body scrolling
+    shinyjs::runjs("$('#formula_modal').modal('hide');")
     shiny::showModal(shiny::modalDialog(
       title = path_list[[2]],
       shiny::includeHTML(path_list[[1]]),

@@ -35,4 +35,38 @@ FormulaEditorUI <- function(id) {
     )
   )
 }
+
+# Static modal instead of showModal(): showModal rebuilds the DOM on every
+# open, which drops everything the user entered when the modal is closed
+FormulaEditorModalUI <- function(id) {
+  htmltools::div(
+    id = "formula_modal", class = "modal fade", tabindex = "-1", role = "dialog",
+    htmltools::div(
+      class = "modal-dialog modal-lg", role = "document",
+      htmltools::div(
+        class = "modal-content",
+        htmltools::div(
+          class = "modal-header",
+          htmltools::h4(
+            class = "modal-title",
+            htmltools::div(
+              style = "display: flex; align-items: center; justify-content: space-between;",
+              htmltools::span("FormulaEditor"),
+              shiny::actionButton(shiny::NS(id, "formula_docu"), label = NULL, icon = shiny::icon("question-circle"))
+            )
+          )
+        ),
+        htmltools::div(class = "modal-body", FormulaEditorUI(id)),
+        htmltools::div(
+          class = "modal-footer",
+          htmltools::tags$button(
+            type = "button", class = "btn btn-default",
+            `data-dismiss` = "modal", `data-bs-dismiss` = "modal",
+            "Close"
+          )
+        )
+      )
+    )
+  )
+}
 # nocov end ui-scaffold

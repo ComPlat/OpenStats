@@ -115,6 +115,36 @@ llm_table_text_V1_2 <- function(df, max_rows = 50L) {
   paste0(paste(utils::capture.output(print(df)), collapse = "\n"), more)
 }
 
+llm_format_V1_2 <- function(x) {
+  format(signif(x, 4))
+}
+
+llm_plot_text_V1_2 <- function(p) {
+  if (!inherits(p, "ggplot")) {
+    return(paste("Plot of class", class(p)[1]))
+  }
+  labs <- ggplot2::get_labs(p)
+  aes_names <- intersect(names(labs), c("x", "y", "colour", "fill", "shape", "linetype", "group"))
+  aes_text <- paste(aes_names, unlist(labs[aes_names]), sep = ": ", collapse = ", ")
+  geoms <- vapply(p$layers, function(l) sub("^Geom", "", class(l$geom)[1]), character(1))
+  paste0(
+    "Plot", if (!is.null(labs$title)) paste0(": ", labs$title), "\n",
+    "  Layers: ", paste(unique(geoms), collapse = ", "), "\n",
+    "  Mapping: ", aes_text, "\n",
+    "  Data points: ", if (is.data.frame(p$data)) nrow(p$data) else "unknown"
+  )
+}
+
+llm_plots_text_V1_2 <- function(plots) {
+  if (inherits(plots, "ggplot")) {
+    plots <- list(plots)
+  }
+  texts <- vapply(seq_along(plots), function(i) {
+    paste0("Page ", i, ": ", llm_plot_text_V1_2(plots[[i]]))
+  }, character(1))
+  paste(texts, collapse = "\n")
+}
+
 llm_text_any <- function(res) {
   if (is.data.frame(res)) {
     return(llm_table_text_V1_2(res))

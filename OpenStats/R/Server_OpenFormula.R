@@ -14,18 +14,7 @@ OpenFormulaServer <- function(id, DataModelState, ResultsState, MethodState, con
     })
     shiny::observeEvent(input[["open_formula_editor"]], {
       print_req(is.data.frame(DataModelState$df), "The dataset is missing")
-      shiny::showModal(shiny::modalDialog(
-        title = htmltools::div(style = "display: flex; align-items: center; justify-content: space-between;",
-          htmltools::span("FormulaEditor"),
-          shiny::actionButton("FO-formula_docu", label = NULL, icon = shiny::icon("question-circle"))
-        ),
-        FormulaEditorUI("FO"),
-        easyClose = TRUE,
-        size = "l",
-        footer = htmltools::tagList(
-          shiny::modalButton("Close")
-        )
-      ))
+      shinyjs::runjs("$('#formula_modal').modal('show');")
     })
 
     output$formulaUI <- shiny::renderUI({

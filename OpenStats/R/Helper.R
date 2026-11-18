@@ -87,20 +87,8 @@ print_success <- function(message) {
 # check formula and open modal window if no formula is set
 print_form <- function(formula) {
   if (is.null(formula)) {
-    shiny::showNotification("You have to set a formula",
-      action = htmltools::div(
-        shiny::showModal(shiny::modalDialog(
-          title = "FormulaEditor",
-          FormulaEditorUI("FO"),
-          easyClose = TRUE,
-          size = "l",
-          footer = htmltools::tagList(
-            shiny::modalButton("Close")
-          )
-        ))
-      ),
-      type = "message"
-    )
+    shiny::showNotification("You have to set a formula", type = "message")
+    shinyjs::runjs("$('#formula_modal').modal('show');")
   }
   shiny::req(!is.null(formula))
 }
