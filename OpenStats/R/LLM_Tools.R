@@ -7,15 +7,15 @@ llm_tool_classes_V1_2 <- list(
   perm_ANOVA = perm_ANOVA_V1_2,
   diagnostic_plots = diagnostic_plots_V1_2,
   get_state = get_state_V1_2,
-  get_results = get_results_V1_2,
-  highlight = highlight_V1_2
+  get_results = get_results_V1_2
 )
 
 # These tools create no result
-llm_teach_tools_V1_2 <- c("get_state", "get_results", "highlight")
-llm_teach_only_tools_V1_2 <- "highlight"
+llm_read_tools_V1_2 <- c("get_state", "get_results")
 
-llm_make_tool_V1_2 <- function(name, cls, DataModelState, ResultsState, get_mode) {
+# run(name, args) executes the tool: in the app directly, in the MCP server
+# process it forwards the call to the app
+llm_make_tool_V1_2 <- function(name, cls, run) {
   param_types <- function(p) {
     required <- is.null(p$default)
     description <- p$description
@@ -33,7 +33,7 @@ llm_make_tool_V1_2 <- function(name, cls, DataModelState, ResultsState, get_mode
   }
   params <- cls$public_fields$params
   fun <- function() {
-    llm_run_tool_V1_2(name, as.list(environment()), DataModelState, ResultsState, get_mode())
+    run(name, as.list(environment()))
   }
   # NULL instead of empty defaults: optional args the LLM omits
   # would otherwise be missing arguments inside as.list(environment())
@@ -46,11 +46,12 @@ llm_make_tool_V1_2 <- function(name, cls, DataModelState, ResultsState, get_mode
   )
 }
 
-llm_tools_V1_2 <- function(DataModelState, ResultsState, get_mode) {
+llm_tools_V1_2 <- function(DataModelState, ResultsState) {
+  run <- function(name, args) {
+    llm_run_tool_V1_2(name, args, DataModelState, ResultsState)
+  }
   Map(
-    function(n, cls) {
-      llm_make_tool_V1_2(n, cls, DataModelState, ResultsState, get_mode)
-    },
+    function(n, cls) llm_make_tool_V1_2(n, cls, run),
     names(llm_tool_classes_V1_2),
     llm_tool_classes_V1_2
   )
@@ -108,22 +109,11 @@ llm_fill_defaults_V1_2 <- function(args, params) {
   args
 }
 
-llm_run_tool_V1_2 <- function(name, args, DataModelState, ResultsState, mode) {
-  # Second line of defence: in teach mode only the read-only tools are registered,
-  # but the mode is checked again when a tool is run
-  if (mode == "teach" && !name %in% llm_teach_tools_V1_2) {
-    stop(
-      "In teach mode the user runs every analysis in the app. ",
-      "Do not run it; guide the user to do this step in the app instead."
-    )
-  }
-  if (mode != "teach" && name %in% llm_teach_only_tools_V1_2) {
-    stop(name, " is only available in teach mode.")
-  }
+llm_run_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
   warnings <- character()
   args <- llm_fill_defaults_V1_2(args, llm_tool_classes_V1_2[[name]]$public_fields$params)
   # Tools without a result have to work while an analysis is running
-  if (name %in% llm_teach_tools_V1_2) {
+  if (name %in% llm_read_tools_V1_2) {
     return(shiny::isolate(eval_tool_V1_2(name, args, DataModelState, ResultsState)))
   }
   # Tool calls run in promise callbacks, outside of any reactive context

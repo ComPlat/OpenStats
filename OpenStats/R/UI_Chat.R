@@ -12,12 +12,7 @@ ChatUI <- function(id) {
     htmltools::div(
       style = "display: flex; align-items: center; gap: 16px;",
       shiny::actionButton(paste0(id, "-clear"), "Clear chat", icon = shiny::icon("trash")),
-      shiny::actionButton(paste0(id, "-copy"), "Copy chat", icon = shiny::icon("copy")),
-      shiny::radioButtons(
-        paste0(id, "-mode"), label = NULL,
-        choices = c("Do the analysis for me" = "do", "Teach me" = "teach"),
-        selected = "do", inline = TRUE
-      )
+      shiny::actionButton(paste0(id, "-copy"), "Copy chat", icon = shiny::icon("copy"))
     ),
     shinychat::chat_ui(id, show_history = FALSE)
   )

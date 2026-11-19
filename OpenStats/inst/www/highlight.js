@@ -28,8 +28,9 @@
   });
 
   document.addEventListener("click", function(e) {
-    if (!steps.length || !e.target.closest(steps[0].selector)) return;
-    steps.shift();
+    if (!steps.length) return;
+    if (e.target.closest(steps[0].selector)) steps.shift();
+    // Also after other clicks: a step can be done in another way (e.g. modal closed via the backdrop).
     // The next element (e.g. inside the modal) needs a moment to appear
     setTimeout(show, 400);
   }, true);

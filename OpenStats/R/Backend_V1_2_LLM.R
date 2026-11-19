@@ -323,81 +323,110 @@ get_results_V1_2 <- R6::R6Class(
   )
 )
 
-# Click paths for the workflow guide and the teach mode of the chat.
+# Click paths for the workflow guide.
 # A step is skipped when its `done` selector matches, e.g. the formula editor is already open
 click_path_titles_V1_2 <- c(
-  "Create a linear model" = "create_linear_model"
+  "Create a linear model" = "create_linear_model",
+  "Check the assumptions" = "check_assumptions",
+  "t test (two groups)" = "t_test",
+  "ANOVA (more than two groups)" = "anova",
+  "Scatterplot" = "scatterplot"
 )
 
-click_paths_V1_2 <- list(
-  create_linear_model = list(
+click_path_tab_V1_2 <- function(tab, label) {
+  list(
+    label = label,
+    selector = sprintf("a[data-value='%s']", tab),
+    done = sprintf("li.active > a[data-value='%s'], a.active[data-value='%s']", tab, tab)
+  )
+}
+
+# skip_if_model: as first part of another path, skipped when a model is shown in the sidebar
+click_path_linear_model_V1_2 <- function(skip_if_model) {
+  model_exists <- if (skip_if_model) ", #OPENFORMULA-formulaUI .var-box-output" else ""
+  # "" instead of NULL: jsonlite turns NULL into {}, which is truthy in JS
+  only_model_exists <- if (skip_if_model) "#OPENFORMULA-formulaUI .var-box-output" else ""
+  list(
     list(
       label = "'Open formula editor' in the sidebar",
       selector = "#OPENFORMULA-open_formula_editor",
-      done = "#formula_modal.in, #formula_modal.show"
+      done = paste0("#formula_modal.in, #formula_modal.show", model_exists)
     ),
     list(
       label = "'Change the model type (optional)': choose 'Linear'",
       selector = ".form-group:has(#FO-model_type)",
-      done = "#FO-model_type option[value='Linear']:checked"
+      done = paste0("#FO-model_type option[value='Linear']:checked", model_exists)
     ),
     list(
       label = "'Dependent Variable': choose the outcome",
-      selector = "#FO-colnames_dropdown"
+      selector = "#FO-colnames_dropdown",
+      done = only_model_exists
     ),
     list(
       label = "Predictors: the 'Variables' and 'Functions' buttons or the text field",
-      selector = "#FO-buttons"
+      selector = "#FO-buttons",
+      done = only_model_exists
     ),
     list(
       label = "'Create statistical model'",
-      selector = "#FO-create_formula"
+      selector = "#FO-create_formula",
+      done = only_model_exists
+    ),
+    list(
+      label = "'Close' the formula editor",
+      selector = "#formula_modal [data-dismiss='modal']",
+      done = "#formula_modal:not(.in):not(.show)"
     )
   )
-)
+}
 
-highlight_V1_2 <- R6::R6Class(
-  "highlight_V1_2",
-  public = list(
-    path = NULL,
-
-    description = paste(
-      "Highlight the elements of a click path in the app, one after the other;",
-      "the next element is highlighted when the user clicks the current one.",
-      "Use it whenever you guide the user through one of these click paths."
-    ),
-    params = list(
-      path = list(
-        type = "enum",
-        values = names(click_paths_V1_2),
-        description = "The click path. create_linear_model: define a linear model in the formula editor."
-      )
-    ),
-
-    initialize = function(path) {
-      self$path <- path
-    },
-
-    validate = function() {
-      stopifnot(
-        "path has to be one of the click paths" =
-          is.character(self$path) && length(self$path) == 1L && self$path %in% names(click_paths_V1_2)
-      )
-    },
-
-    eval = function() {
-      labels <- vapply(click_paths_V1_2[[self$path]], function(step) step$label, character(1))
-      paste0(
-        "The app now highlights, one after the other:\n",
-        paste0(seq_along(labels), ". ", labels, collapse = "\n")
-      )
-    }
+click_paths_V1_2 <- list(
+  create_linear_model = click_path_linear_model_V1_2(skip_if_model = FALSE),
+  check_assumptions = c(
+    click_path_linear_model_V1_2(skip_if_model = TRUE),
+    list(
+      click_path_tab_V1_2("Assumption", "Tab 'Assumption'"),
+      list(label = "'diagnostic plots' in the sidebar", selector = "#ASS-DiagnosticPlot")
+    )
+  ),
+  t_test = c(
+    click_path_linear_model_V1_2(skip_if_model = TRUE),
+    list(
+      click_path_tab_V1_2("Tests", "Tab 'Tests'"),
+      click_path_tab_V1_2("Two groups", "Sub-tab 'Two groups'"),
+      list(
+        label = "'Test family': 'Parametric'",
+        selector = "#TESTS-ParametricOrNonParametric",
+        done = "#TESTS-ParametricOrNonParametric input[value='parametric']:checked"
+      ),
+      list(label = "'t test' in the sidebar", selector = "#TESTS-tTest")
+    )
+  ),
+  anova = c(
+    click_path_linear_model_V1_2(skip_if_model = TRUE),
+    list(
+      click_path_tab_V1_2("Tests", "Tab 'Tests'"),
+      click_path_tab_V1_2("More than two groups", "Sub-tab 'More than two groups'"),
+      list(
+        label = "'Test family': 'Parametric'",
+        selector = "#TESTS-ParametricOrNonParametric",
+        done = "#TESTS-ParametricOrNonParametric input[value='parametric']:checked"
+      ),
+      list(label = "'ANOVA' in the sidebar", selector = "#TESTS-aovTest")
+    )
+  ),
+  scatterplot = list(
+    click_path_tab_V1_2("Visualisation", "Tab 'Visualisation'"),
+    click_path_tab_V1_2("Scatterplot", "Sub-tab 'Scatterplot'"),
+    list(label = "'Y Variable' in the sidebar", selector = ".form-group:has(#VIS-yVar)"),
+    list(label = "'X Variable' in the sidebar", selector = ".form-group:has(#VIS-xVar)"),
+    list(label = "'Create plot'", selector = "#VIS-CreatePlotScatter")
   )
 )
 
 eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
   formula <- DataModelState$formula
-  if (!name %in% c("create_formula", llm_teach_tools_V1_2) && is.null(formula)) {
+  if (!name %in% c("create_formula", llm_read_tools_V1_2) && is.null(formula)) {
     stop("No formula defined. Define a formula first.")
   }
   switch(
@@ -409,11 +438,6 @@ eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
     },
     get_results = {
       res <- get_results_V1_2$new(ResultsState$all_data, args[["result_name"]])
-      res$validate()
-      res$eval()
-    },
-    highlight = {
-      res <- highlight_V1_2$new(args[["path"]])
       res$validate()
       res$eval()
     },

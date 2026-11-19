@@ -49,6 +49,8 @@ Suggests:
   shinytest2,
   COMELN,
   writexl,
-  V8
+  V8,
+  mcptools,
+  nanonext
 Encoding: UTF-8
 

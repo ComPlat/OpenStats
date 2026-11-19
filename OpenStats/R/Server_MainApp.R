@@ -304,6 +304,7 @@ app <- function() {
     OpenSplitByGroupServer("OPENSPLITBYGROUP", DataModelState, ResultsState, MethodState, shiny::reactive(input$conditionedPanels))
     ExportResultsServer("RESULTS", DataModelState, ResultsState, MethodState)
     ChatServer("CHAT", DataModelState, ResultsState)
+    McpBridgeServer(DataModelState, ResultsState)
     GuideServer("GUIDE")
   }
   return(list(ui = ui, server = server))
