@@ -13,8 +13,6 @@ llm_tool_classes_V1_2 <- list(
 # These tools create no result
 llm_read_tools_V1_2 <- c("get_state", "get_results")
 
-# run(name, args) executes the tool: in the app directly, in the MCP server
-# process it forwards the call to the app
 llm_make_tool_V1_2 <- function(name, cls, run) {
   param_types <- function(p) {
     required <- is.null(p$default)
