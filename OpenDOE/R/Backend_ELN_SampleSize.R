@@ -76,16 +76,15 @@ eln_parse_outcome <- function(row) {
   )
 }
 
-# The controls table has no link to a predictor; the ELN users list them in predictor order,
-# so the i-th control is preset to the i-th predictor and can be reassigned in OpenDOE.
-eln_parse_control <- function(row, predictor) {
+# The controls table has no link to a predictor: the user assigns them in OpenDOE
+eln_parse_control <- function(row) {
   list(
     uuid = eln_row_uuid(row),
     name = eln_cell(row, "Name"),
     type = eln_select(eln_cell(row, "Type"), ELN_CONTROL_TYPES),
     description = eln_cell(row, "Description"),
     in_case_of_failure = eln_cell(row, "In case of Failure"),
-    predictor = predictor,
+    predictor = NA_character_,
     level = NA_character_
   )
 }
@@ -112,11 +111,7 @@ eln_sample_size_notes <- function(predictors, outcomes) {
 parse_eln_animal_planning <- function(x) {
   predictors <- lapply(eln_table_rows(x, "Predictors"), eln_parse_predictor)
   outcomes <- lapply(eln_table_rows(x, "Outcome_Measures_Table"), eln_parse_outcome)
-  control_rows <- eln_table_rows(x, "Selection_Controls")
-  predictor_names <- vapply(predictors, function(p) p$name, character(1))
-  controls <- lapply(seq_along(control_rows), function(i) {
-    eln_parse_control(control_rows[[i]], if (i <= length(predictor_names)) predictor_names[[i]] else NA_character_)
-  })
+  controls <- lapply(eln_table_rows(x, "Selection_Controls"), eln_parse_control)
 
   roles <- vapply(outcomes, function(o) o$role, character(1))
   primary <- which(roles %in% "primary")
@@ -141,8 +136,8 @@ eln_sample_size_importable <- function(p) {
     !(p$role %in% c("covariate", "blocking")) && length(p$levels) > 0L
 }
 
-# Predictors with a single level are imported anyway: the missing levels (often the control)
-# are added by the user in the Predictors tab.
+# Predictors with a single level are imported anyway: the missing level is usually a control,
+# which becomes a level once it is assigned to the predictor (eln_merge_controls).
 eln_sample_size_predictors <- function(parsed) {
   keep <- Filter(eln_sample_size_importable, parsed$predictors)
   names <- vapply(keep, function(p) p$name, character(1))
@@ -150,20 +145,36 @@ eln_sample_size_predictors <- function(parsed) {
   stats::setNames(lapply(keep, function(p) unique(p$levels)), unique(names))
 }
 
-eln_preselect_control_levels <- function(controls, predictors) {
+eln_control_level <- function(control, predictors) {
+  if (is.na(control$name) || is.na(control$predictor) || !(control$predictor %in% names(predictors))) {
+    return(NA_character_)
+  }
+  control$name
+}
+
+eln_set_control_levels <- function(controls, predictors) {
   lapply(controls, function(control) {
-    levels <- if (!is.na(control$predictor)) predictors[[control$predictor]] else NULL
-    if (is.na(control$level) && !is.na(control$name) && control$name %in% levels) control$level <- control$name
+    control$level <- eln_control_level(control, predictors)
     control
   })
 }
 
-eln_assign_control <- function(controls, i, field, value) {
-  if (is.null(value) || i > length(controls)) return(controls)
-  if (!nzchar(value)) value <- NA_character_
-  if (identical(controls[[i]][[field]], value)) return(controls)
-  controls[[i]][[field]] <- value
-  if (field == "predictor") controls[[i]]$level <- NA_character_
+# Rebuilt from the ELN levels each time, so unassigning a control also removes its level
+eln_merge_controls <- function(base_predictors, controls) {
+  predictors <- base_predictors
+  for (control in controls) {
+    if (is.na(control$level)) next
+    predictors[[control$predictor]] <- unique(c(predictors[[control$predictor]], control$level))
+  }
+  predictors
+}
+
+eln_assign_control <- function(controls, i, predictor, predictors) {
+  if (is.null(predictor) || i > length(controls)) return(controls)
+  if (!nzchar(predictor)) predictor <- NA_character_
+  if (identical(controls[[i]]$predictor, predictor)) return(controls)
+  controls[[i]]$predictor <- predictor
+  controls[[i]]$level <- eln_control_level(controls[[i]], predictors)
   controls
 }
 
@@ -175,8 +186,9 @@ eln_incomplete_predictors <- function(predictors) {
 import_eln_sample_size <- function(State, x) {
   parsed <- parse_eln_animal_planning(x)
   predictors <- eln_sample_size_predictors(parsed)
-  parsed$controls <- eln_preselect_control_levels(parsed$controls, predictors)
-  State$predictors <- predictors
+  parsed$base_predictors <- predictors
+  parsed$controls <- eln_set_control_levels(parsed$controls, predictors)
+  State$predictors <- eln_merge_controls(predictors, parsed$controls)
   State$predictor_types <- stats::setNames(rep("categorical", length(predictors)), names(predictors))
   State$eln_sample_size <- parsed
   parsed

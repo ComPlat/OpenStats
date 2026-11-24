@@ -6,6 +6,7 @@ app <- function() {
     State <- shiny::reactiveValues(
       predictors = list(),
       predictor_types = character(0),
+      predictors_locked = FALSE,
       n_per_level = NULL,
       mc_running = FALSE,
       results = list(),

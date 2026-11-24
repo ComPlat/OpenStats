@@ -50,7 +50,7 @@ test_parse_eln_animal_planning <- function() {
 
   expect_equal(res$controls[[1]]$uuid, "c1")
   expect_equal(res$controls[[1]]$type, "genetic")
-  expect_equal(res$controls[[1]]$predictor, "Genotype")
+  expect_true(is.na(res$controls[[1]]$predictor))
   expect_true(is.na(res$controls[[1]]$in_case_of_failure))
 
   expect_equal(res$notes, "Random effect Cage is not supported yet and ignored")
@@ -76,16 +76,16 @@ test_parse_eln_animal_planning_lenient <- function() {
 }
 test_parse_eln_animal_planning_lenient()
 
-test_eln_controls_follow_predictor_order <- function() {
+test_eln_controls_start_unassigned <- function() {
   x <- animal_planning_mock()
   x$Selection_Controls$data <- rep(x$Selection_Controls$data, 3)
   x$Selection_Controls$data[[2]]$cells[[2]]$value <- "Negativ control"
   x$Selection_Controls$data[[3]]$cells[[2]]$value <- "Negative control"
   res <- OpenDOE:::parse_eln_animal_planning(x)
-  expect_equal(vapply(res$controls, `[[`, "", "predictor"), c("Genotype", "Cage", NA_character_))
+  expect_true(all(is.na(vapply(res$controls, `[[`, "", "predictor"))))
   expect_equal(vapply(res$controls, `[[`, "", "type"), c("genetic", "negative", "negative"))
 }
-test_eln_controls_follow_predictor_order()
+test_eln_controls_start_unassigned()
 
 test_import_eln_sample_size_keeps_doe_flow_off <- function() {
   options(OpenDOE.background = FALSE)
@@ -99,7 +99,7 @@ test_import_eln_sample_size_keeps_doe_flow_off <- function() {
     checks[3] <<- is.null(State$eln)
     checks[4] <<- identical(names(State$predictors), "Genotype")
     checks[5] <<- identical(State$predictor_types, c(Genotype = "categorical"))
-    checks[6] <<- identical(State$eln_sample_size$controls[[1]]$level, "Cd44 ft/ft")
+    checks[6] <<- is.na(State$eln_sample_size$controls[[1]]$level)
   })
   expect_true(all(checks))
 }
@@ -124,29 +124,47 @@ test_eln_sample_size_predictors_filter <- function() {
 test_eln_sample_size_predictors_filter()
 
 test_eln_assign_control <- function() {
-  controls <- list(list(name = "Sham", predictor = "Genotype", level = "wt"))
-  expect_equal(OpenDOE:::eln_assign_control(controls, 1, "level", "ko")[[1]]$level, "ko")
-  moved <- OpenDOE:::eln_assign_control(controls, 1, "predictor", "Sex")
+  base <- list(Treatment = "DrugA", Sex = c("m", "f"))
+  controls <- list(list(name = "Vehicle", predictor = "Treatment", level = "Vehicle"))
+  moved <- OpenDOE:::eln_assign_control(controls, 1, "Sex", base)
   expect_equal(moved[[1]]$predictor, "Sex")
-  expect_true(is.na(moved[[1]]$level))
-  expect_true(is.na(OpenDOE:::eln_assign_control(controls, 1, "predictor", "")[[1]]$predictor))
-  expect_identical(OpenDOE:::eln_assign_control(controls, 2, "level", "ko"), controls)
-  expect_identical(OpenDOE:::eln_assign_control(controls, 1, "level", NULL), controls)
+  expect_equal(moved[[1]]$level, "Vehicle")
+  cleared <- OpenDOE:::eln_assign_control(controls, 1, "", base)
+  expect_true(is.na(cleared[[1]]$predictor))
+  expect_true(is.na(cleared[[1]]$level))
+  expect_identical(OpenDOE:::eln_assign_control(controls, 2, "Sex", base), controls)
+  expect_identical(OpenDOE:::eln_assign_control(controls, 1, NULL, base), controls)
 
-  preset <- OpenDOE:::eln_preselect_control_levels(
-    list(list(name = "Sham", predictor = "Treatment", level = NA_character_),
-         list(name = "Other", predictor = NA_character_, level = NA_character_)),
-    list(Treatment = c("Drug", "Sham"))
+  preset <- OpenDOE:::eln_set_control_levels(
+    list(list(name = "Vehicle", predictor = "Treatment", level = NA_character_),
+         list(name = "Other", predictor = NA_character_, level = NA_character_),
+         list(name = "Cage control", predictor = "Cage", level = NA_character_)),
+    base
   )
-  expect_equal(preset[[1]]$level, "Sham")
+  expect_equal(preset[[1]]$level, "Vehicle")
   expect_true(is.na(preset[[2]]$level))
+  expect_true(is.na(preset[[3]]$level))
 }
 test_eln_assign_control()
+
+test_eln_merge_controls <- function() {
+  base <- list(Treatment = "DrugA", Sex = c("m", "f"))
+  controls <- list(
+    list(name = "Vehicle", predictor = "Treatment", level = "Vehicle"),
+    list(name = "DrugA", predictor = "Treatment", level = "DrugA"),
+    list(name = "Other", predictor = NA_character_, level = NA_character_)
+  )
+  merged <- OpenDOE:::eln_merge_controls(base, controls)
+  expect_equal(merged$Treatment, c("DrugA", "Vehicle"))
+  expect_equal(merged$Sex, c("m", "f"))
+  expect_identical(OpenDOE:::eln_merge_controls(base, controls[3]), base)
+}
+test_eln_merge_controls()
 
 test_eln_sample_size_output_mc_anova <- function() {
   ess <- OpenDOE:::parse_eln_animal_planning(animal_planning_mock())
   levels <- list(Genotype = c("Cd44 ft/ft", "Cd44 ko"))
-  ess$controls <- OpenDOE:::eln_preselect_control_levels(ess$controls, levels)
+  ess$controls <- OpenDOE:::eln_assign_control(ess$controls, 1, "Genotype", levels)
   params <- list(
     levels = levels, mu = c(10, 14), cv = 0.25, formula = values ~ Genotype,
     alphas = c(Genotype = 0.05), target_effect = "Genotype", power_target = 0.8,

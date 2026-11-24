@@ -1,0 +1,128 @@
+{
+  "id": "2",
+  "request_id": "SSC-1",
+  "element_info": {
+    "id": "140",
+    "name": "New Animal Study Protocol",
+    "short_label": "CHI-AT1",
+    "klass_uuid": "klass-1",
+    "version": "1.33"
+  },
+  "Output": {
+    "schema_version": "0.1",
+    "status": "success",
+    "message": "",
+    "display": {
+      "model": "kruskal_wallis",
+      "method": "monte_carlo",
+      "assumptions": {
+        "normally_distributed": false,
+        "homogeneous_variances": false
+      },
+      "key_settings": {
+        "alpha": 0.05,
+        "power_target": 0.8,
+        "target_effect": null
+      },
+      "result": {
+        "n_per_group": 8,
+        "n_total": 24,
+        "power": 0.82
+      }
+    },
+    "software": {
+      "R": "4.6.1",
+      "OpenDOE": "0.1",
+      "Randomization": "0.1",
+      "RNGkind": ["Mersenne-Twister", "Inversion", "Rejection"]
+    },
+    "response": "Tumor volume",
+    "outcomes": [
+      {
+        "uuid": "o1",
+        "name": "Tumor volume",
+        "role": "primary",
+        "type": "continuous",
+        "unit": "mm3"
+      }
+    ],
+    "predictors": [
+      {
+        "name": "Treatment",
+        "uuid": "p1",
+        "role": "primary_factor",
+        "type": "factor",
+        "levels": ["Vehicle", "DrugA", "DrugB"]
+      }
+    ],
+    "controls": [
+      {
+        "uuid": "c1",
+        "name": "Vehicle",
+        "type": "negative",
+        "predictor": "Treatment",
+        "level": "Vehicle"
+      }
+    ],
+    "design": {
+      "type": "completely_randomized",
+      "structure": "full_factorial",
+      "balanced": true,
+      "n_cells": 3
+    },
+    "sample_size": {
+      "model": "kruskal_wallis",
+      "method": "monte_carlo",
+      "assumptions": {
+        "normally_distributed": false,
+        "homogeneous_variances": false
+      },
+      "settings": {
+        "cv": 0.25,
+        "alpha": 0.05,
+        "power_target": 0.8,
+        "seed": 42,
+        "nsim": 1000,
+        "n_min": 2,
+        "n_max": 50,
+        "level_means": [
+          {
+            "level": "Vehicle",
+            "mean": 10
+          },
+          {
+            "level": "DrugA",
+            "mean": 14
+          },
+          {
+            "level": "DrugB",
+            "mean": 16
+          }
+        ],
+        "variance_model": "cv"
+      },
+      "result": {
+        "n_per_group": 8,
+        "n_total": 24,
+        "power": 0.82,
+        "power_se": 0.01
+      }
+    },
+    "analysis_plan": [
+      {
+        "type": "Version",
+        "Nr": "1_2"
+      },
+      {
+        "type": "CreateFormula",
+        "formula": "`Tumor volume` ~ Treatment",
+        "Model Type": "Linear",
+        "details": ""
+      },
+      {
+        "type": "Kruskal-Wallis Test",
+        "formula": "`Tumor volume` ~ Treatment"
+      }
+    ]
+  }
+}

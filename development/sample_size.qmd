@@ -1,0 +1,52 @@
+---
+title: "Sample Size Calculation"
+subtitle: "OpenStats -- OpenDOE"
+author: "Konrad Krämer"
+date: 2026-11-17
+format:
+  revealjs:
+    embed-resources: true
+    theme: simple
+    slide-number: true
+    toc: false
+---
+
+| OpenStats                                 | OpenDOE
+--------------------------------------------|-----------------------------
+| [x] t-test                                | [x] power analysis and MC
+| [x] welch test                            | [x] MC
+| [x] Wilcoxon test                         | [x] MC
+|                                           |
+| [x] Welch ANOVA                           | [x] MC
+| [x] ANOVA                                 | [x] power analysis and MC
+| [x] Kruskal Wallis test                   | [x] MC
+|                                           |
+| [x] parametric pairwise comparison        | [x] MC --> easy
+| [x] non parametric pairwise comparison    | [x] MC --> easy
+|                                           |
+| [x] Tukey HSD                             | [ ] MC --> medium
+| [x] LSD                                   | [ ] MC --> medium
+| [x] Scheffe                               | [ ] MC --> medium
+| [x] REGW                                  | [ ] MC --> medium
+| [x] Kruskal Wallis post hoc               | [ ] MC --> medium
+|                                           |
+| [x] GLM deviance ANOVA                    | [ ] MC --> medium
+| [x] GLM pairwise comparison (emmeans)     | [ ] MC --> medium
+|                                           |
+| [x] LMM ANOVA                             | [ ] MC --> very hard
+| [x] LMM pairwise comparison (emmeans)     | [ ] MC --> very hard
+| [x] LMM trends (emtrends)                 | [ ] MC --> very hard
+|                                           |
+| [x] permutation ANOVA                     | [ ] MC --> very expensive
+|                                           |
+| [x] Pearson correlation                   | [ ] power analysis --> very easy
+| [x] Spearman correlation                  | [ ] MC --> easy
+| [x] Kendall correlation                   | [ ] MC --> easy
+|                                           |
+| [x] dose response / IC50                  | [ ] MC --> expensive and very hard
+| [x] primary assay                         | [ ] MC --> maybe difficult
+|                                           |
+| [x] one sided hypotheses                  | [ ] MC --> very easy
+| [ ] paired t-test                         | [ ] MC --> very easy
+| [ ] one sample t-test                     | [ ] MC --> very easy
+

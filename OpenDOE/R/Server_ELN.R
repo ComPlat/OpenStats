@@ -1,6 +1,7 @@
 elnServer <- function(input, output, session, State) {
   shiny::observeEvent(session$clientData$url_search, {
     query <- shiny::parseQueryString(session$clientData$url_search)
+    State$predictors_locked <- !is.null(query$method) && nzchar(query$method)
     if (identical(query$method, ELN_SAMPLE_SIZE_METHOD)) {
       res <- try(import_eln_sample_size(State, fetch_eln_doe(session)), silent = TRUE)
       if (inherits(res, "try-error")) {
@@ -15,7 +16,7 @@ elnServer <- function(input, output, session, State) {
       incomplete <- eln_incomplete_predictors(State$predictors)
       if (length(State$predictors) == 0L || length(incomplete) > 0L) {
         if (length(incomplete) > 0L) {
-          print_warn(paste0("Add the missing levels (e.g. the control) to: ", paste(incomplete, collapse = ", ")))
+          print_warn(paste0("Assign the control(s) to the predictor(s) with a single level: ", paste(incomplete, collapse = ", ")))
         }
         shiny::updateTabsetPanel(session, "conditionedPanels", selected = "Predictors")
         return(invisible())

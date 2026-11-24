@@ -1,6 +1,8 @@
 options(OpenStats.llm = "ollama/qwen3:4b-instruct")
-options(OpenStats.llm = "google_gemini/gemini-3.5-flash")
-# ch <- ellmer::chat("google_gemini/gemini-2.5-flash")
+# options(OpenStats.llm = "google_gemini/gemini-3.5-flash")
+# options(OpenStats.llm = "google_gemini/gemini-3.5-flash-lite")
+# ch <- ellmer::chat("google_gemini/gemini-3.5-flash")
+# ch <- ellmer::chat("google_gemini/gemini-3.5-flash-lite")
 # ch$chat("hi")
 
 Sys.setenv(RUN_MODE = "LOCAL")

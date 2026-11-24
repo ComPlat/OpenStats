@@ -1,0 +1,135 @@
+{
+  "id": "2",
+  "request_id": "SSC-1",
+  "element_info": {
+    "id": "140",
+    "name": "New Animal Study Protocol",
+    "short_label": "CHI-AT1",
+    "klass_uuid": "klass-1",
+    "version": "1.33"
+  },
+  "Output": {
+    "schema_version": "0.1",
+    "status": "success",
+    "message": "",
+    "display": {
+      "model": "pairwise_t_test",
+      "method": "monte_carlo",
+      "assumptions": {
+        "normally_distributed": true,
+        "homogeneous_variances": true
+      },
+      "key_settings": {
+        "alpha": 0.05,
+        "power_target": 0.8,
+        "target_effect": null
+      },
+      "result": {
+        "n_per_group": 11,
+        "n_total": 22,
+        "power": 0.82
+      }
+    },
+    "software": {
+      "R": "4.6.1",
+      "OpenDOE": "0.1",
+      "Randomization": "0.1",
+      "RNGkind": ["Mersenne-Twister", "Inversion", "Rejection"]
+    },
+    "response": "Tumor volume",
+    "outcomes": [
+      {
+        "uuid": "o1",
+        "name": "Tumor volume",
+        "role": "primary",
+        "type": "continuous",
+        "unit": "mm3"
+      }
+    ],
+    "predictors": [
+      {
+        "name": "Genotype",
+        "uuid": "p1",
+        "role": "primary_factor",
+        "type": "factor",
+        "levels": ["Cd44 ft/ft", "Cd44 ko"]
+      }
+    ],
+    "controls": [
+      {
+        "uuid": "c1",
+        "name": "Cd44 ft/ft",
+        "type": "negative",
+        "predictor": "Genotype",
+        "level": "Cd44 ft/ft"
+      }
+    ],
+    "design": {
+      "type": "completely_randomized",
+      "structure": "full_factorial",
+      "balanced": true,
+      "n_cells": 2
+    },
+    "sample_size": {
+      "model": "pairwise_t_test",
+      "method": "monte_carlo",
+      "assumptions": {
+        "normally_distributed": true,
+        "homogeneous_variances": true
+      },
+      "settings": {
+        "means": {
+          "Cd44 ft/ft": 10,
+          "Cd44 ko": 14
+        },
+        "sds": {
+          "Cd44 ft/ft": 3,
+          "Cd44 ko": 3
+        },
+        "power_target": 0.8,
+        "alpha": 0.05,
+        "mcc": "holm",
+        "family": "any",
+        "nsim": 1000,
+        "n_min": 2,
+        "n_max": 50,
+        "seed": 42
+      },
+      "result": {
+        "n_per_group": 11,
+        "n_total": 22,
+        "power": 0.82,
+        "power_se": 0.01
+      }
+    },
+    "analysis_plan": [
+      {
+        "type": "Version",
+        "Nr": "1_2"
+      },
+      {
+        "type": "CreateFormula",
+        "formula": "`Tumor volume` ~ Genotype",
+        "Model Type": "Linear",
+        "details": ""
+      },
+      {
+        "type": "ShapiroOnResiduals",
+        "formula": "`Tumor volume` ~ Genotype"
+      },
+      {
+        "type": "LeveneTest",
+        "formula": "`Tumor volume` ~ Genotype",
+        "Data center": "median"
+      },
+      {
+        "type": "PairwiseComparison",
+        "formula": "`Tumor volume` ~ Genotype",
+        "P-value": 0.05,
+        "alternative hypothesis": "two.sided",
+        "Adjusted p value method": "holm",
+        "Method": "T-Test"
+      }
+    ]
+  }
+}

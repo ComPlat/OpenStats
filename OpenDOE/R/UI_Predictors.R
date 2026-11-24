@@ -1,5 +1,18 @@
 predictorsSidebarUI <- function(id) {
   shiny::tagList(
+    shiny::conditionalPanel(
+      condition = "output['PREDICTORS-locked']",
+      shiny::tags$p("The predictors come from the ELN and cannot be changed.")
+    ),
+    shiny::conditionalPanel(
+      condition = "!output['PREDICTORS-locked']",
+      predictorsEditUI()
+    )
+  )
+}
+
+predictorsEditUI <- function() {
+  shiny::tagList(
     shiny::h4("Add predictor"),
     shiny::textInput("PREDICTORS-predictor_name", "Name"),
     shiny::textInput("PREDICTORS-predictor_levels", "Levels (comma separated; continuous_grid: start, end, step; continuous: min, max)"),

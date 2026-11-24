@@ -14,4 +14,5 @@ Depends: R (>= 4.1.0)
 Imports: pwr, Rcpp
 LinkingTo: Rcpp, RcppThread
 Suggests: tinytest
+URL: https://konrad1991.r-universe.dev/Randomization
 Encoding: UTF-8
