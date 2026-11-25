@@ -21,7 +21,7 @@ eval_entry_V1_2 <- function(entry, DataModelState,
         DataModelState$df,
         DataModelState$formula,
         entry[["Correlation method"]],
-        entry[["alternative hypothesis"]],
+        entry[["Alternative hypothesis"]],
         entry[["Confidence level of the interval"]],
         backend_communicator_V1_2
       )
