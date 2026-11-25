@@ -94,7 +94,7 @@ for (choice in choices) {
       counter <- ResultsState$counter
 
       session$setInputs(`TESTS-pval` = 0.05)
-      session$setInputs(`TESTS-design` = "ba")
+      session$setInputs(`TESTS-design` = "Balanced")
       session$setInputs(`TESTS-padj` = "holm")
       if (choice %in% c("TESTS-aovTest", "TESTS-kruskalTest")) {
         do.call(session$setInputs, setNames(list(2), choice))

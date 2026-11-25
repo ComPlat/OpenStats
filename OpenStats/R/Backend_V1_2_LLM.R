@@ -27,7 +27,8 @@ create_formula_effects_text_V1_2 <- function(model, f, df) {
   for (v in factors) {
     by <- intersect(partners(v), factors)
     spec <- stats::as.formula(paste("~", v, if (length(by) > 0L) paste("|", paste(by, collapse = "*"))))
-    em <- suppressMessages(emmeans::emmeans(model, spec))
+    # data: emmeans cannot rebuild it from the call lm(f, data = df) inside this function
+    em <- suppressMessages(emmeans::emmeans(model, spec, data = df))
     parts <- c(parts, paste0(
       "Estimated mean per level of ", v, if (length(by) > 0L) paste0(" for each ", paste(by, collapse = "/")), at_mean, ":\n",
       table(em), "\n",
@@ -38,7 +39,7 @@ create_formula_effects_text_V1_2 <- function(model, f, df) {
   for (v in numerics) {
     by <- intersect(partners(v), factors)
     spec <- stats::as.formula(paste("~", if (length(by) > 0L) paste(by, collapse = "*") else "1"))
-    et <- suppressMessages(emmeans::emtrends(model, spec, var = v))
+    et <- suppressMessages(emmeans::emtrends(model, spec, var = v, data = df))
     parts <- c(parts, paste0(
       "Slope of ", v, " (change of the response per unit of ", v, ")",
       if (length(by) > 0L) paste0(" for each level of ", paste(by, collapse = "/")), ":\n",
@@ -52,6 +53,9 @@ create_formula_effects_text_V1_2 <- function(model, f, df) {
 create_formula_tool_text_V1_2 <- function(res, DataModelState, args) {
   f <- DataModelState$formula@formula
   df <- DataModelState$df
+  if (!inherits(DataModelState$formula, "LinearFormula")) {
+    return(paste0("Formula: ", paste(deparse(f), collapse = " "), "\n\n", llm_text(res)))
+  }
   model <- lm(f, data = df)
   paste0(
     "Formula: ", paste(deparse(f), collapse = " "), "\n\n",
@@ -323,111 +327,86 @@ get_results_V1_2 <- R6::R6Class(
   )
 )
 
-# Click paths for the workflow guide.
-# A step is skipped when its `done` selector matches, e.g. the formula editor is already open
-click_path_titles_V1_2 <- c(
-  "Create a linear model" = "create_linear_model",
-  "Check the assumptions" = "check_assumptions",
-  "t test (two groups)" = "t_test",
-  "ANOVA (more than two groups)" = "anova",
-  "Scatterplot" = "scatterplot"
+# Here and not in LLM_Tools.R: the class below needs it at load time
+llm_toolboxes_V1_2 <- c(
+  data = "Summaries per group, intermediate variables (e.g. subsets), new columns and switching the active dataset. No formula needed.",
+  assumptions = "Check the model assumptions: diagnostic plots, normality, equal variances.",
+  tests = "Global tests: t-test/Wilcoxon for two groups, ANOVA/Kruskal-Wallis/permutation ANOVA for more groups.",
+  posthoc = "Post hoc and pairwise comparisons after a significant global test.",
+  correlation = "Correlation between the response and a numeric predictor.",
+  dose_response = "Dose response curves (IC values) and primary assays."
 )
 
-click_path_tab_V1_2 <- function(tab, label) {
-  list(
-    label = label,
-    selector = sprintf("a[data-value='%s']", tab),
-    done = sprintf("li.active > a[data-value='%s'], a.active[data-value='%s']", tab, tab)
+# Hand-picked from env_check_ast_V1_2$allowed_fcts(): the whole list
+# would not fit into the small context windows of local models
+llm_wrangling_help_V1_2 <- function(df_name) {
+  paste0(
+    "Data wrangling rules for create_intermediate_var and create_new_col:\n",
+    "- The active dataset is called ", df_name, ", its columns are available by name.\n",
+    "- Operators: + - * / ^ ( ), comparisons == != < > <= >=, & for and, | for or.\n",
+    "- Functions: Mean, SD, Median, Sum, Min, Max (capitalised!), quantile, range, length,",
+    " log, log10, sqrt, exp, abs, round, floor, ceiling, scale,",
+    " as.numeric, as.character, as.factor, as.logical, paste, paste0, C (combine), Seq.\n",
+    "- Subsets: get_rows(", df_name, ", condition) keeps the rows where condition is TRUE,",
+    " e.g. get_rows(", df_name, ", Type == 'Quebec'); get_cols(", df_name, ", col1, col2) keeps columns.\n",
+    "- Not allowed: [ ], $, ifelse, mean/sd (lowercase) and any other function."
   )
 }
 
-# skip_if_model: as first part of another path, skipped when a model is shown in the sidebar
-click_path_linear_model_V1_2 <- function(skip_if_model) {
-  model_exists <- if (skip_if_model) ", #OPENFORMULA-formulaUI .var-box-output" else ""
-  # "" instead of NULL: jsonlite turns NULL into {}, which is truthy in JS
-  only_model_exists <- if (skip_if_model) "#OPENFORMULA-formulaUI .var-box-output" else ""
-  list(
-    list(
-      label = "'Open formula editor' in the sidebar",
-      selector = "#OPENFORMULA-open_formula_editor",
-      done = paste0("#formula_modal.in, #formula_modal.show", model_exists)
-    ),
-    list(
-      label = "'Change the model type (optional)': choose 'Linear'",
-      selector = ".form-group:has(#FO-model_type)",
-      done = paste0("#FO-model_type option[value='Linear']:checked", model_exists)
-    ),
-    list(
-      label = "'Dependent Variable': choose the outcome",
-      selector = "#FO-colnames_dropdown",
-      done = only_model_exists
-    ),
-    list(
-      label = "Predictors: the 'Variables' and 'Functions' buttons or the text field",
-      selector = "#FO-buttons",
-      done = only_model_exists
-    ),
-    list(
-      label = "'Create statistical model'",
-      selector = "#FO-create_formula",
-      done = only_model_exists
-    ),
-    list(
-      label = "'Close' the formula editor",
-      selector = "#formula_modal [data-dismiss='modal']",
-      done = "#formula_modal:not(.in):not(.show)"
-    )
-  )
-}
+choose_toolbox_V1_2 <- R6::R6Class(
+  "choose_toolbox_V1_2",
+  public = list(
+    toolbox = NULL,
 
-click_paths_V1_2 <- list(
-  create_linear_model = click_path_linear_model_V1_2(skip_if_model = FALSE),
-  check_assumptions = c(
-    click_path_linear_model_V1_2(skip_if_model = TRUE),
-    list(
-      click_path_tab_V1_2("Assumption", "Tab 'Assumption'"),
-      list(label = "'diagnostic plots' in the sidebar", selector = "#ASS-DiagnosticPlot")
-    )
-  ),
-  t_test = c(
-    click_path_linear_model_V1_2(skip_if_model = TRUE),
-    list(
-      click_path_tab_V1_2("Tests", "Tab 'Tests'"),
-      click_path_tab_V1_2("Two groups", "Sub-tab 'Two groups'"),
-      list(
-        label = "'Test family': 'Parametric'",
-        selector = "#TESTS-ParametricOrNonParametric",
-        done = "#TESTS-ParametricOrNonParametric input[value='parametric']:checked"
-      ),
-      list(label = "'t test' in the sidebar", selector = "#TESTS-tTest")
-    )
-  ),
-  anova = c(
-    click_path_linear_model_V1_2(skip_if_model = TRUE),
-    list(
-      click_path_tab_V1_2("Tests", "Tab 'Tests'"),
-      click_path_tab_V1_2("More than two groups", "Sub-tab 'More than two groups'"),
-      list(
-        label = "'Test family': 'Parametric'",
-        selector = "#TESTS-ParametricOrNonParametric",
-        done = "#TESTS-ParametricOrNonParametric input[value='parametric']:checked"
-      ),
-      list(label = "'ANOVA' in the sidebar", selector = "#TESTS-aovTest")
-    )
-  ),
-  scatterplot = list(
-    click_path_tab_V1_2("Visualisation", "Tab 'Visualisation'"),
-    click_path_tab_V1_2("Scatterplot", "Sub-tab 'Scatterplot'"),
-    list(label = "'Y Variable' in the sidebar", selector = ".form-group:has(#VIS-yVar)"),
-    list(label = "'X Variable' in the sidebar", selector = ".form-group:has(#VIS-xVar)"),
-    list(label = "'Create plot'", selector = "#VIS-CreatePlotScatter")
+    description = paste(
+      "Choose the toolbox for the next step. Only the tools of the chosen toolbox",
+      "are available afterwards; choosing another toolbox replaces them.",
+      "Toolboxes:",
+      paste0(names(llm_toolboxes_V1_2), ": ", llm_toolboxes_V1_2, collapse = " ")
+    ),
+    params = list(
+      toolbox = list(
+        type = "enum",
+        values = names(llm_toolboxes_V1_2),
+        description = "Toolbox to use."
+      )
+    ),
+
+    initialize = function(toolbox) {
+      self$toolbox <- toolbox
+    },
+
+    validate = function() {
+      if (!isTRUE(self$toolbox %in% names(llm_toolboxes_V1_2))) {
+        stop("toolbox has to be one of: ", paste(names(llm_toolboxes_V1_2), collapse = ", "))
+      }
+    },
+
+    eval = function(ChatState, DataModelState, DataWranglingState) {
+      tools <- llm_toolbox_tools_V1_2(self$toolbox, DataModelState)
+      if (length(tools) == 0L) {
+        return(paste0(
+          "The toolbox ", self$toolbox, " has no tools for the current formula.",
+          " Define a suitable formula with create_formula first."
+        ))
+      }
+      ChatState$toolbox <- self$toolbox
+      text <- paste0("Toolbox ", self$toolbox, " chosen. Available tools now: ", paste(tools, collapse = ", "))
+      if (self$toolbox == "data") {
+        text <- paste0(text, "\n\n", llm_wrangling_help_V1_2(DataWranglingState$df_name))
+      }
+      text
+    }
   )
 )
 
-eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
+eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState, DataWranglingState) {
   formula <- DataModelState$formula
-  if (!name %in% c("create_formula", llm_read_tools_V1_2) && is.null(formula)) {
+  if (!name %in% llm_no_formula_tools_V1_2 && is.null(formula)) {
     stop("No formula defined. Define a formula first.")
+  }
+  if (!name %in% llm_read_tools_V1_2 && is.null(DataModelState$df)) {
+    stop("No dataset loaded.")
   }
   switch(
     name,
@@ -445,9 +424,6 @@ eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
     # response_var as a call object (f[2]) instead of a string
     create_formula = {
       df <- DataModelState$df
-      if (is.null(df)) {
-        stop("No dataset loaded.")
-      }
       response <- args[["response"]]
       predictors <- args[["predictors"]]
       if (!is.character(response) || length(response) != 1L || !response %in% names(df)) {
@@ -458,7 +434,155 @@ eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
       }
       res <- create_formula_V1_2$new(response, predictors, df, backend_communicator_V1_2)
       res$validate()
-      res$eval(ResultsState, DataModelState, "Linear")
+      switch(
+        args[["model_type"]],
+        "Generalised Linear Model" = res$eval(
+          ResultsState, DataModelState, args[["model_type"]],
+          args[["family"]], args[["link_fct"]]
+        ),
+        "Optimization Model" = res$eval(
+          ResultsState, DataModelState, args[["model_type"]],
+          args[["optim_method"]], args[["lower"]], args[["upper"]], args[["seed"]]
+        ),
+        res$eval(ResultsState, DataModelState, args[["model_type"]])
+      )
+    },
+    wilcox_rank_sum = {
+      res <- wilcox_rank_sum_V1_2$new(
+        DataModelState$df, formula, args[["alternative_hyp"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    correlation = {
+      res <- correlation_V1_2$new(
+        DataModelState$df, formula,
+        args[["method"]], args[["alternative"]], args[["conflevel"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    statistical_tests = {
+      res <- statistical_tests_V1_2$new(
+        DataModelState$df, formula,
+        args[["balanced_design"]], args[["p_val"]], args[["p_val_adj_method"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$validate_method(args[["method"]])
+      res$eval(ResultsState, args[["method"]])
+    },
+    pairwise_comparisons = {
+      res <- pairwise_comparisons_V1_2$new(
+        DataModelState$df, formula,
+        args[["p_val"]], args[["alternative_hyp"]], args[["p_val_adj_method"]],
+        args[["parametric_or_non_parametric"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    pairwise_comparisons_linear_mixed = {
+      res <- pairwise_comparisons_linear_mixed_V1_2$new(
+        DataModelState$df, formula, args[["method"]], args[["p_val"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    shapiro_on_data = {
+      res <- shapiro_on_data_V1_2$new(DataModelState$df, formula, backend_communicator_V1_2)
+      res$validate()
+      res$eval(ResultsState)
+    },
+    shapiro_on_residuals = {
+      res <- shapiro_on_residuals_V1_2$new(DataModelState$df, formula, backend_communicator_V1_2)
+      res$validate()
+      res$eval(ResultsState)
+    },
+    levene = {
+      res <- levene_V1_2$new(DataModelState$df, formula, args[["center"]], backend_communicator_V1_2)
+      res$validate()
+      res$eval(ResultsState)
+    },
+    dose_response = {
+      res <- dose_response_V1_2$new(
+        DataModelState$df, args[["ic_percentage"]],
+        args[["is_xlog"]], args[["is_ylog"]],
+        args[["substance_names"]], args[["unit_names"]],
+        formula, args[["type"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState, paste0(ResultsState$counter + 1, " DoseResponse"))
+    },
+    primary_assay = {
+      res <- primary_assay_V1_2$new(
+        DataModelState$df, formula,
+        args[["neg_control_name"]], args[["pos_control_name"]],
+        args[["pval_adj_method"]], args[["fold_or_percentage"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    create_summary = {
+      res <- create_summary_V1_2$new(
+        DataModelState$df, args[["column_by"]], args[["for_which"]], args[["what_to_do"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    create_summary_plot = {
+      res <- create_summary_plot_V1_2$new(
+        DataModelState$df, args[["column_by"]], args[["for_which"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    # eval() takes the grouped path for any non NULL group_apply
+    create_intermediate_var = {
+      groups <- args[["group_apply"]]
+      if (length(groups) == 0L) {
+        groups <- NULL
+      }
+      res <- create_intermediate_var_V1_2$new(
+        DataWranglingState$df, DataWranglingState$df_name,
+        DataWranglingState$intermediate_vars,
+        args[["operation"]], args[["var_name"]], groups,
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState, DataWranglingState)
+    },
+    # The class does not know all_data, so the name is checked here
+    set_active_table = {
+      table_name <- args[["table_name"]]
+      tables <- names(Filter(is.data.frame, ResultsState$all_data))
+      if (!isTRUE(table_name %in% tables)) {
+        stop("table_name has to be one of the datasets: ", paste(tables, collapse = ", "))
+      }
+      res <- set_active_table_V1_2$new(table_name)
+      res$validate()
+      res$eval(ResultsState, DataModelState)
+      paste0(
+        "The active dataset is now ", table_name, ".\n",
+        get_state_V1_2$new(DataModelState, 20L)$eval()
+      )
+    },
+    create_new_col = {
+      res <- create_new_col_V1_2$new(
+        DataWranglingState$df, DataWranglingState$df_name,
+        DataWranglingState$intermediate_vars,
+        args[["operation"]], args[["column_name"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState, DataWranglingState, DataModelState)
     },
     t_test = {
       res <- t_test_V1_2$new(
@@ -494,12 +618,33 @@ eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState) {
   )
 }
 
+# Long vectors and subsets would fill the small context windows of local models
+# Vectors are stored as one column data.frame by create_intermediate_var
+create_intermediate_var_tool_text_V1_2 <- function(res) {
+  if (!is.data.frame(res) || nrow(res) <= 10L) {
+    return(llm_text(res))
+  }
+  if (ncol(res) == 1L) {
+    return(paste0(
+      "Vector of length ", nrow(res), ", first values: ",
+      paste(utils::head(res[[1L]], 10L), collapse = ", ")
+    ))
+  }
+  paste0(
+    "Dataset with ", nrow(res), " rows. Activate it with set_active_table to analyse it.\n",
+    "Columns: ", paste(names(res), collapse = ", ")
+  )
+}
+
 tool_text_V1_2 <- function(name, res, DataModelState, args) {
   switch(
     name,
     create_formula = create_formula_tool_text_V1_2(res, DataModelState, args),
     t_test = t_test_tool_text_V1_2(res, DataModelState, args),
     diagnostic_plots = diagnostic_plots_tool_text_V1_2(res, DataModelState, args),
+    create_intermediate_var = create_intermediate_var_tool_text_V1_2(res),
+    # The result is the whole dataset
+    create_new_col =paste0("Added the column ", make.names(args[["column_name"]]), " to the active dataset."),
     llm_text(res)
   )
 }

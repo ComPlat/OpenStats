@@ -303,7 +303,7 @@ app <- function() {
     OpenFormulaServer("OPENFORMULA", DataModelState, ResultsState, MethodState, shiny::reactive(input$conditionedPanels))
     OpenSplitByGroupServer("OPENSPLITBYGROUP", DataModelState, ResultsState, MethodState, shiny::reactive(input$conditionedPanels))
     ExportResultsServer("RESULTS", DataModelState, ResultsState, MethodState)
-    ChatServer("CHAT", DataModelState, ResultsState)
+    ChatServer("CHAT", DataModelState, ResultsState, DataWranglingState)
     GuideServer("GUIDE")
   }
   return(list(ui = ui, server = server))

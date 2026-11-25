@@ -10,7 +10,9 @@ llm_system_prompt_V1_2 <- paste(
   "You can only act through the provided tools; never invent results.",
   "Never announce an analysis without calling its tool.",
   "After get_state, call the analysis tool in the same turn.",
-  "After create_formula, always call diagnostic_plots to check the assumptions.",
+  "Analyses are grouped in toolboxes; choose one with choose_toolbox to get its tools.",
+  "After create_formula, always choose the toolbox assumptions and call diagnostic_plots.",
+  "Run post hoc tests (toolbox posthoc) only after a significant global test (toolbox tests).",
   "Interpret models with the effects (estimated means, differences, slopes),",
   "not with the raw coefficients.",
   "A p-value is the probability of a result at least this extreme if there were no effect;",
@@ -26,7 +28,9 @@ llm_content_text_V1_2 <- function(x) {
   }
   if (inherits(x, "ellmer::ContentToolResult")) {
     if (!is.null(x@error)) {
-      return(paste0("[tool error] ", conditionMessage(x@error)))
+      # ellmer stores a condition or already the message as string
+      err <- if (inherits(x@error, "condition")) conditionMessage(x@error) else as.character(x@error)
+      return(paste0("[tool error] ", paste(err, collapse = "\n")))
     }
     return(paste0("[tool result]\n", paste(as.character(x@value), collapse = "\n")))
   }
@@ -73,19 +77,30 @@ llm_clean_turns_V1_2 <- function(turns) {
   turns
 }
 
-ChatServer <- function(id, DataModelState, ResultsState) {
+ChatServer <- function(id, DataModelState, ResultsState, DataWranglingState) {
   llm <- getOption("OpenStats.llm")
   if (is.null(llm)) {
     return()
   }
   session <- shiny::getDefaultReactiveDomain()
-  client <- ellmer::chat(llm)
+  # A function and not a Chat object: every session needs its own chat history
+  client <- if (is.function(llm)) llm() else ellmer::chat(llm)
   client$set_system_prompt(llm_system_prompt_V1_2)
-  client$set_tools(unname(llm_tools_V1_2(DataModelState, ResultsState)))
+  # Chat-only state, the engine does not need it
+  ChatState <- new.env()
+  ChatState$toolbox <- "none"
+  refresh_tools <- function() {
+    client$set_tools(unname(llm_tools_V1_2(
+      DataModelState, ResultsState, DataWranglingState, ChatState, refresh_tools
+    )))
+  }
+  refresh_tools()
 
   # Higher priority than the observer of shinychat sending the message
   shiny::observeEvent(session$input[[paste0(id, "_user_input")]], {
     client$set_turns(llm_clean_turns_V1_2(client$get_turns()))
+    # The user may have changed the formula in the app
+    refresh_tools()
   }, priority = 1)
 
   shiny::observeEvent(session$input[[paste0(id, "-copy")]], {

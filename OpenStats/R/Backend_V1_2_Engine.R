@@ -11,6 +11,8 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
     promise_result_name = NULL,
     promise_history_entry = NULL,
     in_backend = FALSE,
+    # The LLM tools cannot see the notifications
+    last_error = NULL,
 
     disable = function() {
       if (self$in_backend) return()
@@ -149,7 +151,8 @@ bg_process_V1_2 <- R6::R6Class("bg_process_V1_2",
           )
         }
       } else {
-        self$com$print_err(attributes(res)$condition$message)
+        self$last_error <- attributes(res)$condition$message
+        self$com$print_err(self$last_error)
       }
     },
 
@@ -344,6 +347,32 @@ correlation_V1_2 <- R6::R6Class(
     method = NULL,
     alternative = NULL,
     conflevel = NULL,
+
+    description = paste(
+      "Correlation test between the response and the single numeric predictor",
+      "of the linear formula currently defined in the app (response ~ predictor).",
+      "Do not pass a formula; check it with get_state and use create_formula if needed."
+    ),
+    params = list(
+      method = list(
+        type = "enum",
+        values = c("pearson", "spearman", "kendall"),
+        default = "pearson",
+        description = "pearson for linear correlation, spearman or kendall for rank based correlation."
+      ),
+      alternative = list(
+        type = "enum",
+        values = c("two.sided", "less", "greater"),
+        default = "two.sided",
+        description = "Alternative hypothesis."
+      ),
+      conflevel = list(
+        type = "number",
+        default = 0.95,
+        description = "Confidence level of the interval, between 0 and 1."
+      )
+    ),
+
     initialize = function(df, formula, method, alternative, conflevel, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
@@ -353,7 +382,16 @@ correlation_V1_2 <- R6::R6Class(
       self$com <- com$new()
     },
     validate = function() {
-      stopifnot("Formula is not of type linear" = inherits(self$formula, "LinearFormula"))
+      stopifnot(
+        "Formula is not of type linear" = inherits(self$formula, "LinearFormula"),
+        "method has to be pearson, spearman or kendall" =
+          isTRUE(self$method %in% c("pearson", "spearman", "kendall")),
+        "alternative has to be two.sided, less or greater" =
+          isTRUE(self$alternative %in% c("two.sided", "less", "greater")),
+        "conflevel has to be a number between 0 and 1" =
+          is.numeric(self$conflevel) && length(self$conflevel) == 1L &&
+          !is.na(self$conflevel) && self$conflevel > 0 && self$conflevel < 1
+      )
       formula <- as.character(self$formula@formula)
       self$dep <- formula[2]
       self$indep <- formula[3]
@@ -825,6 +863,29 @@ create_intermediate_var_V1_2 <- R6::R6Class(
     var_name = NULL,
     group_apply = NULL,
 
+    description = paste(
+      "Computes an intermediate variable from the active dataset, e.g. Mean(uptake)",
+      "or a subset get_rows(df, Type == 'Quebec'), optionally per group.",
+      "It can be used in later operations by its name; a subset can be activated",
+      "with set_active_table. Only the functions listed by choose_toolbox data are allowed."
+    ),
+    params = list(
+      operation = list(
+        type = "string",
+        description = "Expression, e.g. Mean(uptake), Max(conc) - Min(conc) or get_rows(df, Treatment == 'chilled')."
+      ),
+      # Not called `name`: it would shadow the tool name inside llm_make_tool_V1_2
+      var_name = list(
+        type = "string",
+        description = "Name of the new intermediate variable; must not be a column name."
+      ),
+      group_apply = list(
+        type = "array",
+        default = character(),
+        description = "Grouping columns; the operation is evaluated per group. Empty for no grouping."
+      )
+    ),
+
     initialize = function(df, df_name, intermediate_vars, operation, name, group_apply, com = communicator_V1_2) {
       self$df <- df
       self$df_name <- df_name
@@ -1000,6 +1061,22 @@ create_new_col_V1_2 <- R6::R6Class(
     name = NULL,
     com = NULL,
 
+    description = paste(
+      "Adds a new column to the active dataset, e.g. log(conc) or uptake / Mean(uptake).",
+      "Columns and intermediate variables are available by name.",
+      "Only the functions listed by choose_toolbox data are allowed."
+    ),
+    params = list(
+      operation = list(
+        type = "string",
+        description = "R expression that returns one value or one value per row."
+      ),
+      column_name = list(
+        type = "string",
+        description = "Name of the new column; must not exist yet."
+      )
+    ),
+
     initialize = function(df, df_name, intermediate_vars, operation, name, com = communicator_V1_2) {
       self$df <- df
       self$df_name <- df_name
@@ -1109,6 +1186,27 @@ create_summary_V1_2 <- R6::R6Class(
     what_to_do = NULL,
     com = NULL,
 
+    description = paste(
+      "Summarises columns of the active dataset per group,",
+      "e.g. the mean and SD of uptake for each Treatment.",
+      "Does not need a formula."
+    ),
+    params = list(
+      column_by = list(
+        type = "array",
+        description = "Grouping columns; the data is summarised for each combination of their levels."
+      ),
+      for_which = list(
+        type = "array",
+        description = "Numeric columns that are summarised."
+      ),
+      what_to_do = list(
+        type = "array",
+        values = c("Mean", "Median", "SD"),
+        description = "Summary functions applied to each column."
+      )
+    ),
+
     initialize = function(df, column_by, for_which, what_to_do, com = communicator_V1_2) {
       self$df <- df
       self$column_by <- column_by
@@ -1130,6 +1228,14 @@ create_summary_V1_2 <- R6::R6Class(
       }
       if (check_is_invalid(self$what_to_do)) {
         stop("You have to set at least one operation")
+      }
+      # what_to_do is pasted into code in eval
+      if (!all(self$what_to_do %in% c("Mean", "Median", "SD"))) {
+        stop("Operations have to be Mean, Median or SD")
+      }
+      cols <- c(self$column_by, self$for_which)
+      if (!all(cols %in% names(self$df))) {
+        stop("Unknown columns: ", paste(setdiff(cols, names(self$df)), collapse = ", "))
       }
     },
 
@@ -1196,6 +1302,22 @@ create_summary_plot_V1_2 <- R6::R6Class(
     for_which = NULL,
     com = NULL,
 
+    description = paste(
+      "Boxplots of columns of the active dataset per group.",
+      "The plot is shown in the app; you only get its name.",
+      "Does not need a formula."
+    ),
+    params = list(
+      column_by = list(
+        type = "array",
+        description = "Grouping columns shown on the x axis."
+      ),
+      for_which = list(
+        type = "array",
+        description = "Numeric columns; one boxplot per column."
+      )
+    ),
+
     initialize = function(df, column_by, for_which, com = communicator_V1_2) {
       self$df <- df
       self$column_by <- column_by
@@ -1213,6 +1335,10 @@ create_summary_plot_V1_2 <- R6::R6Class(
       }
       if (check_is_invalid(self$for_which)) {
         stop("You have to define at least one column across which should be summarized")
+      }
+      cols <- c(self$column_by, self$for_which)
+      if (!all(cols %in% names(self$df))) {
+        stop("Unknown columns: ", paste(setdiff(cols, names(self$df)), collapse = ", "))
       }
     },
 
@@ -1426,7 +1552,7 @@ create_formula_V1_2 <- R6::R6Class(
     com_class = NULL,
 
     description = paste(
-      "Defines the linear model (formula) that translates the scientific question",
+      "Defines the model (formula) that translates the scientific question",
       "into a statistical model. All later analyses (e.g. t_test) use this formula.",
       "Use only column names shown by get_state.",
       "Returns the model summary."
@@ -1441,8 +1567,48 @@ create_formula_V1_2 <- R6::R6Class(
         description = paste(
           "Right-hand side of the formula without ~, e.g. Treatment or Treatment * Type.",
           "Allowed: column names, + for main effects, * for main effects with interaction,",
-          ": for an interaction only, and functions like log or sqrt."
+          ": for an interaction only, and functions like log or sqrt.",
+          "Linear Mixed Model: random effects like (1 | Plant).",
+          "Optimization Model: an expression with unknown parameters, e.g. a * exp(b * conc)."
         )
+      ),
+      model_type = list(
+        type = "enum",
+        values = c("Linear", "Generalised Linear Model", "Linear Mixed Model", "Optimization Model"),
+        default = "Linear",
+        description = "Type of the model."
+      ),
+      family = list(
+        type = "enum",
+        values = c("binomial", "gaussian", "Gamma", "inverse.gaussian", "poisson", "quasi", "quasibinomial", "quasipoisson"),
+        default = "gaussian",
+        description = "Only for Generalised Linear Model: distribution of the response."
+      ),
+      link_fct = list(
+        type = "string",
+        default = "identity",
+        description = "Only for Generalised Linear Model: link function, e.g. identity, log, logit, probit, inverse."
+      ),
+      optim_method = list(
+        type = "enum",
+        values = c("general purpose optimization", "nonlinear least squares"),
+        default = "general purpose optimization",
+        description = "Only for Optimization Model."
+      ),
+      lower = list(
+        type = "number",
+        default = 0,
+        description = "Only for Optimization Model: lower boundary of the parameters."
+      ),
+      upper = list(
+        type = "number",
+        default = 100,
+        description = "Only for Optimization Model: upper boundary of the parameters."
+      ),
+      seed = list(
+        type = "integer",
+        default = 1234L,
+        description = "Only for Optimization Model: seed for the random start values."
       )
     ),
 
@@ -1557,6 +1723,20 @@ shapiro_on_data_V1_2 <- R6::R6Class(
     formula = NULL,
     com = NULL,
 
+    description = paste(
+      "Shapiro-Wilk test of normality of the response, separately for each group",
+      "of the formula currently defined in the app.",
+      "Usually the residuals (shapiro_on_residuals) are the better check."
+    ),
+    # Ollama: ellmer drops the properties field of tools without arguments
+    params = list(
+      alpha = list(
+        type = "number",
+        default = 0.05,
+        description = "Not used; the column 'Normal distributed' always uses 0.05."
+      )
+    ),
+
     initialize = function(df, formula, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula@formula
@@ -1617,6 +1797,18 @@ shapiro_on_residuals_V1_2 <- R6::R6Class(
     formula = NULL,
     com = NULL,
 
+    description = paste(
+      "Shapiro-Wilk test of normality of the residuals of the formula currently",
+      "defined in the app (linear or linear mixed model)."
+    ),
+    params = list(
+      alpha = list(
+        type = "number",
+        default = 0.05,
+        description = "Not used; the column 'Residuals normal distributed' always uses 0.05."
+      )
+    ),
+
     initialize = function(df, formula, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
@@ -1667,6 +1859,12 @@ shapiro_on_residuals_V1_2 <- R6::R6Class(
     }
   )
 )
+# car::leveneTest compares groups, numeric predictors have none
+levene_possible_V1_2 <- function(df, formula) {
+  predictors <- all.vars(formula@formula[[3]])
+  all(vapply(predictors, function(v) !is.numeric(df[[v]]), logical(1)))
+}
+
 levene_V1_2 <- R6::R6Class(
   "levene_V1_2",
   public = list(
@@ -1674,6 +1872,19 @@ levene_V1_2 <- R6::R6Class(
     formula = NULL,
     center = NULL,
     com = NULL,
+
+    description = paste(
+      "Levene test for equal variances between the groups of the linear formula",
+      "currently defined in the app."
+    ),
+    params = list(
+      center = list(
+        type = "enum",
+        values = c("median", "mean"),
+        default = "median",
+        description = "median gives the robust Brown-Forsythe variant, mean the original Levene test."
+      )
+    ),
 
     initialize = function(df, formula, center, com = communicator_V1_2) {
       self$df <- df
@@ -1683,7 +1894,12 @@ levene_V1_2 <- R6::R6Class(
     },
 
     validate = function() {
-      stopifnot("Formula is not of type linear" = inherits(self$formula, "LinearFormula"))
+      stopifnot(
+        "Formula is not of type linear" = inherits(self$formula, "LinearFormula"),
+        "center has to be median or mean" = isTRUE(self$center %in% c("median", "mean")),
+        "Levene test requires that all predictors are categorical (factors)" =
+          levene_possible_V1_2(self$df, self$formula)
+      )
     },
 
     eval = function(ResultsState) {
@@ -1805,6 +2021,43 @@ dose_response_V1_2 <- R6::R6Class(
     ic_percentage = NULL,
     type = NULL,
 
+    description = paste(
+      "Fits dose response curves per substance and returns the IC values,",
+      "using the formula currently defined in the app (response ~ concentration).",
+      "Runs in the background and can take a while."
+    ),
+    params = list(
+      ic_percentage = list(
+        type = "number",
+        default = 50,
+        description = "Which inhibitory concentration is calculated, e.g. 50 for IC50."
+      ),
+      is_xlog = list(
+        type = "boolean",
+        default = FALSE,
+        description = "Log transform the x axis (concentration)."
+      ),
+      is_ylog = list(
+        type = "boolean",
+        default = FALSE,
+        description = "Log transform the y axis (response)."
+      ),
+      substance_names = list(
+        type = "string",
+        description = "Column containing the names of the substances."
+      ),
+      unit_names = list(
+        type = "string",
+        description = "Column containing the units of the concentration."
+      ),
+      type = list(
+        type = "enum",
+        values = c("continuous", "binomial", "Poisson"),
+        default = "continuous",
+        description = "Distribution of the response."
+      )
+    ),
+
     initialize = function(df, ic_percentage,
                           is_xlog, is_ylog,
                           substance_names, unit_names,
@@ -1916,6 +2169,35 @@ primary_assay_V1_2 <- R6::R6Class(
     pval_adj_method = NULL,
     fold_or_percentage = NULL,
     com = NULL,
+
+    description = paste(
+      "Primary assay: compares every substance against the negative control",
+      "using the formula currently defined in the app (response ~ substance column).",
+      "Linear models are normalised to the controls first."
+    ),
+    params = list(
+      neg_control_name = list(
+        type = "string",
+        description = "Level of the predictor that is the negative control."
+      ),
+      pos_control_name = list(
+        type = "string",
+        default = "",
+        description = "Level of the predictor that is the positive control. Empty for none."
+      ),
+      pval_adj_method = list(
+        type = "enum",
+        values = c("holm", "hochberg", "hommel", "bonferroni", "sidak"),
+        default = "holm",
+        description = "p value adjustment for multiple testing."
+      ),
+      fold_or_percentage = list(
+        type = "enum",
+        values = c("Percentage", "Fold change"),
+        default = "Percentage",
+        description = "Normalisation for linear models."
+      )
+    ),
 
     initialize = function(df, formula, neg_control_name, pos_control_name, pval_adj_method, fold_or_percentage, com = communicator_V1_2) {
       self$df <- df
@@ -2142,6 +2424,20 @@ wilcox_rank_sum_V1_2 <- R6::R6Class(
     alternative_hyp = NULL,
     com = NULL,
 
+    description = paste(
+      "Wilcoxon rank sum test (Mann-Whitney U), non-parametric alternative to the t-test.",
+      "Uses the formula currently defined in the app;",
+      "requires one grouping variable with exactly two levels."
+    ),
+    params = list(
+      alternative_hyp = list(
+        type = "enum",
+        values = c("two.sided", "less", "greater"),
+        default = "two.sided",
+        description = "Alternative hypothesis."
+      )
+    ),
+
     initialize = function(df, formula, alternative_hyp, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula@formula
@@ -2149,7 +2445,12 @@ wilcox_rank_sum_V1_2 <- R6::R6Class(
       self$com = com$new()
     },
 
-    validate = function() {},
+    validate = function() {
+      stopifnot(
+        "alternative_hyp has to be two.sided, less or greater" =
+          isTRUE(self$alternative_hyp %in% c("two.sided", "less", "greater"))
+      )
+    },
 
     eval = function(ResultsState) {
       withCallingHandlers(
@@ -2198,6 +2499,42 @@ statistical_tests_V1_2 <- R6::R6Class(
     indep = NULL,
     com = NULL,
 
+    description = paste(
+      "ANOVA type tests and post hoc tests for the formula currently defined in the app.",
+      "Linear model: aov (ANOVA), welch_aov, kruskal (Kruskal-Wallis),",
+      "post hoc HSD, LSD, scheffe, REGW, kruskalTest (these need response ~ one factor).",
+      "Generalised linear model: aov (Chisq ANOVA) or a p value adjustment",
+      "(tukey, sidak, bonferroni, scheffe, none, fdr, holm, hochberg, hommel) for pairwise comparisons.",
+      "Linear mixed model: only aov."
+    ),
+    params = list(
+      method = list(
+        type = "enum",
+        values = c(
+          "aov", "welch_aov", "kruskal", "HSD", "LSD", "scheffe", "REGW", "kruskalTest",
+          "tukey", "sidak", "bonferroni", "none", "fdr", "holm", "hochberg", "hommel"
+        ),
+        description = "Test to run; which ones are allowed depends on the model type."
+      ),
+      balanced_design = list(
+        type = "enum",
+        values = c("Balanced", "Unbalanced"),
+        default = "Balanced",
+        description = "Only used by HSD."
+      ),
+      p_val = list(
+        type = "number",
+        default = 0.05,
+        description = "Significance level of the post hoc tests."
+      ),
+      p_val_adj_method = list(
+        type = "enum",
+        values = c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"),
+        default = "holm",
+        description = "p value adjustment, only used by LSD and kruskalTest."
+      )
+    ),
+
     initialize = function(df, formula, balanced_design, p_val, p_val_adj_method, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
@@ -2208,6 +2545,22 @@ statistical_tests_V1_2 <- R6::R6Class(
     },
 
     validate = function() {},
+
+    # Separate from validate(): the method is only known in eval()
+    validate_method = function(method) {
+      allowed <- if (inherits(self$formula, "LinearFormula")) {
+        c("aov", "welch_aov", "kruskal", "HSD", "LSD", "scheffe", "REGW", "kruskalTest")
+      } else if (inherits(self$formula, "GeneralisedLinearFormula")) {
+        c("aov", "tukey", "sidak", "bonferroni", "scheffe", "none", "fdr", "holm", "hochberg", "hommel")
+      } else if (inherits(self$formula, "LinearMixedFormula")) {
+        "aov"
+      } else {
+        character()
+      }
+      if (!isTRUE(method %in% allowed)) {
+        stop("method has to be one of: ", paste(allowed, collapse = ", "), " for this model type")
+      }
+    },
 
     eval_lm = function(method, new_name, ResultsState) {
       withCallingHandlers(
@@ -2237,15 +2590,10 @@ statistical_tests_V1_2 <- R6::R6Class(
                 HSD = {
                   OpenStats:::check_formula(formula@formula)
                   aov_res <- aov(formula@formula, data = df)
-                  bal <- balanced_design
-                  if (bal == "Balanced") {
-                    bal <- TRUE
-                  } else {
-                    bal <- FALSE
-                  }
                   fit <- agricolae::HSD.test(aov_res,
                     trt = indep,
-                    alpha = p_val, group = TRUE, unbalanced = bal
+                    alpha = p_val, group = TRUE,
+                    unbalanced = balanced_design != "Balanced"
                   )$groups
                 },
                 kruskalTest = {
@@ -2380,7 +2728,7 @@ statistical_tests_V1_2 <- R6::R6Class(
       history_data <- NULL
       withCallingHandlers(
         {
-          new_name <- paste0( ResultsState$counter, " Test ", method)
+          new_name <- paste0(ResultsState$counter + 1, " Test ", method)
           if (inherits(self$formula, "LinearFormula")) {
             self$eval_lm(method, new_name, ResultsState)
           } else if (inherits(self$formula, "GeneralisedLinearFormula")) {
@@ -2622,6 +2970,37 @@ pairwise_comparisons_V1_2 <- R6::R6Class(
     method = NULL,
     com = NULL,
 
+    description = paste(
+      "Pairwise t-tests or Wilcoxon tests between all groups (combinations of the",
+      "predictors) of the formula currently defined in the app.",
+      "Only comparisons with p <= p_val are returned."
+    ),
+    params = list(
+      p_val = list(
+        type = "number",
+        default = 0.05,
+        description = "Only comparisons with an adjusted p value below this are listed."
+      ),
+      alternative_hyp = list(
+        type = "enum",
+        values = c("two.sided", "less", "greater"),
+        default = "two.sided",
+        description = "Alternative hypothesis."
+      ),
+      p_val_adj_method = list(
+        type = "enum",
+        values = c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"),
+        default = "holm",
+        description = "p value adjustment for multiple testing."
+      ),
+      parametric_or_non_parametric = list(
+        type = "enum",
+        values = c("parametric", "non_parametric"),
+        default = "parametric",
+        description = "parametric: t-tests, non_parametric: Wilcoxon tests."
+      )
+    ),
+
     initialize = function(df, formula,
                           p_val, alternative_hyp,
                           p_val_adj_method, parametric_or_non_parametric, com = communicator_V1_2) {
@@ -2639,7 +3018,16 @@ pairwise_comparisons_V1_2 <- R6::R6Class(
       self$com <- com$new()
     },
 
-    validate = function() {},
+    validate = function() {
+      stopifnot(
+        "p_val has to be a number between 0 and 1" =
+          is.numeric(self$p_val) && length(self$p_val) == 1L &&
+          !is.na(self$p_val) && self$p_val >= 0 && self$p_val <= 1,
+        "alternative_hyp has to be two.sided, less or greater" =
+          isTRUE(self$alternative_hyp %in% c("two.sided", "less", "greater")),
+        "p_val_adj_method is unknown" = isTRUE(self$p_val_adj_method %in% stats::p.adjust.methods)
+      )
+    },
 
     eval = function(ResultsState) {
       withCallingHandlers(
@@ -2703,6 +3091,24 @@ pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
     p_val = NULL,
     com = NULL,
 
+    description = paste(
+      "Post hoc comparisons for the linear mixed model currently defined in the app",
+      "(emmeans pairs for factors, emtrends for numeric predictors)."
+    ),
+    params = list(
+      method = list(
+        type = "enum",
+        values = c("tukey", "sidak", "bonferroni", "scheffe", "none", "fdr", "holm", "hochberg", "hommel"),
+        default = "tukey",
+        description = "p value adjustment for multiple testing."
+      ),
+      p_val = list(
+        type = "number",
+        default = 0.05,
+        description = "Only comparisons with an adjusted p value below this are listed."
+      )
+    ),
+
     initialize = function(df, formula, method, p_val, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
@@ -2711,7 +3117,12 @@ pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
       self$com <- com$new()
     },
 
-    validate = function() {},
+    validate = function() {
+      stopifnot(
+        "Pairwise comparisons for linear mixed models require a linear mixed model" =
+          inherits(self$formula, "LinearMixedFormula")
+      )
+    },
 
     eval = function(ResultsState) {
       withCallingHandlers(
@@ -2821,6 +3232,21 @@ set_active_table_V1_2 <- R6::R6Class(
   "set_active_table_V1_2",
   public = list(
     name = NULL,
+
+    description = paste(
+      "Makes another dataset from the results the active dataset; all later",
+      "analyses use it. E.g. create a subset with create_intermediate_var",
+      "(get_rows(df, Treatment == 'chilled')) and activate it here with its result name.",
+      "get_results lists the datasets."
+    ),
+    # Not called `name`: it would shadow the tool name inside llm_make_tool_V1_2
+    params = list(
+      table_name = list(
+        type = "string",
+        description = "Name of a dataset exactly as listed by get_results."
+      )
+    ),
+
     initialize = function(name) {
       self$name <- name
     },

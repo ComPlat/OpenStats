@@ -147,8 +147,8 @@ LinearParametricTestsUISidebarServer <- function(id, DataModelState, ResultsStat
           shiny::selectInput(
             shiny::NS(id, "design"), "Design",
             c(
-              "Balanced" = "ba",
-              "Unbalanced" = "ub"
+              "Balanced" = "Balanced",
+              "Unbalanced" = "Unbalanced"
             )
           ),
           shiny::uiOutput(shiny::NS(id, "padjUI")),
@@ -309,8 +309,8 @@ LinearNonParametricTestsUISidebarServer <- function(id, DataModelState, ResultsS
           shiny::selectInput(
             shiny::NS(id, "design"), "Design",
             c(
-              "Balanced" = "ba",
-              "Unbalanced" = "ub"
+              "Balanced" = "Balanced",
+              "Unbalanced" = "Unbalanced"
             )
           ),
           shiny::uiOutput(shiny::NS(id, "padjUI")),
