@@ -118,10 +118,12 @@ diagnostic_plots_tool_text_V1_2 <- function(res, DataModelState, args) {
 
   # Binning by fitted values mixes groups (e.g. Treatment shifts the fitted
   # values) and can hide curvature; residuals per numeric predictor reveal it
-  mf <- stats::model.frame(model)
-  numeric_preds <- Filter(function(v) is.numeric(mf[[v]]), names(mf)[-1])
+  # From the dataset, not model.frame(): poly(conc, 2) is a matrix column there
+  df <- DataModelState$df
+  pred_vars <- intersect(all.vars(reformulas::nobars(DataModelState$formula@formula)[[3]]), names(df))
+  numeric_preds <- Filter(function(v) is.numeric(df[[v]]), pred_vars)
   per_predictor <- lapply(numeric_preds, function(v) {
-    x <- mf[[v]]
+    x <- df[names(resids), v]
     groups <- if (length(unique(x)) <= 10L) {
       factor(x)
     } else {
@@ -330,6 +332,7 @@ get_results_V1_2 <- R6::R6Class(
 # Here and not in LLM_Tools.R: the class below needs it at load time
 llm_toolboxes_V1_2 <- c(
   data = "Summaries per group, intermediate variables (e.g. subsets), new columns and switching the active dataset. No formula needed.",
+  visualisation = "Boxplots, scatterplots, lineplots, histograms of the data (no formula needed) and plots of the model predictions.",
   assumptions = "Check the model assumptions: diagnostic plots, normality, equal variances.",
   tests = "Global tests: t-test/Wilcoxon for two groups, ANOVA/Kruskal-Wallis/permutation ANOVA for more groups.",
   posthoc = "Post hoc and pairwise comparisons after a significant global test.",
@@ -399,6 +402,57 @@ choose_toolbox_V1_2 <- R6::R6Class(
     }
   )
 )
+
+llm_check_column_V1_2 <- function(value, arg_name, df, optional = TRUE) {
+  ok <- is.character(value) && length(value) == 1L &&
+    ((optional && value == "") || value %in% names(df))
+  if (!ok) {
+    stop(
+      arg_name, " has to be one of the columns", if (optional) " or empty", ": ",
+      paste(names(df), collapse = ", ")
+    )
+  }
+  value
+}
+
+llm_check_line_V1_2 <- function(df, columns) {
+  columns <- unique(columns[nzchar(columns)])
+  if (anyDuplicated(df[columns]) > 0L) {
+    stop(
+      "A line plot needs exactly one value per combination of ",
+      paste(columns, collapse = ", "),
+      ", otherwise the lines zigzag. Use dot instead."
+    )
+  }
+}
+
+llm_label_V1_2 <- function(label, column) {
+  if (length(label) == 1L && nzchar(label)) label else column
+}
+
+# Padding as in the sliders of the visualisation UI
+llm_vis_range_V1_2 <- function(range, df, column, padding, arg_name) {
+  values <- df[[column]]
+  if (length(range) == 0L) {
+    if (is.numeric(values)) {
+      return(list(min(values, na.rm = TRUE) * padding[1], max(values, na.rm = TRUE) * padding[2]))
+    }
+    choices <- as.character(unique(values))
+    return(list(choices[1], choices[length(choices)]))
+  }
+  if (length(range) != 2L) {
+    stop(arg_name, " has to contain exactly two values")
+  }
+  if (is.numeric(values)) {
+    range <- suppressWarnings(as.numeric(range))
+    if (anyNA(range)) stop(arg_name, " has to contain two numbers")
+    return(as.list(range))
+  }
+  if (!all(range %in% values)) {
+    stop(arg_name, " has to contain two levels of ", column, ": ", paste(unique(values), collapse = ", "))
+  }
+  as.list(range)
+}
 
 eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState, DataWranglingState) {
   formula <- DataModelState$formula
@@ -614,6 +668,80 @@ eval_tool_V1_2 <- function(name, args, DataModelState, ResultsState, DataWrangli
       res$validate()
       res$eval(ResultsState)
     },
+    visualisation = {
+      df <- DataModelState$df
+      x <- llm_check_column_V1_2(args[["x"]], "x", df, optional = FALSE)
+      y <- llm_check_column_V1_2(args[["y"]], "y", df, optional = FALSE)
+      colour_var <- llm_check_column_V1_2(args[["colour_var"]], "colour_var", df)
+      fill_var <- llm_check_column_V1_2(args[["fill_var"]], "fill_var", df)
+      facet_var <- llm_check_column_V1_2(args[["facet_var"]], "facet_var", df)
+      if (args[["type_of_x"]] == "numeric" && !is.numeric(df[[x]])) {
+        stop("type_of_x numeric needs a numeric x column; ", x, " is not numeric")
+      }
+      if (args[["method"]] != "box" && fill_var != "") {
+        stop("fill_var is only available for boxplots; use colour_var instead")
+      }
+      if (args[["method"]] == "line") {
+        llm_check_line_V1_2(df, c(x, colour_var, facet_var))
+      }
+      res <- visualisation_V1_2$new(
+        df = df, x = x, y = y, method = args[["method"]],
+        xlabel = llm_label_V1_2(args[["xlabel"]], x), type_of_x = args[["type_of_x"]],
+        ylabel = llm_label_V1_2(args[["ylabel"]], y),
+        colour_var = colour_var,
+        colour_legend_title = llm_label_V1_2(args[["colour_legend_title"]], colour_var),
+        colour_theme = args[["colour_theme"]],
+        fill_var = fill_var,
+        fill_legend_title = llm_label_V1_2(args[["fill_legend_title"]], fill_var),
+        fill_theme = args[["fill_theme"]],
+        facet_var = facet_var, facet_y_scaling = args[["facet_y_scaling"]],
+        xrange = llm_vis_range_V1_2(args[["xrange"]], df, x, c(0.5, 1.25), "xrange"),
+        yrange = llm_vis_range_V1_2(args[["yrange"]], df, y, c(0.95, 1.05), "yrange"),
+        width = args[["width"]], height = args[["height"]], resolution = args[["resolution"]],
+        com = backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    histogram = {
+      df <- DataModelState$df
+      y <- llm_check_column_V1_2(args[["y"]], "y", df, optional = FALSE)
+      if (!is.numeric(df[[y]])) {
+        stop("y has to be a numeric column; ", y, " is not numeric")
+      }
+      fill_var <- llm_check_column_V1_2(args[["fill_var"]], "fill_var", df)
+      facet_var <- llm_check_column_V1_2(args[["facet_var"]], "facet_var", df)
+      res <- hist_V1_2$new(
+        df = df, y = y, ylabel = llm_label_V1_2(args[["ylabel"]], y),
+        fill_var = fill_var,
+        fill_legend_title = llm_label_V1_2(args[["fill_legend_title"]], fill_var),
+        fill_theme = args[["fill_theme"]],
+        facet_var = facet_var, facet_y_scaling = args[["facet_y_scaling"]],
+        frequency_or_density = args[["frequency_or_density"]], bins = args[["bins"]],
+        width = args[["width"]], height = args[["height"]], resolution = args[["resolution"]],
+        com = backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
+    visualisation_model = {
+      message <- check_visualization2(DataModelState)
+      if (!is.null(message)) stop(message)
+      if (args[["layer"]] == "line") {
+        preds <- utils::head(all.vars(reformulas::nobars(formula@formula)[[3]]), 4L)
+        # ggplot groups by a discrete x, so each line would be a single point
+        if (!is.numeric(DataModelState$df[[preds[1]]])) {
+          stop("A line plot needs a numeric first predictor; ", preds[1], " is not numeric. Use dot or box instead.")
+        }
+        llm_check_line_V1_2(DataModelState$df, preds)
+      }
+      res <- visualisation_model_V1_2$new(
+        DataModelState$df, formula, args[["layer"]],
+        backend_communicator_V1_2
+      )
+      res$validate()
+      res$eval(ResultsState)
+    },
     stop("Unknown tool: ", name)
   )
 }
@@ -636,6 +764,95 @@ create_intermediate_var_tool_text_V1_2 <- function(res) {
   )
 }
 
+llm_group_stats_V1_2 <- function(df, y, groups) {
+  groups <- unique(groups[nzchar(groups)])
+  key <- if (length(groups) == 0L) {
+    factor(rep("all", nrow(df)))
+  } else {
+    interaction(df[groups], drop = TRUE, lex.order = TRUE)
+  }
+  rows <- lapply(split(seq_len(nrow(df)), key), function(i) {
+    v <- df[[y]][i]
+    v <- v[!is.na(v)]
+    q <- stats::quantile(v, c(0.25, 0.5, 0.75), names = FALSE)
+    iqr <- q[3] - q[1]
+    stats_row <- data.frame(
+      n = length(v), mean = mean(v), sd = stats::sd(v), min = min(v),
+      q1 = q[1], median = q[2], q3 = q[3], max = max(v),
+      outliers = sum(v < q[1] - 1.5 * iqr | v > q[3] + 1.5 * iqr)
+    )
+    if (length(groups) == 0L) stats_row else cbind(df[i[1], groups, drop = FALSE], stats_row)
+  })
+  res <- do.call(rbind, rows)
+  rownames(res) <- NULL
+  num <- vapply(res, is.double, logical(1))
+  res[num] <- lapply(res[num], signif, 4)
+  res
+}
+
+# The LLM cannot see the plots; without numbers it invents their content
+llm_vis_data_text_V1_2 <- function(name, res, DataModelState, args) {
+  df <- DataModelState$df
+  if (name == "histogram") {
+    y <- args[["y"]]
+    groups <- c(args[["fill_var"]], args[["facet_var"]])
+  } else if (name == "visualisation_model") {
+    f <- reformulas::nobars(DataModelState$formula@formula)
+    y <- all.vars(f[[2]])[1]
+    groups <- utils::head(all.vars(f[[3]]), 4L)
+    for (g in groups) {
+      if (is.numeric(df[[g]]) && length(unique(df[[g]])) > 10L) {
+        breaks <- unique(stats::quantile(df[[g]], seq(0, 1, length.out = 6L), na.rm = TRUE))
+        df[[g]] <- cut(df[[g]], breaks, include.lowest = TRUE)
+      }
+    }
+  } else {
+    y <- args[["y"]]
+    x <- args[["x"]]
+    # Numeric x with many values: bins instead of one row per value
+    if (is.numeric(df[[x]]) && length(unique(df[[x]])) > 10L) {
+      breaks <- unique(stats::quantile(df[[x]], seq(0, 1, length.out = 6L), na.rm = TRUE))
+      df[[x]] <- cut(df[[x]], breaks, include.lowest = TRUE)
+    }
+    groups <- c(x, args[["colour_var"]], args[["fill_var"]], args[["facet_var"]])
+  }
+  if (!is.numeric(df[[y]])) {
+    return(llm_text(res))
+  }
+  paste0(
+    llm_text(res), "\n\n",
+    "Data shown in the plot: ", y, " per group",
+    " (outliers: points beyond 1.5 IQR, drawn as dots in boxplots).",
+    " Describe the plot only with these numbers.\n",
+    llm_table_text_V1_2(llm_group_stats_V1_2(df, y, groups), max_rows = 60L)
+  )
+}
+
+# An empty table made the LLM retry with other settings as if it were an error
+llm_pairwise_text_V1_2 <- function(res, args) {
+  p_val <- args[["p_val"]]
+  if (is.data.frame(res) && nrow(res) == 0L) {
+    return(paste0(
+      "No comparison has an adjusted p value <= ", p_val, ". ",
+      "This is a result, not an error: no pair differs significantly. ",
+      "Do not retry; use p_val = 1 only if the user wants all comparisons listed."
+    ))
+  }
+  text <- paste0("Only comparisons with an adjusted p value <= ", p_val, " are listed.\n")
+  if (is.data.frame(res) && "comparison" %in% names(res)) {
+    text <- paste0(
+      text,
+      "Columns: comparison 'level' = difference of the response between the groups, ",
+      "'slope of x' = difference of the slopes of x between the groups; ",
+      "at_value = value of at_variable at which the groups are compared ",
+      "(NA: numeric predictors at their mean, the difference is the same for every value).\n"
+    )
+  }
+  # Levels and slopes at every value of a numeric predictor exceed the default limit
+  body <- if (is.data.frame(res)) llm_table_text_V1_2(res, max_rows = 200L) else llm_text(res)
+  paste0(text, body)
+}
+
 tool_text_V1_2 <- function(name, res, DataModelState, args) {
   switch(
     name,
@@ -643,6 +860,11 @@ tool_text_V1_2 <- function(name, res, DataModelState, args) {
     t_test = t_test_tool_text_V1_2(res, DataModelState, args),
     diagnostic_plots = diagnostic_plots_tool_text_V1_2(res, DataModelState, args),
     create_intermediate_var = create_intermediate_var_tool_text_V1_2(res),
+    pairwise_comparisons = ,
+    pairwise_comparisons_linear_mixed = llm_pairwise_text_V1_2(res, args),
+    visualisation = ,
+    visualisation_model = ,
+    histogram = llm_vis_data_text_V1_2(name, res, DataModelState, args),
     # The result is the whole dataset
     create_new_col =paste0("Added the column ", make.names(args[["column_name"]]), " to the active dataset."),
     llm_text(res)

@@ -1,4 +1,11 @@
 install.packages("OpenStats", type = "source", repos = NULL)
+
+cl <- parallel::makeCluster(6)
+tinytest::run_test_dir(
+  "~/Documents/OpenStats/OpenStats/inst/tinytest", cluster = cl
+)
+parallel::stopCluster(cl)
+
 tinytest::test_package("OpenStats")
 tinytest::run_test_file("./OpenStats/inst/tinytest/test_Server_Rendering.R")
 

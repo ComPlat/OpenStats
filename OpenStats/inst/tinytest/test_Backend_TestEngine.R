@@ -803,15 +803,20 @@ test_pairwise_comparison_linear_mixed <- function(in_background) {
       expected <- do.call(rbind, out)
       rownames(expected) <- NULL
     } else {
-      out <- list()
-      for (num_var in numeric_vars) {
-        trend <- emmeans::emtrends(
-          model, specs = stats::as.formula(paste("~", paste(factor_vars, collapse = " * "))), var = num_var
-        )
-        fit <- as.data.frame(pairs(trend, adjust = method))
-        fit$trend_variable <- num_var
-        out[[num_var]] <- fit
+      # Days * Group: Days interacts with Group, Days has 10 values
+      at <- list(Days = sort(unique(df$Days)))
+      emm <- emmeans::emmeans(model, specs = ~ Group | Days, data = df, at = at)
+      trend <- emmeans::emtrends(model, specs = ~ Group | Days, var = "Days", data = df, at = at)
+      as_rows <- function(fit, comparison) {
+        fit <- as.data.frame(fit)
+        at_value <- fit$Days
+        fit$Days <- NULL
+        cbind(data.frame(comparison = comparison, at_variable = "Days", at_value = at_value), fit)
       }
+      out <- list(
+        as_rows(pairs(emm, adjust = method), "level"),
+        as_rows(pairs(trend, adjust = method), "slope of Days")
+      )
       expected <- do.call(rbind, out)
       rownames(expected) <- NULL
       expected <- expected[expected$p.value <= p_val, ]

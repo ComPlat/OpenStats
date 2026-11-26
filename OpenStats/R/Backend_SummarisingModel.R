@@ -392,7 +392,10 @@ env_summarising_model_V1_2$plot_four <- plot_four
 
 # nocov start plotting
 plot_model <- function(data, formula, layer) {
+  is_lmm <- inherits(formula, "LinearMixedFormula")
   formula <- formula@formula
+  # Random effect grouping columns would otherwise be plotted as predictors
+  if (is_lmm) formula <- reformulas::nobars(formula)
   f_split <- env_utils_V1_2$split_formula(formula)
   predictors <- env_utils_V1_2$vars_rhs(f_split$right_site)
   response <- all.vars(f_split$response)

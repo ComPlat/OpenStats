@@ -26,6 +26,25 @@ vars_rhs <- function(rhs) {
 }
 env_utils_V1_2$vars_rhs <- vars_rhs
 
+# terms() expands the formula algebra (*, /, ^, brackets), so
+# poly(conc, 3) * Treatment * Type also yields poly(conc, 3):Type
+interacting_factors <- function(formula, num_var, factor_vars) {
+  labels <- attr(stats::terms(formula), "term.labels")
+  vars <- lapply(labels, function(l) all.vars(str2lang(l)))
+  vars <- Filter(function(v) num_var %in% v && length(v) > 1L, vars)
+  intersect(factor_vars, unlist(vars))
+}
+env_utils_V1_2$interacting_factors <- interacting_factors
+
+# Values of a numeric predictor at which groups are compared;
+# a truly continuous predictor would give one row per observation
+at_values <- function(x) {
+  u <- sort(unique(x))
+  if (length(u) <= 10L) return(u)
+  unique(stats::quantile(x, c(0.1, 0.25, 0.5, 0.75, 0.9), names = FALSE, na.rm = TRUE))
+}
+env_utils_V1_2$at_values <- at_values
+
 num_to_factor <- function(df, cols) {
   for (i in seq_along(cols)) {
     if (is.numeric(df[, cols[i]])) {

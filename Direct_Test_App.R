@@ -1,3 +1,4 @@
+# install.packages("..", type = "source", repo = NULL)
 models <- list(
   "kit.mistral-small-4-119b-a8b",
   "kit.deepseek-v4-flash",

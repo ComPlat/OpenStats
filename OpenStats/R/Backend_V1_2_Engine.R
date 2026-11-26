@@ -444,6 +444,13 @@ correlation_V1_2 <- R6::R6Class(
   )
 )
 
+# Labels are parsed as plotmath: "Origin (Type)" is shown as "Origin(Type)"
+llm_label_hint_V1_2 <- paste(
+  "Empty uses the column name. Labels are parsed as R plotmath:",
+  "use plain words without brackets, * or spaces before (,",
+  "e.g. 'Origin' instead of 'Origin (Type)'; CO[2] shows a subscript."
+)
+
 visualisation_V1_2 <- R6::R6Class(
   "visualisation_V1_2",
   public = list(
@@ -470,6 +477,65 @@ visualisation_V1_2 <- R6::R6Class(
     height = NULL,
     resolution = NULL,
     col_names = NULL,
+
+    description = paste(
+      "Plot two columns of the active dataset as boxplot, scatterplot or lineplot.",
+      "Groups can be shown by colour, fill (boxplot only) or split into subplots.",
+      "No formula needed."
+    ),
+    params = list(
+      method = list(
+        type = "enum",
+        values = c("box", "dot", "line"),
+        description = "box for a boxplot, dot for a scatterplot, line for a lineplot."
+      ),
+      x = list(type = "string", description = "Column shown on the x axis."),
+      y = list(type = "string", description = "Column shown on the y axis."),
+      type_of_x = list(
+        type = "enum",
+        values = c("factor", "numeric"),
+        default = "factor",
+        description = "Treat x as groups (factor) or as continuous axis (numeric)."
+      ),
+      xlabel = list(type = "string", default = "", description = paste("X axis label.", llm_label_hint_V1_2)),
+      ylabel = list(type = "string", default = "", description = paste("Y axis label.", llm_label_hint_V1_2)),
+      colour_var = list(type = "string", default = "", description = "Column whose groups get different colours. Empty for none."),
+      colour_legend_title = list(type = "string", default = "", description = paste("Legend title for colour.", llm_label_hint_V1_2)),
+      colour_theme = list(
+        type = "enum",
+        values = c("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"),
+        default = "Set1",
+        description = "Colour palette."
+      ),
+      fill_var = list(type = "string", default = "", description = "Boxplot only: column whose groups get different fill colours. Empty for none."),
+      fill_legend_title = list(type = "string", default = "", description = paste("Legend title for fill.", llm_label_hint_V1_2)),
+      fill_theme = list(
+        type = "enum",
+        values = c("BuGn", "PuRd", "YlOrBr", "Greens", "GnBu", "Reds", "Oranges", "Greys"),
+        default = "BuGn",
+        description = "Fill palette."
+      ),
+      facet_var = list(type = "string", default = "", description = "Column used to split the plot into subplots. Empty for none."),
+      facet_y_scaling = list(
+        type = "enum",
+        values = c("free", "fixed"),
+        default = "free",
+        description = "Scaling of the y axis in subplots."
+      ),
+      xrange = list(
+        type = "array",
+        default = character(),
+        description = "Two values: start and end of the x axis (numbers or levels). Empty uses the whole range. Ignored with subplots."
+      ),
+      yrange = list(
+        type = "array",
+        default = character(),
+        description = "Two numbers: start and end of the y axis. Empty uses the whole range. Ignored with subplots."
+      ),
+      width = list(type = "number", default = 10, description = "Width of the plot in cm."),
+      height = list(type = "number", default = 10, description = "Height of the plot in cm."),
+      resolution = list(type = "number", default = 300, description = "Resolution of the plot in dpi.")
+    ),
 
     initialize = function(df, x, y, method, xlabel, type_of_x, ylabel,
                           colour_var, colour_legend_title, colour_theme,
@@ -616,6 +682,21 @@ visualisation_model_V1_2 <- R6::R6Class(
     formula = NULL,
     layer = NULL,
     com = NULL,
+
+    description = paste(
+      "Plot the raw data structured by the formula currently defined in the app:",
+      "response on the y axis, predictors as x axis, colour and subplots.",
+      "Random effects of mixed models are ignored."
+    ),
+    params = list(
+      layer = list(
+        type = "enum",
+        values = c("box", "dot", "line"),
+        default = "dot",
+        description = "How the data is shown: box for boxplot, dot for points, line for lines."
+      )
+    ),
+
     initialize = function(df, formula, layer, com = communicator_V1_2) {
       self$df <- df
       self$formula <- formula
@@ -684,6 +765,40 @@ hist_V1_2 <- R6::R6Class(
     height = NULL,
     resolution = NULL,
     col_names = NULL,
+
+    description = paste(
+      "Histogram or density plot of one numeric column of the active dataset.",
+      "Groups can be shown by fill colour or split into subplots. No formula needed."
+    ),
+    params = list(
+      y = list(type = "string", description = "Numeric column to plot."),
+      ylabel = list(type = "string", default = "", description = paste("Axis label.", llm_label_hint_V1_2)),
+      fill_var = list(type = "string", default = "", description = "Column whose groups get different colours. Empty for none."),
+      fill_legend_title = list(type = "string", default = "", description = paste("Legend title for fill.", llm_label_hint_V1_2)),
+      fill_theme = list(
+        type = "enum",
+        values = c("BuGn", "PuRd", "YlOrBr", "Greens", "GnBu", "Reds", "Oranges", "Greys"),
+        default = "BuGn",
+        description = "Fill palette."
+      ),
+      facet_var = list(type = "string", default = "", description = "Column used to split the plot into subplots. Empty for none."),
+      facet_y_scaling = list(
+        type = "enum",
+        values = c("free", "fixed"),
+        default = "free",
+        description = "Scaling of the y axis in subplots."
+      ),
+      frequency_or_density = list(
+        type = "enum",
+        values = c("frequency", "density"),
+        default = "frequency",
+        description = "frequency for a histogram, density for a density curve."
+      ),
+      bins = list(type = "integer", default = 30L, description = "Number of bins of the histogram."),
+      width = list(type = "number", default = 10, description = "Width of the plot in cm."),
+      height = list(type = "number", default = 10, description = "Height of the plot in cm."),
+      resolution = list(type = "number", default = 300, description = "Resolution of the plot in dpi.")
+    ),
 
     initialize = function(df, y, ylabel,
                           fill_var, fill_legend_title, fill_theme,
@@ -3093,7 +3208,10 @@ pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
 
     description = paste(
       "Post hoc comparisons for the linear mixed model currently defined in the app",
-      "(emmeans pairs for factors, emtrends for numeric predictors)."
+      "(emmeans pairs for factors, emtrends for numeric predictors).",
+      "With factors and numeric predictors both the group levels and, if the",
+      "formula contains an interaction, the slopes are compared at several values",
+      "of the numeric predictor."
     ),
     params = list(
       method = list(
@@ -3143,7 +3261,8 @@ pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
                   model,
                   specs = stats::as.formula(
                     paste("~", paste(factor_vars, collapse = " * "))
-                  )
+                  ),
+                  data = df
                 )
                 fit <- pairs(emm, adjust = method)
                 fit <- as.data.frame(fit)
@@ -3153,7 +3272,7 @@ pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
               else if (length(numeric_vars) == length(rhs_vars)) {
                 out <- list()
                 for (num_var in numeric_vars) {
-                  trend <- emmeans::emtrends(model, specs = ~ 1, var = num_var)
+                  trend <- emmeans::emtrends(model, specs = ~ 1, var = num_var, data = df)
                   trend <- as.data.frame(trend)
                   trend$trend_variable <- num_var
                   out[[num_var]] <- trend
@@ -3163,19 +3282,57 @@ pairwise_comparisons_linear_mixed_V1_2 <- R6::R6Class(
               }
               # Mixed
               else {
+                # Same columns for every block, otherwise rbind fails
+                as_rows <- function(fit, comparison, at_variable) {
+                  fit <- as.data.frame(fit)
+                  at_value <- NA_real_
+                  if (!is.na(at_variable)) {
+                    at_value <- fit[[at_variable]]
+                    fit[[at_variable]] <- NULL
+                  }
+                  cbind(
+                    data.frame(comparison = comparison, at_variable = at_variable, at_value = at_value),
+                    fit
+                  )
+                }
+                levels_spec <- paste("~", paste(factor_vars, collapse = " * "))
                 out <- list()
                 for (num_var in numeric_vars) {
+                  by_factors <- OpenStats:::env_utils_V1_2$interacting_factors(
+                    fixed_formula, num_var, factor_vars
+                  )
+                  # Without interaction the slopes are equal by model definition:
+                  # contrasts with zero variance break the Kenward-Roger df
+                  if (length(by_factors) == 0L) next
+                  at <- stats::setNames(list(OpenStats:::env_utils_V1_2$at_values(df[, num_var])), num_var)
+                  emm <- emmeans::emmeans(
+                    model,
+                    specs = stats::as.formula(paste(levels_spec, "|", num_var)),
+                    data = df,
+                    at = at
+                  )
                   trend <- emmeans::emtrends(
                     model,
                     specs = stats::as.formula(
-                      paste("~", paste(factor_vars, collapse = " * "))
+                      paste("~", paste(by_factors, collapse = " * "), "|", num_var)
                     ),
-                    var = num_var
+                    var = num_var,
+                    data = df,
+                    at = at
                   )
-                  fit <- pairs(trend, adjust = method)
-                  fit <- as.data.frame(fit)
-                  fit$trend_variable <- num_var
-                  out[[num_var]] <- fit
+                  # The adjustment runs within each value of num_var (emmeans default for
+                  # by variables), not across all values and both blocks; by = NULL would
+                  # adjust over everything but is very strict with many values
+                  out[[paste("level", num_var)]] <- as_rows(pairs(emm, adjust = method), "level", num_var)
+                  out[[paste("slope", num_var)]] <- as_rows(
+                    pairs(trend, adjust = method), paste("slope of", num_var), num_var
+                  )
+                }
+                # No interaction: the group differences are equal for every value
+                # of the numeric predictors, so one comparison at their mean suffices
+                if (length(out) == 0L) {
+                  emm <- emmeans::emmeans(model, specs = stats::as.formula(levels_spec), data = df)
+                  out$level <- as_rows(pairs(emm, adjust = method), "level", NA_character_)
                 }
                 res <- do.call(rbind, out)
                 rownames(res) <- NULL

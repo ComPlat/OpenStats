@@ -23,6 +23,9 @@ llm_tool_classes_V1_2 <- list(
   dose_response = dose_response_V1_2,
   primary_assay = primary_assay_V1_2,
   set_active_table = set_active_table_V1_2,
+  visualisation = visualisation_V1_2,
+  histogram = hist_V1_2,
+  visualisation_model = visualisation_model_V1_2,
   choose_toolbox = choose_toolbox_V1_2
 )
 
@@ -41,6 +44,10 @@ llm_toolbox_tools_V1_2 <- function(toolbox, DataModelState) {
   switch(
     toolbox,
     data = c("create_summary", "create_summary_plot", "create_intermediate_var", "create_new_col", "set_active_table"),
+    visualisation = c(
+      "visualisation", "histogram",
+      if ((is_lm || is_glm || is_lmm) && is.null(check_visualization2(DataModelState))) "visualisation_model"
+    ),
     assumptions = {
       if (is_lm) {
         c(
@@ -107,7 +114,8 @@ llm_action_tools_V1_2 <- c("set_active_table")
 
 llm_no_formula_tools_V1_2 <- c(
   "create_formula", "create_summary", "create_summary_plot",
-  "create_intermediate_var", "create_new_col", llm_read_tools_V1_2,
+  "create_intermediate_var", "create_new_col", "visualisation", "histogram",
+  llm_read_tools_V1_2,
   llm_action_tools_V1_2
 )
 

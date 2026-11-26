@@ -112,6 +112,9 @@ llm_table_text_V1_2 <- function(df, max_rows = 50L) {
     more <- sprintf("\n... (%d of %d rows shown)", max_rows, nrow(df))
     df <- utils::head(df, max_rows)
   }
+  # Wrapped column blocks are hard to read for the LLM
+  old <- options(width = 250)
+  on.exit(options(old))
   paste0(paste(utils::capture.output(print(df)), collapse = "\n"), more)
 }
 

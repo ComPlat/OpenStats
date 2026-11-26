@@ -160,12 +160,14 @@ test_lineplot_fct <- function() {
   test_layers(coloured_p, "GeomLine")
   test_layers(all_p, "GeomLine")
 
+  # group must not contain x, otherwise each x value is its own line
   test_mapping(base_p,
-    list(x = "conc", y = "uptake", group = "conc"))
+    list(x = "conc", y = "uptake", group = "1"))
   test_mapping(coloured_p,
-    list(x = "conc", y = "uptake", colour = "Treatment", group = c("conc", "Treatment")))
+    list(x = "conc", y = "uptake", colour = "Treatment", group = "Treatment"))
   test_mapping(all_p,
-    list(x = "conc", y = "uptake", colour = "Treatment", group = c("conc", "Treatment")))
+    list(x = "conc", y = "uptake", colour = "Treatment", group = "Treatment"))
+  expect_false(grepl("conc", deparse(coloured_p$layers[[1]]$mapping$group)))
 
   test_panel(all_p)
   invisible(NULL)

@@ -147,15 +147,12 @@ lineplot_fct <- function(df, x, y, xLabel, yLabel,
       aesColour <- ggplot2::aes(colour = .data[[colourVar]])
     }
   }
+  # Grouping by x would draw one vertical segment per x value
+  aesGroup <- if (colourVar == "") ggplot2::aes(group = 1) else ggplot2::aes(group = .data[[colourVar]])
   p <- ggplot2::ggplot() +
     ggplot2::geom_line(
       data = df,
-      ggplot2::aes(!!!base_aes, !!!aesColour,
-        group = interaction(
-          .data[[x]],
-          !!!aesColour
-        )
-      )
+      ggplot2::aes(!!!base_aes, !!!aesColour, !!!aesGroup)
     )
   p <- p + ggplot2::xlab(env_plotting_V1_2$parse_label(xLabel))
   p <- p + ggplot2::ylab(env_plotting_V1_2$parse_label(yLabel))

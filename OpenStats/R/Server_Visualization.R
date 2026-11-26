@@ -19,7 +19,7 @@ visServer <- function(id, DataModelState, ResultsState) {
     output[["CreateModelBoxUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+      if (inherits(DataModelState$formula, c("LinearFormula", "GeneralisedLinearFormula", "LinearMixedFormula"))) {
         message <- check_visualization2(DataModelState)
         if (!is.null(message)) return()
         shiny::actionButton("VIS-CreateModelBox", "Plot model")
@@ -28,7 +28,7 @@ visServer <- function(id, DataModelState, ResultsState) {
     output[["CreateModelScatterUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+      if (inherits(DataModelState$formula, c("LinearFormula", "GeneralisedLinearFormula", "LinearMixedFormula"))) {
         message <- check_visualization2(DataModelState)
         if (!is.null(message)) return()
         shiny::actionButton("VIS-CreateModelScatter", "Plot model")
@@ -37,7 +37,7 @@ visServer <- function(id, DataModelState, ResultsState) {
     output[["CreateModelLineUI"]] <- shiny::renderUI({
       shiny::req(!is.null(DataModelState$df))
       shiny::req(is.data.frame(DataModelState$df))
-      if (inherits(DataModelState$formula, "LinearFormula") || inherits(DataModelState$formula, "GeneralisedLinearFormula")) {
+      if (inherits(DataModelState$formula, c("LinearFormula", "GeneralisedLinearFormula", "LinearMixedFormula"))) {
         message <- check_visualization2(DataModelState)
         if (!is.null(message)) return()
         shiny::actionButton("VIS-CreateModelLine", "Plot model")
